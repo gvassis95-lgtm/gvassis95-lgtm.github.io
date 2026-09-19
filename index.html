@@ -423,8 +423,13 @@
   .cifra-row .avatar svg{width:19px;height:19px;}
   .cifra-row .info{flex:1;min-width:0;}
   .aluno-row-tasks{font-size:11px;color:var(--muted);margin-top:2px;}
-  .cifra-row .tit{font-weight:600;font-size:14.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .cifra-row .art{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Correção de 18/09/2026: título/artista longos nas listas de músicas, solos
+     e materiais eram cortados com "..." (text-overflow:ellipsis). Pedido do
+     usuário: quebrar a linha em vez de cortar o texto. .info já tem
+     min-width:0 (necessário pro flex item conseguir quebrar em vez de
+     estourar a largura da linha). */
+  .cifra-row .tit{font-weight:600;font-size:14.5px;color:var(--text);overflow-wrap:break-word;white-space:normal;}
+  .cifra-row .art{font-size:12px;color:var(--muted);overflow-wrap:break-word;white-space:normal;}
   .cifra-row .row-actions{display:flex;gap:4px;opacity:0;transition:opacity .25s;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--bg);border-radius:999px;padding:2px;}
   .row-check{width:19px;height:19px;flex:0 0 auto;accent-color:var(--accent);cursor:pointer;}
   .cifra-row.select-row.selected{background:var(--bg-panel);}
@@ -991,6 +996,17 @@
     .tools-grid{grid-template-columns:repeat(2,1fr);gap:8px;padding:4px;}
     .profile-side{grid-template-columns:1fr;}
     .profile-calendar-card{max-width:340px;margin:0 auto;width:100%;}
+    /* Correção de 18/09/2026: o card do gráfico não tinha o mesmo max-width do
+       card do calendário aqui — sobrava a largura cheia da tela pro gráfico, mas
+       a altura do SVG continuava fixa em 166px (ver studyChartSvg()), então a
+       proporção real ficava bem diferente da proporção "de projeto" (280x68) e
+       o gráfico aparecia achatado horizontalmente (meses espremidos, com uma
+       variação vertical desproporcional pro espaço horizontal disponível).
+       Agora o card tem o mesmo max-width do calendário, e a altura do SVG passa
+       a ser proporcional (aspect-ratio) em vez de fixa — sem distorção em
+       nenhuma largura de tela. */
+    .profile-chart-card{max-width:340px;margin:0 auto;width:100%;}
+    .study-chart{height:auto;aspect-ratio:280/68;}
     .profile-layout{justify-content:center;}
     .profile-card{flex:1 1 100%;max-width:360px;text-align:center;}
     .profile-avatar{justify-content:center;}
@@ -1005,6 +1021,7 @@
     .search-box input{width:150px;}
     .btn{width:auto;}
     .profile-calendar-card{max-width:280px;margin:0 auto;width:100%;}
+    .profile-chart-card{max-width:280px;margin:0 auto;width:100%;}
     .task-check-label{display:none;}
     .row-stars{display:none;}
     .edit-perfil-header-btn{display:none;}
@@ -1047,6 +1064,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <body>
 <div id="app"></div>
 <div id="toast"></div>
@@ -2325,8 +2343,18 @@ async function saveSoloDraft(){
   const criadoEm = d.isNew ? Date.now() : (d.criadoEm||Date.now());
   const existingMeta = state.solosIndex.find(s=>s.id===id) || {};
   const existingFull = state.solosDetailCache[id] || {};
-  const full = Object.assign({}, existingFull, {id, titulo, artista, tab, criadoEm, fonte, pdfData: fonte==='pdf'?d.pdfData:null, pdfName: fonte==='pdf'?d.pdfName:''});
-  const meta = Object.assign({}, existingMeta, {id, titulo, artista, criadoEm});
+  // Correção de 18/09/2026: mesmo padrão de privacidade de cifras — um solo novo
+  // nasce privado (só o professor vê) até ser enviado de propósito. Preserva o
+  // "enviado para" já existente ao editar; e se quem está criando é o próprio
+  // ALUNO (sessão real, sem professorMode — ele tem "+ Novo solo" na tela dele),
+  // inclui o e-mail dele mesmo em destinatarios, senão o solo que ele acabou de
+  // criar sumiria da vista dele (mesmo bug já corrigido em cifras).
+  let destinatarios = (existingFull.destinatarios || existingMeta.destinatarios || []).slice();
+  if(d.isNew && !state.professorMode && state.session && state.session.email && !destinatarios.includes(state.session.email)){
+    destinatarios = destinatarios.concat([state.session.email]);
+  }
+  const full = Object.assign({}, existingFull, {id, titulo, artista, tab, criadoEm, fonte, pdfData: fonte==='pdf'?d.pdfData:null, pdfName: fonte==='pdf'?d.pdfName:'', destinatarios});
+  const meta = Object.assign({}, existingMeta, {id, titulo, artista, criadoEm, destinatarios});
   if(d.isNew){ state.solosIndex.push(meta); } else { const idx=state.solosIndex.findIndex(s=>s.id===id); if(idx>=0) state.solosIndex[idx]=meta; else state.solosIndex.push(meta); }
   state.solosDetailCache[id] = full;
   state.soloDraft = null;
@@ -2334,7 +2362,8 @@ async function saveSoloDraft(){
   render();
   await saveSoloDetail(id, full);
   await saveSolosIndex();
-  if(d.isNew) await pushNotification('solo', id, titulo, []);
+  // Solo novo não notifica ninguém — nasce privado. A notificação sai quando o
+  // professor efetivamente o envia para alunos específicos (ver saveSendModal).
   showToast('"'+titulo+'" salvo.');
 }
 async function deleteSolo(id, ev){
@@ -2513,9 +2542,32 @@ function openPerfilEdit(){
 }
 function closePerfilEdit(){ state.perfilDraft = null; state.perfilFotoDraft = null; state.trocarSenhaOpen = false; render(); }
 const AVATAR_CROP_VIEWPORT = 280;
+// Correção de 18/09/2026: duas queixas reais do usuário sobre foto de perfil —
+// (1) "várias fotos o app não aceita, fala que não pode ser lida" e (2) a foto
+// salva aparecia em baixa resolução, cortada de forma estranha.
+// Causa da (1): fotos tiradas em iPhone costumam vir em HEIC/HEIF — um formato
+// que a MAIORIA dos navegadores (Chrome, Firefox, Edge; só o Safari decodifica
+// nativamente) não consegue abrir num <img>. O arquivo era lido do disco com
+// sucesso, mas a decodificação como imagem falhava silenciosamente, e o app
+// mostrava "não foi possível ler essa imagem" mesmo a foto sendo perfeitamente
+// válida. Corrigido convertendo HEIC/HEIF para JPEG no navegador (biblioteca
+// heic2any, carregada por CDN) antes de tentar decodificar. Limite de tamanho
+// também subiu de 8MB para 20MB — fotos de celulares modernos (48MP+) passam
+// fácil de 8MB, e o app sempre reduz/recomprime a imagem depois de qualquer
+// forma, então aceitar o arquivo original maior não pesa no que fica salvo.
+async function normalizeImageFile(file){
+  const isHeic = /image\/hei[cf]/i.test(file.type||'') || /\.(heic|heif)$/i.test(file.name||'');
+  if(!isHeic || typeof window.heic2any !== 'function') return file;
+  try{
+    const out = await window.heic2any({blob:file, toType:'image/jpeg', quality:0.9});
+    const blob = Array.isArray(out) ? out[0] : out;
+    return new File([blob], (file.name||'foto').replace(/\.hei[cf]$/i,'')+'.jpg', {type:'image/jpeg'});
+  }catch(e){ console.error('Falha ao converter HEIC/HEIF para JPEG', e); return file; }
+}
+const IMAGE_UPLOAD_MAX_BYTES = 20*1024*1024;
 function readImageSquareDataUrl(file, size, cb){
   if(!file) return;
-  if(file.size > 8*1024*1024){ showToast('Imagem muito grande (máximo 8MB).', true); return; }
+  if(file.size > IMAGE_UPLOAD_MAX_BYTES){ showToast('Imagem muito grande (máximo 20MB).', true); return; }
   const reader = new FileReader();
   reader.onload = ()=>{
     const img = new Image();
@@ -2528,15 +2580,15 @@ function readImageSquareDataUrl(file, size, cb){
       ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
       cb(canvas.toDataURL('image/jpeg', 0.85));
     };
-    img.onerror = ()=>{ showToast('Não foi possível ler essa imagem.', true); };
+    img.onerror = ()=>{ showToast('Não foi possível ler essa imagem. Tente uma foto em JPG ou PNG.', true); };
     img.src = reader.result;
   };
-  reader.onerror = ()=>{ showToast('Não foi possível ler essa imagem.', true); };
+  reader.onerror = ()=>{ showToast('Não foi possível ler essa imagem. Tente uma foto em JPG ou PNG.', true); };
   reader.readAsDataURL(file);
 }
 function readImageFitDataUrl(file, maxDim, cb){
   if(!file) return;
-  if(file.size > 8*1024*1024){ showToast('Imagem muito grande (máximo 8MB).', true); return; }
+  if(file.size > IMAGE_UPLOAD_MAX_BYTES){ showToast('Imagem muito grande (máximo 20MB).', true); return; }
   const reader = new FileReader();
   reader.onload = ()=>{
     const img = new Image();
@@ -2550,14 +2602,14 @@ function readImageFitDataUrl(file, maxDim, cb){
       ctx.drawImage(img, 0, 0, w, h);
       cb(canvas.toDataURL('image/png'));
     };
-    img.onerror = ()=>{ showToast('Não foi possível ler essa imagem.', true); };
+    img.onerror = ()=>{ showToast('Não foi possível ler essa imagem. Tente uma foto em JPG ou PNG.', true); };
     img.src = reader.result;
   };
-  reader.onerror = ()=>{ showToast('Não foi possível ler essa imagem.', true); };
+  reader.onerror = ()=>{ showToast('Não foi possível ler essa imagem. Tente uma foto em JPG ou PNG.', true); };
   reader.readAsDataURL(file);
 }
-function handleAlunoFotoUpload(input, which){
-  const file = input.files[0]; if(!file) return;
+async function handleAlunoFotoUpload(input, which){
+  const file0 = input.files[0]; if(!file0) return;
   if(which==='cad'){
     const nEl=document.getElementById('cad_nome'), eEl=document.getElementById('cad_email'), sEl=document.getElementById('cad_senha');
     if(nEl) state.cadNomeDraft = nEl.value;
@@ -2569,13 +2621,15 @@ function handleAlunoFotoUpload(input, which){
     if(eEl) state.detEmailDraft = eEl.value;
     if(sEl) state.detSenhaDraft = sEl.value;
   }
+  const file = await normalizeImageFile(file0);
   readImageSquareDataUrl(file, 160, (dataUrl)=>{
     if(which==='cad') state.cadFotoPreview = dataUrl; else state.detFotoPreview = dataUrl;
     render();
   });
 }
-function handleLogoUpload(input, which){
-  const file = input.files[0]; if(!file) return;
+async function handleLogoUpload(input, which){
+  const file0 = input.files[0]; if(!file0) return;
+  const file = await normalizeImageFile(file0);
   readImageFitDataUrl(file, 300, (dataUrl)=>{
     if(which==='light') state.cfgLogoLightPreview = dataUrl; else state.cfgLogoDarkPreview = dataUrl;
     render();
@@ -2588,8 +2642,9 @@ function clearLogoPreview(which){
 // Imagem lateral da 2ª opção de layout da tela de login (rodada 12, pedido do
 // usuário em 05/09/2026) — maxDim maior que o logo (1400 em vez de 300) porque
 // essa imagem ocupa metade do card de login inteiro, não um ícone pequeno.
-function handleLoginImageUpload(input){
-  const file = input.files[0]; if(!file) return;
+async function handleLoginImageUpload(input){
+  const file0 = input.files[0]; if(!file0) return;
+  const file = await normalizeImageFile(file0);
   readImageFitDataUrl(file, 1400, (dataUrl)=>{
     state.cfgLoginImagePreview = dataUrl;
     render();
@@ -2597,28 +2652,68 @@ function handleLoginImageUpload(input){
 }
 function clearLoginImagePreview(){ state.cfgLoginImagePreview = null; render(); }
 function setLoginLayoutDraft(v){ state.cfgLoginLayoutDraft = v; render(); }
-function handleAvatarUpload(input){
-  const file = input.files[0]; if(!file) return;
-  if(file.size > 8*1024*1024){ showToast('Imagem muito grande (máximo 8MB).', true); return; }
+async function handleAvatarUpload(input){
+  const file0 = input.files[0]; if(!file0) return;
+  if(file0.size > IMAGE_UPLOAD_MAX_BYTES){ showToast('Imagem muito grande (máximo 20MB).', true); return; }
+  const file = await normalizeImageFile(file0);
   const reader = new FileReader();
   reader.onload = ()=>{
     const img = new Image();
     img.onload = ()=>{
+      // viewportSize começa com o valor "de projeto" (AVATAR_CROP_VIEWPORT) só como
+      // chute inicial — logo abaixo, depois do render() montar o modal de verdade no
+      // DOM, syncAvatarCropViewportSize() mede o tamanho REAL da caixa e corrige tudo
+      // (ver comentário completo nessa função sobre o bug que isso corrige).
       const minScale = Math.max(AVATAR_CROP_VIEWPORT/img.width, AVATAR_CROP_VIEWPORT/img.height);
       const dispW = img.width*minScale, dispH = img.height*minScale;
       state.avatarCropModal = {
         imgSrc: reader.result, naturalW: img.width, naturalH: img.height,
-        minScale, scale: minScale,
+        viewportSize: AVATAR_CROP_VIEWPORT, minScale, scale: minScale,
         offsetX: (AVATAR_CROP_VIEWPORT-dispW)/2, offsetY: (AVATAR_CROP_VIEWPORT-dispH)/2,
         dragging:false
       };
       render();
+      syncAvatarCropViewportSize();
+      // Reagir a girar o celular / redimensionar a janela enquanto o recorte está
+      // aberto — sem isso, girar a tela no meio do ajuste deixaria viewportSize
+      // desatualizado até a próxima interação.
+      window.removeEventListener('resize', syncAvatarCropViewportSize);
+      window.addEventListener('resize', syncAvatarCropViewportSize);
     };
-    img.onerror = ()=>{ showToast('Não foi possível ler essa imagem.', true); };
+    img.onerror = ()=>{ showToast('Não foi possível ler essa imagem. Tente uma foto em JPG ou PNG.', true); };
     img.src = reader.result;
   };
-  reader.onerror = ()=>{ showToast('Não foi possível ler essa imagem.', true); };
+  reader.onerror = ()=>{ showToast('Não foi possível ler essa imagem. Tente uma foto em JPG ou PNG.', true); };
   reader.readAsDataURL(file);
+}
+// Correção de 18/09/2026: a caixa de recorte (.avatar-crop-viewport) é 280px por
+// CSS, mas tem "max-width:100%" — em telas estreitas (a maioria dos celulares,
+// dentro do modal com padding) ela renderiza MENOR que 280px de verdade. Toda a
+// matemática do recorte (minScale, offsets, e o corte final em confirmAvatarCrop)
+// usava o número fixo AVATAR_CROP_VIEWPORT=280 mesmo quando a caixa real na tela
+// era menor — então a área realmente extraída da foto original era MAIOR do que
+// a que aparecia na caixinha de prévia, resultando na foto salva parecendo cortada
+// de forma estranha (sobrando fundo/context nas bordas) e em resolução mais baixa
+// (a mesma quantidade de pixels de saída, 360x360, precisava representar uma área
+// maior da foto original). Corrigido lendo o tamanho REAL da caixa no DOM (depois
+// dela já estar montada) e recalculando escala/posição em cima desse valor real,
+// preservando visualmente o enquadramento que o usuário já tinha ajustado.
+function syncAvatarCropViewportSize(){
+  const m = state.avatarCropModal; if(!m) return;
+  const el = document.getElementById('avatarCropViewport'); if(!el) return;
+  const real = Math.round(el.getBoundingClientRect().width) || AVATAR_CROP_VIEWPORT;
+  if(Math.abs(real - m.viewportSize) < 1) return;
+  const oldDispW = m.naturalW*m.scale, oldDispH = m.naturalH*m.scale;
+  const cx = (m.viewportSize/2 - m.offsetX) / oldDispW;
+  const cy = (m.viewportSize/2 - m.offsetY) / oldDispH;
+  m.viewportSize = real;
+  m.minScale = Math.max(real/m.naturalW, real/m.naturalH);
+  if(m.scale < m.minScale) m.scale = m.minScale;
+  const newDispW = m.naturalW*m.scale, newDispH = m.naturalH*m.scale;
+  m.offsetX = real/2 - cx*newDispW;
+  m.offsetY = real/2 - cy*newDispH;
+  clampAvatarOffsets(m);
+  updateAvatarCropPreview();
 }
 function updateAvatarCropPreview(){
   const el = document.getElementById('avatarCropImg'); const m = state.avatarCropModal;
@@ -2628,9 +2723,10 @@ function updateAvatarCropPreview(){
   el.style.transform = `translate(${m.offsetX}px, ${m.offsetY}px)`;
 }
 function clampAvatarOffsets(m){
+  const vp = m.viewportSize || AVATAR_CROP_VIEWPORT;
   const dispW = m.naturalW*m.scale, dispH = m.naturalH*m.scale;
-  const minX = Math.min(0, AVATAR_CROP_VIEWPORT-dispW), maxX = 0;
-  const minY = Math.min(0, AVATAR_CROP_VIEWPORT-dispH), maxY = 0;
+  const minX = Math.min(0, vp-dispW), maxX = 0;
+  const minY = Math.min(0, vp-dispH), maxY = 0;
   m.offsetX = Math.max(minX, Math.min(maxX, m.offsetX));
   m.offsetY = Math.max(minY, Math.min(maxY, m.offsetY));
 }
@@ -2654,28 +2750,33 @@ function moveAvatarDrag(ev){
 function endAvatarDrag(){ const m = state.avatarCropModal; if(m) m.dragging = false; }
 function changeAvatarZoom(val){
   const m = state.avatarCropModal; if(!m) return;
+  const vp = m.viewportSize || AVATAR_CROP_VIEWPORT;
   const oldDispW = m.naturalW*m.scale, oldDispH = m.naturalH*m.scale;
-  const cx = (AVATAR_CROP_VIEWPORT/2 - m.offsetX) / oldDispW;
-  const cy = (AVATAR_CROP_VIEWPORT/2 - m.offsetY) / oldDispH;
+  const cx = (vp/2 - m.offsetX) / oldDispW;
+  const cy = (vp/2 - m.offsetY) / oldDispH;
   m.scale = m.minScale * parseFloat(val);
   const newDispW = m.naturalW*m.scale, newDispH = m.naturalH*m.scale;
-  m.offsetX = AVATAR_CROP_VIEWPORT/2 - cx*newDispW;
-  m.offsetY = AVATAR_CROP_VIEWPORT/2 - cy*newDispH;
+  m.offsetX = vp/2 - cx*newDispW;
+  m.offsetY = vp/2 - cy*newDispH;
   clampAvatarOffsets(m);
   updateAvatarCropPreview();
 }
-function cancelAvatarCrop(){ state.avatarCropModal = null; render(); }
+function cancelAvatarCrop(){ window.removeEventListener('resize', syncAvatarCropViewportSize); state.avatarCropModal = null; render(); }
 function confirmAvatarCrop(){
   const m = state.avatarCropModal; if(!m) return;
+  window.removeEventListener('resize', syncAvatarCropViewportSize);
   const canvas = document.createElement('canvas');
-  const OUT = 360;
+  // 480px cobre com folga o maior tamanho exibido hoje (avatar de 190px, mesmo em
+  // tela retina/alta densidade) sem gerar um arquivo desproporcionalmente pesado.
+  const OUT = 480;
   canvas.width = OUT; canvas.height = OUT;
   const ctx = canvas.getContext('2d');
   const img = new Image();
   img.onload = ()=>{
+    const vp = m.viewportSize || AVATAR_CROP_VIEWPORT;
     const srcX = -m.offsetX / m.scale;
     const srcY = -m.offsetY / m.scale;
-    const srcSize = AVATAR_CROP_VIEWPORT / m.scale;
+    const srcSize = vp / m.scale;
     ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, OUT, OUT);
     const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
     state.perfilFotoDraft = dataUrl;
@@ -7125,6 +7226,83 @@ function syncDraftFieldsFromDom(){
     if(outroInput) state.draft.ritmoOutro = outroInput.value;
   }
 }
+// Correção de 18/09/2026: pedido do usuário — no celular, apertar a setinha de
+// "voltar" (do aparelho/navegador) saía do app inteiro, voltando pro site que
+// estava sendo usado antes, em vez de voltar pra tela anterior DENTRO do app.
+// Causa raiz: o app nunca usava a History API do navegador
+// (history.pushState/popstate) — cada "navegação" interna era só um render()
+// novo, sem deixar rastro nenhum no histórico do navegador, então não havia
+// nada pra esse botão "consumir" antes de sair do site de verdade.
+// Corrigido registrando uma entrada no histórico do navegador toda vez que a
+// "tela atual" muda de verdade (view, aba do professor, aluno aberto, cifra/
+// solo/material em visualização, e os modais mais comuns) — assim, apertar
+// voltar primeiro percorre essas entradas (voltando telas/fechando modais
+// dentro do app) e só sai do site de verdade depois de esgotar todas.
+// Os snapshots completos ficam só na memória (nunca vão para
+// history.pushState, que usa "structured clone" e não aceita objetos com
+// funções, como o confirmDialog.resolve) — pro navegador só vai um índice.
+const NAV_SIMPLE_KEYS = ['view','professorTab','professorStudentEmail','cifraSelId','soloViewId','materialViewId',
+  'professorCadastroOpen','materialUploadOpen','matNovaPastaModalOpen','matGerenciarPastasOpen','materialMoveId',
+  'novaTarefaModalOpen','trocarSenhaOpen','notifPanelOpen','topbarMenuOpen','profAreaMenuOpen'];
+const NAV_MODAL_KEYS = ['confirmDialog','variantModal','pdfChoiceModal','listMoreModal','itemContextMenu','toolContextMenu','avatarCropModal','perfilDraft'];
+let _navStack = [];
+let _navLastSig = null;
+let _navApplyingPop = false;
+let _navInitialized = false;
+function navSignature(){
+  const a = NAV_SIMPLE_KEYS.map(k=>{ const v=state[k]; return (v===undefined||v===null||v===false||v==='') ? '' : String(v); });
+  const b = NAV_MODAL_KEYS.map(k=> state[k] ? '1' : '0');
+  b.push(state.sendModalType ? '1' : '0');
+  return a.concat(b).join('|');
+}
+function captureNavSnapshot(){
+  const snap = {};
+  NAV_SIMPLE_KEYS.forEach(k=>{ snap[k]=state[k]; });
+  NAV_MODAL_KEYS.forEach(k=>{ snap[k]=state[k]; });
+  snap.sendModalType = state.sendModalType; snap.sendModalItemId = state.sendModalItemId; snap.sendModalSelected = state.sendModalSelected;
+  snap.cadFotoPreview = state.cadFotoPreview; snap.detFotoPreview = state.detFotoPreview; snap.perfilFotoDraft = state.perfilFotoDraft;
+  return snap;
+}
+function applyNavSnapshot(snap){
+  // Um customConfirm() pendente tem uma Promise esperando resposta (o "resolve"
+  // guardado dentro do próprio state.confirmDialog) — se a gente descartasse esse
+  // modal ao voltar sem resolver a Promise, quem estava esperando (ex: o botão
+  // "Sair") ficaria travado pra sempre esperando uma resposta que nunca chega.
+  // Resolve como "cancelado" antes de trocar para outro snapshot.
+  if(state.confirmDialog && typeof state.confirmDialog.resolve==='function' && state.confirmDialog!==snap.confirmDialog){
+    try{ state.confirmDialog.resolve(false); }catch(e){}
+  }
+  NAV_SIMPLE_KEYS.forEach(k=>{ state[k]=snap[k]; });
+  NAV_MODAL_KEYS.forEach(k=>{ state[k]=snap[k]||null; });
+  state.sendModalType = snap.sendModalType||null; state.sendModalItemId = snap.sendModalItemId||null; state.sendModalSelected = snap.sendModalSelected||null;
+  state.cadFotoPreview = state.professorCadastroOpen ? snap.cadFotoPreview : null;
+  state.detFotoPreview = state.professorStudentEmail ? snap.detFotoPreview : null;
+  state.perfilFotoDraft = state.perfilDraft ? snap.perfilFotoDraft : null;
+}
+function syncHistoryAfterRender(){
+  if(typeof history==='undefined' || !history.pushState) return;
+  const sig = navSignature();
+  if(!_navInitialized){
+    _navInitialized = true;
+    _navLastSig = sig;
+    _navStack = [captureNavSnapshot()];
+    try{ history.replaceState({navSeq:0}, '', location.href); }catch(e){}
+    return;
+  }
+  if(_navApplyingPop || sig===_navLastSig) return;
+  _navLastSig = sig;
+  _navStack.push(captureNavSnapshot());
+  try{ history.pushState({navSeq:_navStack.length-1}, '', location.href); }catch(e){}
+}
+window.addEventListener('popstate', function(ev){
+  const seq = ev.state && typeof ev.state.navSeq==='number' ? ev.state.navSeq : null;
+  if(seq===null || !_navStack[seq]) return;
+  _navApplyingPop = true;
+  applyNavSnapshot(_navStack[seq]);
+  _navLastSig = navSignature();
+  render();
+  _navApplyingPop = false;
+});
 let lastRenderedView = null;
 function render(){
   syncDraftFieldsFromDom();
@@ -7140,6 +7318,7 @@ function render(){
   updateGlobalDialogs();
   updateWhatsappFabVisibility();
   updateDocumentTitle();
+  syncHistoryAfterRender();
 }
 // Título da aba do navegador — pedido do usuário em 13/09/2026: antes era sempre
 // fixo "Repertório — Violão", mesmo em telas totalmente diferentes (Configurações,
@@ -7714,8 +7893,11 @@ function renderApp(){
   if(state.view==='solos'){
     const sf = state.solosFiltro;
     const selecting = state.selectMode==='solo';
+    // Correção de 18/09/2026: solo novo nascia visível para QUALQUER aluno (destinatarios
+    // vazio tratado como "todo mundo vê"), diferente de cifras/materiais (vazio = só o
+    // professor vê, até enviar de propósito). Agora segue exatamente o mesmo padrão delas.
     const filtrados = state.solosIndex.filter(s=>
-      (!s.destinatarios || s.destinatarios.length===0 || !!state.professorMode || (state.session && s.destinatarios.includes(state.session.email))) &&
+      (!!state.professorMode || (state.session && s.destinatarios && s.destinatarios.includes(state.session.email))) &&
       (!sf.busca || (s.titulo+s.artista).toLowerCase().includes(sf.busca.toLowerCase())));
     const groups = buildDisplayGroups(filtrados, state.solosSortMode, state.solosSortDir);
     app.innerHTML = `
