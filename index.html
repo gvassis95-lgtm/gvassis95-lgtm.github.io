@@ -549,8 +549,18 @@
   .yt-video-drag-actions{display:flex;align-items:center;gap:2px;cursor:default;}
   .yt-video-close{background:none;border:none;color:var(--muted);font-size:13px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s,color .25s;}
   .yt-video-close:hover{background:var(--pill-bg);color:var(--text);}
-  .yt-video-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;}
-  .yt-video-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:block;}
+  /* [Rodada 39] O vídeo em si some da tela (o usuário quer só play/pause e a
+     linha do tempo). Não dá pra usar display:none — alguns navegadores param o
+     player junto —, então ele fica com 1px, transparente e sem receber cliques. */
+  .yt-player-hidden{width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;position:absolute;left:0;bottom:0;}
+  .yt-mini-controls{display:flex;align-items:center;gap:10px;padding:10px 12px 12px;}
+  .yt-play-btn{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;padding:0;transition:filter .2s;}
+  .yt-play-btn:hover{filter:brightness(1.12);}
+  .yt-play-btn svg{width:17px;height:17px;display:block;}
+  .yt-time{flex:0 0 auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:30px;text-align:center;}
+  .yt-seek{flex:1 1 auto;min-width:0;-webkit-appearance:none;appearance:none;height:4px;border-radius:999px;background:var(--border);outline:none;padding:0;margin:0;cursor:pointer;}
+  .yt-seek::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;}
+  .yt-seek::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;}
   .yt-video-resize{position:absolute;top:0;bottom:0;width:12px;cursor:ew-resize;z-index:3;touch-action:none;}
   .yt-video-resize-l{left:-5px;}
   .yt-video-resize-r{right:-5px;}
@@ -592,6 +602,9 @@
   .row-ear{background:none;border:none;cursor:pointer;width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0;color:var(--border);}
   .row-ear svg{width:16px;height:16px;}
   .row-ear.on{color:var(--accent);}
+  /* [Rodada 39] "⋮" de mais opções (Editar/Excluir) nas listas, para o professor. */
+  .row-menu-btn{background:none;border:none;cursor:pointer;width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0;color:var(--muted);font-size:17px;line-height:1;border-radius:50%;transition:background .2s,color .2s;}
+  .row-menu-btn:hover{background:var(--pill-bg);color:var(--text);}
   .row-stars{display:flex;gap:1px;}
   .row-star{font-size:15px;color:var(--border);line-height:1;}
   .row-star.filled{color:var(--accent);}
@@ -1627,6 +1640,30 @@ function currentAlunoEmail(){
   if(state.professorMode && state.professorMode.email) return state.professorMode.email;
   return null;
 }
+// Correção de 20/09/2026 (rodada 39) — regra central de privacidade do conteúdo.
+// As listas do lado do ALUNO (Repertório, Solos e Materiais) faziam
+// "!!state.professorMode || (…destinatarios inclui o e-mail…)", ou seja:
+// bastava haver um professorMode pra mostrar TUDO. O problema é que
+// professorMode também fica preenchido quando o professor ENTRA NA ÁREA DE UM
+// ALUNO específico (enterAsStudent preenche professorMode.email) — então, na
+// tela daquele aluno, apareciam todas as cifras/solos/materiais do banco do
+// professor, inclusive os que ele ainda não tinha enviado pra ninguém. Foi
+// exatamente o que o usuário reportou: "escrevi dois solos de teste na área do
+// professor e eles já foram parar na área dos alunos".
+// Regra correta, e vale pros três tipos de conteúdo: tudo que o professor cria
+// nasce PRIVADO (só na área dele) e só aparece pra um aluno depois de ser
+// enviado pra ele de propósito ("Enviar para alunos", que preenche
+// destinatarios). A única exceção é o próprio professor navegando pelas telas
+// do aluno sem estar dentro de nenhum aluno específico (professorMode sem
+// email) — aí ele está vendo o banco dele mesmo, e continua vendo tudo.
+// Obs.: no banco, a RLS já garante isso para o aluno de verdade desde as
+// rodadas 32/36 (cifras, materiais e solos); esta função conserta o que é
+// exibido na tela, que é onde o professor enxergava demais.
+function podeVerNaAreaDoAluno(destinatarios){
+  if(state.professorMode && !state.professorMode.email) return true;
+  const email = currentAlunoEmail();
+  return !!(email && destinatarios && destinatarios.includes(email));
+}
 // O Postgres/PostgREST trata upsert() (INSERT ... ON CONFLICT DO UPDATE) como uma
 // tentativa de INSERT que pode terminar em UPDATE — por isso o RLS exige que a linha
 // passe TANTO a política de INSERT quanto a de UPDATE, mesmo quando na prática só um
@@ -2402,7 +2439,11 @@ async function saveSoloDraft(){
   await saveSolosIndex();
   // Solo novo não notifica ninguém — nasce privado. A notificação sai quando o
   // professor efetivamente o envia para alunos específicos (ver saveSendModal).
-  showToast('"'+titulo+'" salvo.');
+  // Correção de 20/09/2026 (rodada 39): o aviso não deixava claro que o item
+  // nasce privado. Reforça a regra pro professor não achar que já foi pro aluno.
+  showToast(state.professorMode
+    ? '"'+titulo+'" salvo no seu banco de solos. Use "Enviar para alunos" quando quiser liberar.'
+    : '"'+titulo+'" salvo.');
 }
 async function deleteSolo(id, ev){
   if(ev) ev.stopPropagation();
@@ -2444,13 +2485,68 @@ function normalizeTabEditor(){
   const ta = document.getElementById('solo_tab'); if(!ta) return;
   ta.value = normalizeTabLines(ta.value);
 }
+// Correção de 20/09/2026 (rodada 39): o botão "+ Compasso" NÃO desenhava barra
+// de compasso nenhuma — ele só tirava o "|" do fim da linha e colava mais 7
+// tracinhos, ou seja, esticava o mesmo compasso em vez de abrir um novo. Agora
+// ele acrescenta "|" + um compasso novo de tracinhos em TODAS as cordas de uma
+// vez (era esse o comportamento que o nome do botão prometia).
+const TAB_MEASURE_LEN = 16;
+// Divide uma linha de tablatura em [prefixo ("e|"), miolo, barra final].
+// Devolve null pra qualquer linha que não siga esse formato (linha em branco,
+// texto solto etc.) — essas ficam intactas.
+function splitTabLine(line){
+  const m = line.match(/^([^|]*\|)([\s\S]*)\|$/);
+  if(!m) return null;
+  return {prefix: m[1], body: m[2]};
+}
 function insertTabMeasure(){
   const ta = document.getElementById('solo_tab'); if(!ta) return;
   const lines = ta.value.split('\n');
-  const extra = '-------|';
-  const newLines = lines.map(l=> l.replace(/\|\s*$/, '') + extra);
+  const newLines = lines.map(l=>{
+    const parts = splitTabLine(l);
+    if(!parts) return l;
+    return parts.prefix + parts.body + '|' + '-'.repeat(TAB_MEASURE_LEN) + '|';
+  });
   ta.value = normalizeTabLines(newLines.join('\n'));
   ta.focus();
+}
+// Correção de 20/09/2026 (rodada 39): digitar "|" no meio da tablatura só
+// colocava a barra NAQUELA corda — as outras 5 continuavam sem barra e sem
+// pauta alinhada depois dela, que é o "a pauta não aparece depois da barra"
+// relatado pelo usuário. Agora a barra entra na MESMA coluna das 6 cordas, já
+// seguida de um compasso novo de tracinhos, então dá pra escrever normalmente
+// depois dela.
+function insertTabBarAllLines(){
+  const ta = document.getElementById('solo_tab'); if(!ta) return;
+  const value = ta.value;
+  const pos = ta.selectionStart;
+  const before = value.slice(0, pos);
+  const lineIdx = (before.match(/\n/g)||[]).length;
+  const col = pos - (before.lastIndexOf('\n') + 1);
+  const lines = value.split('\n');
+  // Só abre um compasso novo de tracinhos se o espaço que sobra depois do cursor
+  // for curto demais pra escrever — senão a pauta cresceria sem parar a cada
+  // barra colocada (o que sobra da linha já serve de compasso novo).
+  const atual = splitTabLine(lines[lineIdx] || '');
+  const sobra = atual ? Math.max(0, atual.body.length - Math.max(0, col - atual.prefix.length)) : 0;
+  const insert = '|' + (sobra < 4 ? '-'.repeat(TAB_MEASURE_LEN) : '');
+  let cursorBodyCol = 0, cursorPrefixLen = 0;
+  const newLines = lines.map((l, i)=>{
+    const parts = splitTabLine(l);
+    if(!parts) return l;
+    let bodyCol = col - parts.prefix.length;
+    if(bodyCol < 0) bodyCol = 0;
+    if(bodyCol > parts.body.length) bodyCol = parts.body.length;
+    if(i===lineIdx){ cursorBodyCol = bodyCol; cursorPrefixLen = parts.prefix.length; }
+    return parts.prefix + parts.body.slice(0, bodyCol) + insert + parts.body.slice(bodyCol) + '|';
+  });
+  const finalLines = normalizeTabLines(newLines.join('\n')).split('\n');
+  ta.value = finalLines.join('\n');
+  // Cursor logo depois da barra recém-colocada, já dentro do compasso novo.
+  const lineStart = finalLines.slice(0, lineIdx).reduce((acc,l)=>acc+l.length+1, 0);
+  const newPos = lineStart + cursorPrefixLen + cursorBodyCol + 1;
+  ta.focus();
+  ta.setSelectionRange(newPos, newPos);
 }
 function clearTabEditor(){
   const ta = document.getElementById('solo_tab'); if(!ta) return;
@@ -2475,24 +2571,66 @@ function insertTabSymbol(char){
   ta.focus();
   ta.setSelectionRange(start+1, start+1);
 }
+// Caracteres de técnica que também entram "por cima" (sem empurrar a linha).
+const TAB_OVERWRITE_CHARS = TAB_TECHNIQUES.map(t=>t.char).concat(['x','X','\\','.']);
+// Correção de 20/09/2026 (rodada 39): esta função existia desde que o editor de
+// tablatura foi criado, mas NUNCA foi ligada no <textarea> (nenhum onkeydown
+// apontava pra ela) — era código morto. Resultado: o editor se comportava como
+// um campo de texto comum, então cada tecla EMPURRAVA o resto da linha e
+// desalinhava as 6 cordas, e o backspace apagava de verdade em vez de devolver
+// o tracinho da pauta ("o backspace precisa digitar - tracinhos", nas palavras
+// do usuário). Agora está ligada (ver o textarea #solo_tab) e cobre:
+//   • número ou símbolo de técnica → escreve POR CIMA do caractere do cursor;
+//   • Backspace/Delete → devolve "-" no lugar (a pauta nunca encurta);
+//   • espaço → anda uma casa pra frente deixando "-" (nunca insere espaço,
+//     que era o que desalinhava as cordas quando se tentava "andar" digitando);
+//   • "|" → barra de compasso nas 6 cordas de uma vez (insertTabBarAllLines).
+// Barras "|" e quebras de linha são protegidas de apagar sem querer — pra tirar
+// uma barra, selecione ela e apague (seleção continua com o comportamento
+// normal do navegador).
 function handleTabEditorKeydown(ev){
   const ta = ev.target;
-  if(/^[0-9]$/.test(ev.key) && !ev.ctrlKey && !ev.metaKey && !ev.altKey){
+  if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  const key = ev.key;
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  if(key === '|'){
     ev.preventDefault();
-    const start = ta.selectionStart, end = ta.selectionEnd;
-    const selEnd = start===end ? start+1 : end;
+    insertTabBarAllLines();
+    return;
+  }
+  if(/^[0-9]$/.test(key) || TAB_OVERWRITE_CHARS.includes(key)){
+    ev.preventDefault();
     const ch = ta.value[start];
-    if(ch===undefined || ch==='\n') return; // don't overwrite past end of a line
-    ta.value = ta.value.slice(0,start) + ev.key + ta.value.slice(selEnd);
+    if(ch===undefined || ch==='\n' || ch==='|') return; // não passa por cima da barra nem do fim da linha
+    ta.value = ta.value.slice(0,start) + key + ta.value.slice(start===end ? start+1 : end);
     ta.setSelectionRange(start+1, start+1);
-  } else if(ev.key==='Backspace' && ta.selectionStart===ta.selectionEnd && ta.selectionStart>0){
-    const pos = ta.selectionStart;
-    const prevChar = ta.value[pos-1];
-    if(prevChar && /[0-9]/.test(prevChar)){
-      ev.preventDefault();
-      ta.value = ta.value.slice(0,pos-1) + '-' + ta.value.slice(pos);
-      ta.setSelectionRange(pos-1, pos-1);
-    }
+    return;
+  }
+  if(key === ' '){
+    ev.preventDefault();
+    const ch = ta.value[start];
+    if(ch===undefined || ch==='\n') return;
+    if(ch==='|'){ ta.setSelectionRange(start+1, start+1); return; } // pula a barra
+    ta.value = ta.value.slice(0,start) + '-' + ta.value.slice(start===end ? start+1 : end);
+    ta.setSelectionRange(start+1, start+1);
+    return;
+  }
+  if(key === 'Backspace' && start===end && start>0){
+    const prev = ta.value[start-1];
+    if(prev==='\n') return;
+    ev.preventDefault();
+    if(prev==='|'){ ta.setSelectionRange(start-1, start-1); return; } // anda pra trás sem apagar a barra
+    ta.value = ta.value.slice(0,start-1) + '-' + ta.value.slice(start);
+    ta.setSelectionRange(start-1, start-1);
+    return;
+  }
+  if(key === 'Delete' && start===end){
+    const ch = ta.value[start];
+    if(ch===undefined || ch==='\n' || ch==='|') return;
+    ev.preventDefault();
+    ta.value = ta.value.slice(0,start) + '-' + ta.value.slice(start+1);
+    ta.setSelectionRange(start, start);
+    return;
   }
 }
 
@@ -5139,7 +5277,26 @@ function mobileSongToolbarHtml(c, tomAtual, tomSoante){
       </div>
     </div>`;
 }
-function goHome(){ stopAutoScroll(); state.view='perfil'; state.cifraSelId=null; state.draft=null; state.selectMode=false; state.selectedIds=new Set(); render(); }
+// Correção de 20/09/2026 (rodada 39): clicar na logo levava SEMPRE pro 'perfil',
+// que é a tela inicial do ALUNO. Pro professor logado (que não tem perfil de
+// aluno nenhum), isso caía numa tela "Perfil do Aluno" vazia e sem sentido —
+// reportado pelo usuário: "entro numa cifra, clico na logo e caio numa tela
+// como se o professor tivesse um perfil de aluno". Agora a logo leva pra "casa"
+// de quem está usando: Área do Professor (lista de alunos) pro professor,
+// perfil pro aluno. Dentro da área de um aluno específico (professorMode.email
+// preenchido) a casa continua sendo o perfil daquele aluno, que é o certo.
+function goHome(){
+  stopAutoScroll();
+  state.cifraSelId=null; state.draft=null; state.selectMode=false; state.selectedIds=new Set();
+  if(state.professorMode && !state.professorMode.email){
+    state.professorTab = 'alunos';
+    state.professorStudentEmail = null;
+    state.view = 'professorArea';
+  } else {
+    state.view = 'perfil';
+  }
+  render();
+}
 function toggleTopbarMenu(ev){ if(ev) ev.stopPropagation(); state.topbarMenuOpen = !state.topbarMenuOpen; render(); }
 function closeTopbarMenu(){ if(state.topbarMenuOpen){ state.topbarMenuOpen = false; render(); } }
 // Popup pequeno do canto da Área do Professor (Configurações/Sair), no
@@ -5271,6 +5428,15 @@ function setProfessorTab(tab){
   state.professorStudentEmail = null;
   state.selectMode = false;
   state.selectedIds = new Set();
+  // Correção de 20/09/2026 (rodada 39): faltava voltar pra tela da Área do
+  // Professor. As abas (professorNavHtml) também aparecem em telas que NÃO são
+  // a 'professorArea' — por exemplo ao abrir um solo/cifra/material pelo banco
+  // do professor (professorOpenSolo & cia levam pro visualizador, view =
+  // 'solo-viewer'). Nessas telas, clicar numa aba só trocava state.professorTab
+  // por baixo dos panos e a tela continuava a mesma: era o "clico em outras
+  // abas e não muda a tela" relatado pelo usuário. Como escolher uma aba SEMPRE
+  // significa "ir pra essa aba da Área do Professor", a view volta junto.
+  state.view = 'professorArea';
   if(tab==='config'){
     state.cfgLogoLightPreview = (state.config && state.config.logoLight) || null;
     state.cfgLogoDarkPreview = (state.config && state.config.logoDark) || null;
@@ -5642,6 +5808,7 @@ function professorRepertorioTabHtml(){
               <div class="row-status">
                 <span class="prof-song-dest">${destLabel}</span>
                 <button class="row-ear ${dest.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('cifra','${c.id}')">${SEND_SVG}</button>
+                ${rowMenuBtnHtml('cifra', c.id)}
               </div>`}
             </div>`;
           }).join('')}
@@ -5702,7 +5869,7 @@ function professorMateriaisTabHtml(){
         <div class="row-status">
           <span class="prof-song-dest">${destLabel}</span>
           <button class="row-ear ${dest.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('material','${m.id}')">${SEND_SVG}</button>
-          <button class="row-ear" title="Excluir" onclick="deleteMaterial('${m.id}', event)">✕</button>
+          ${rowMenuBtnHtml('material', m.id)}
         </div>
       </div>`;
     }).join('')}</div>`:`<div class="empty"><span class="big">${ICON_FILE_BIG}</span>${state.materiaisIndex.length===0?'Nenhum material enviado ainda. Clique em "Enviar material" para começar.':'Nenhum material encontrado com esse filtro.'}</div>`}
@@ -5836,7 +6003,12 @@ function professorSolosTabHtml(){
         <div class="cifra-list">
           ${group.items.map(s=>{
             const dest = s.destinatarios||[];
-            const destLabel = dest.length===0 ? 'Todos os alunos' : (dest.length===1?'1 aluno':dest.length+' alunos');
+            // Correção de 20/09/2026 (rodada 39): dizia "Todos os alunos" quando
+            // destinatarios está vazio — resquício de antes da rodada 36, quando
+            // vazio realmente significava "todo mundo vê". Hoje vazio = privado,
+            // e o rótulo errado fazia o professor achar que o solo já tinha ido
+            // pra todo mundo. Agora segue o mesmo texto de cifras/materiais.
+            const destLabel = dest.length===0 ? 'Não enviado' : (dest.length===1?'1 aluno':dest.length+' alunos');
             const sel = selecting && state.selectedIds && state.selectedIds.has(s.id);
             return `
             <div class="cifra-row ${selecting?'select-row':''} ${sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${s.id}')`:`professorOpenSolo('${s.id}')`}" ${selecting?'':`oncontextmenu="openItemContextMenu(event,'solo','${s.id}')"`}>
@@ -5850,6 +6022,7 @@ function professorSolosTabHtml(){
               <div class="row-status">
                 <span class="prof-song-dest">${destLabel}</span>
                 <button class="row-ear ${dest.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('solo','${s.id}')">${SEND_SVG}</button>
+                ${rowMenuBtnHtml('solo', s.id)}
               </div>`}
             </div>`;
           }).join('')}
@@ -5985,7 +6158,6 @@ function sendModalHtml(){
   const list = getSendListFor(state.sendModalType);
   const item = list.find(x=>x.id===state.sendModalItemId);
   if(!item) return '';
-  const isCifra = state.sendModalType==='cifra';
   const noun = state.sendModalType==='solo' ? 'este solo' : state.sendModalType==='material' ? 'este material' : 'esta música';
   const alunos = state.alunosAutorizados||[];
   const allSelected = alunos.length>0 && state.sendModalSelected && alunos.every(a=>state.sendModalSelected.has(a.email));
@@ -5994,9 +6166,11 @@ function sendModalHtml(){
   <div class="modal-bg" onclick="if(event.target===this) closeSendModal()">
     <div class="mini-modal send-modal" style="max-width:420px;text-align:left;">
       <h4 style="margin:0 0 4px;">Enviar "${escapeHtml(item.titulo)}"</h4>
-      <p class="hint" style="margin:0 0 14px;">${isCifra
-        ? `Selecione os alunos que devem ver ${noun}. Cifras novas ficam visíveis só para você até serem enviadas — sem nenhum aluno selecionado, ela continua privada.`
-        : `Selecione os alunos que devem ver ${noun}. Sem nenhum selecionado, ela fica visível para todos.`}</p>
+      <!-- Correção de 20/09/2026 (rodada 39): o texto para solos/materiais ainda
+           dizia "sem nenhum selecionado, fica visível para todos" — regra antiga,
+           trocada nas rodadas 32 (materiais) e 36 (solos). Hoje vale a mesma
+           regra de cifras para os três: vazio = privado, só o professor vê. -->
+      <p class="hint" style="margin:0 0 14px;">Selecione os alunos que devem ver ${noun}. Tudo que você cria fica visível só para você até ser enviado — sem nenhum aluno selecionado, continua privado.</p>
       ${alunos.length?`<div class="aluno-select-list">
         <label class="aluno-select-row aluno-select-todos ${allSelected?'checked':''}">
           <input type="checkbox" ${allSelected?'checked':''} onchange="toggleSendModalTodos()">
@@ -6485,29 +6659,167 @@ function updateYoutubePreview(val){
 // Só aparece para o aluno se o professor tiver cadastrado um link válido para a
 // música (c.youtubeUrl). Se não houver link, a função retorna '' e nada é
 // renderizado — sem placeholder vazio nenhum, como pedido.
-function youtubeVideoPanelHtml(c){
-  if(!c || !c.youtubeUrl || state.videoPanelHidden) return '';
-  const vid = extractYoutubeId(c.youtubeUrl);
-  if(!vid) return '';
-  const pos = state.videoPanelPos;
-  const posStyle = pos ? `left:${pos.left}px;top:${pos.top}px;right:auto;bottom:auto;` : '';
-  const widthStyle = state.videoPanelWidth ? `width:${state.videoPanelWidth}px;` : '';
-  return `
-  <div class="yt-video-panel no-print" id="ytVideoPanel" style="${posStyle}${widthStyle}">
-    <div class="yt-video-drag" onmousedown="startVideoPanelDrag(event)" ontouchstart="startVideoPanelDrag(event)" title="Arraste para mover o vídeo">
+// ---- player do vídeo da música (painel flutuante da cifra) ----
+// [Reescrito em 20/09/2026 — rodada 39] Antes era um <iframe> comum do YouTube,
+// com todos os controles nativos dele (título, canal, volume, engrenagem, tela
+// cheia, logo, sugestões…). O usuário pediu "mais limpa, de preferência só o
+// botão de play/pause e a barra de reprodução". Agora o vídeo em si fica fora
+// de vista e quem aparece é uma barrinha nossa: play/pause + linha do tempo
+// arrastável + tempo decorrido/total.
+//
+// De quebra, isso conserta um problema que ninguém tinha reportado ainda: o
+// painel era montado dentro do innerHTML do #app, então QUALQUER render()
+// (marcar um acorde, mudar o tom, rolar a cifra…) recriava o iframe e a música
+// voltava do zero. O player agora mora num container próprio pendurado no
+// <body> (mesmo padrão da gaveta mobile), e só é recriado quando a música muda.
+const ytApiReadyQueue = [];
+let ytPlayer = null;         // instância da IFrame Player API
+let ytPlayerVideoId = null;  // vídeo carregado no player neste momento
+let ytApiLoading = false;
+let ytProgressTimer = null;
+let ytSeeking = false;       // true enquanto o usuário arrasta a linha do tempo
+window.onYouTubeIframeAPIReady = function(){
+  ytApiReadyQueue.splice(0).forEach(fn=>{ try{ fn(); }catch(e){ console.error(e); } });
+};
+function ensureYoutubeApi(cb){
+  if(window.YT && window.YT.Player){ cb(); return; }
+  ytApiReadyQueue.push(cb);
+  if(ytApiLoading) return;
+  ytApiLoading = true;
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  s.onerror = ()=>{ ytApiLoading = false; console.error('Não foi possível carregar o player do YouTube.'); };
+  document.head.appendChild(s);
+}
+const YT_PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
+const YT_PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5.5" width="3.4" height="13" rx="1"/><rect x="13.6" y="5.5" width="3.4" height="13" rx="1"/></svg>';
+function ytFormatTime(sec){
+  sec = Math.max(0, Math.floor(sec||0));
+  const m = Math.floor(sec/60), s = sec%60;
+  return m+':'+String(s).padStart(2,'0');
+}
+function ensureYtPanelMounted(){
+  if(document.getElementById('ytVideoRoot')) return;
+  const root = document.createElement('div');
+  root.id = 'ytVideoRoot';
+  root.innerHTML = `
+  <div class="yt-video-panel no-print" id="ytVideoPanel" style="display:none;">
+    <div class="yt-video-drag" onmousedown="startVideoPanelDrag(event)" ontouchstart="startVideoPanelDrag(event)" title="Arraste para mover">
       <span class="yt-drag-dots">⠿⠿</span>
       <span class="yt-video-drag-actions">
-        <button type="button" class="yt-video-close" onclick="closeVideoPanel()" title="Fechar vídeo">✕</button>
+        <button type="button" class="yt-video-close" onclick="closeVideoPanel()" title="Fechar player">✕</button>
       </span>
     </div>
-    <div class="yt-video-frame-wrap">
-      <iframe src="${youtubeEmbedUrl(vid)}" title="Vídeo da música" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <div class="yt-player-hidden"><div id="ytPlayerHost"></div></div>
+    <div class="yt-mini-controls">
+      <button type="button" class="yt-play-btn" id="ytPlayBtn" onclick="toggleYoutubePlay()" aria-label="Tocar ou pausar">${YT_PLAY_SVG}</button>
+      <span class="yt-time" id="ytTimeCur">0:00</span>
+      <input type="range" class="yt-seek" id="ytSeek" min="0" max="1000" value="0" step="1" aria-label="Linha do tempo"
+             oninput="onYoutubeSeekInput()" onchange="onYoutubeSeekCommit(this.value)"
+             onmousedown="ytSeeking=true" ontouchstart="ytSeeking=true">
+      <span class="yt-time" id="ytTimeDur">0:00</span>
     </div>
-    <div class="yt-video-resize yt-video-resize-l" onmousedown="startVideoPanelResize(event,'l')" ontouchstart="startVideoPanelResize(event,'l')" title="Arraste para redimensionar"></div>
-    <div class="yt-video-resize yt-video-resize-r" onmousedown="startVideoPanelResize(event,'r')" ontouchstart="startVideoPanelResize(event,'r')" title="Arraste para redimensionar"></div>
   </div>`;
+  document.body.appendChild(root);
 }
-function closeVideoPanel(){ state.videoPanelHidden = true; render(); }
+// Qual vídeo deve estar tocando agora (null = nenhum: fecha/destrói o player).
+function currentCifraVideoId(){
+  if(state.view!=='cifraViewer' || state.videoPanelHidden) return null;
+  const c = state.detailCache[state.cifraSelId];
+  if(!c || !c.youtubeUrl) return null;
+  return extractYoutubeId(c.youtubeUrl) || null;
+}
+function destroyYoutubePlayer(){
+  if(ytProgressTimer){ clearInterval(ytProgressTimer); ytProgressTimer = null; }
+  if(ytPlayer){
+    try{ ytPlayer.destroy(); }catch(e){}
+    ytPlayer = null;
+  }
+  ytPlayerVideoId = null;
+}
+function updateYoutubePanel(){
+  ensureYtPanelMounted();
+  const panel = document.getElementById('ytVideoPanel');
+  if(!panel) return;
+  const vid = currentCifraVideoId();
+  if(!vid){
+    panel.style.display = 'none';
+    destroyYoutubePlayer();
+    return;
+  }
+  panel.style.display = '';
+  if(state.videoPanelWidth) panel.style.width = state.videoPanelWidth+'px';
+  if(state.videoPanelPos){
+    panel.style.left = state.videoPanelPos.left+'px';
+    panel.style.top = state.videoPanelPos.top+'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+  }
+  if(vid === ytPlayerVideoId) return; // mesma música: não mexe no player (não reinicia)
+  destroyYoutubePlayer();
+  ytPlayerVideoId = vid;
+  ensureYoutubeApi(()=>{
+    // A música pode ter mudado de novo enquanto a API carregava.
+    if(ytPlayerVideoId !== vid || !document.getElementById('ytPlayerHost')) return;
+    ytPlayer = new YT.Player('ytPlayerHost', {
+      height: '1', width: '1', videoId: vid,
+      playerVars: {controls:0, rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, disablekb:1, fs:0},
+      events: {
+        onReady: ()=>{ updateYoutubeControls(); },
+        onStateChange: (ev)=>{
+          updateYoutubePlayButton();
+          if(ev.data === YT.PlayerState.PLAYING){
+            if(!ytProgressTimer) ytProgressTimer = setInterval(updateYoutubeControls, 250);
+          } else if(ytProgressTimer && ev.data !== YT.PlayerState.BUFFERING){
+            clearInterval(ytProgressTimer); ytProgressTimer = null;
+            updateYoutubeControls();
+          }
+        }
+      }
+    });
+  });
+  setTimeout(positionVideoPanelInitial, 220);
+}
+function updateYoutubePlayButton(){
+  const btn = document.getElementById('ytPlayBtn');
+  if(!btn || !ytPlayer || !ytPlayer.getPlayerState) return;
+  const playing = ytPlayer.getPlayerState() === 1; // 1 = PLAYING
+  btn.innerHTML = playing ? YT_PAUSE_SVG : YT_PLAY_SVG;
+  btn.classList.toggle('playing', playing);
+}
+function updateYoutubeControls(){
+  if(!ytPlayer || !ytPlayer.getDuration) return;
+  const dur = ytPlayer.getDuration() || 0;
+  const cur = ytPlayer.getCurrentTime() || 0;
+  const curEl = document.getElementById('ytTimeCur');
+  const durEl = document.getElementById('ytTimeDur');
+  const seek = document.getElementById('ytSeek');
+  if(curEl) curEl.textContent = ytFormatTime(cur);
+  if(durEl) durEl.textContent = ytFormatTime(dur);
+  // Enquanto o usuário arrasta a bolinha, o relógio não pode "puxar" ela de volta.
+  if(seek && !ytSeeking) seek.value = dur ? Math.round((cur/dur)*1000) : 0;
+  updateYoutubePlayButton();
+}
+function toggleYoutubePlay(){
+  if(!ytPlayer || !ytPlayer.getPlayerState) return;
+  if(ytPlayer.getPlayerState() === 1) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
+}
+// Enquanto arrasta: só atualiza o relógio (sem pular o áudio a cada pixel).
+function onYoutubeSeekInput(){
+  ytSeeking = true;
+  const seek = document.getElementById('ytSeek');
+  const curEl = document.getElementById('ytTimeCur');
+  if(!seek || !curEl || !ytPlayer || !ytPlayer.getDuration) return;
+  const dur = ytPlayer.getDuration() || 0;
+  curEl.textContent = ytFormatTime((seek.value/1000)*dur);
+}
+function onYoutubeSeekCommit(val){
+  ytSeeking = false;
+  if(!ytPlayer || !ytPlayer.getDuration) return;
+  const dur = ytPlayer.getDuration() || 0;
+  if(dur) ytPlayer.seekTo((val/1000)*dur, true);
+}
+function closeVideoPanel(){ state.videoPanelHidden = true; destroyYoutubePlayer(); render(); }
 // Posiciona o painel, na primeira vez que aparece pra uma música, ancorado no
 // canto superior direito do próprio retângulo da cifra (não do viewport) — é
 // isso que faz ele nascer "dentro" da área da música, no topo, como pedido.
@@ -6830,8 +7142,10 @@ async function processMultipleMaterialFiles(files){
   }
   state.matDraftTitulo=''; state.matDraftPdfData=null; state.matDraftPdfName=''; state.matDraftPastaId='';
   render();
-  if(okCount>0 && failCount===0) showToast(okCount===1?'Material enviado.':`${okCount} materiais enviados.`);
-  else if(okCount>0 && failCount>0) showToast(`${okCount} materiais enviados, ${failCount} não puderam ser enviados (arquivo grande demais ou não é PDF).`, true);
+  // "enviado" dava a entender que já tinha ido pros alunos (rodada 39): material
+  // novo fica só no banco do professor até o "Enviar para alunos".
+  if(okCount>0 && failCount===0) showToast(okCount===1?'Material salvo no seu banco. Use "Enviar para alunos" quando quiser liberar.':`${okCount} materiais salvos no seu banco. Use "Enviar para alunos" quando quiser liberar.`);
+  else if(okCount>0 && failCount>0) showToast(`${okCount} materiais salvos no seu banco, ${failCount} não puderam ser enviados (arquivo grande demais ou não é PDF).`, true);
   else showToast('Não foi possível enviar os arquivos.', true);
 }
 async function processMaterialPdfFile(file){
@@ -6878,7 +7192,7 @@ async function submitMaterialUpload(ev){
   const okDetail = await saveMaterialDetail(id, full);
   const okIndex = await saveMateriaisIndex();
   if(okDetail && okIndex){
-    showToast('Material enviado.');
+    showToast('Material salvo no seu banco. Use "Enviar para alunos" quando quiser liberar.');
   } else {
     showToast('O material apareceu na lista, mas não foi possível salvá-lo de forma permanente (o arquivo pode ser grande demais). Ele pode se perder ao recarregar a página.', true);
   }
@@ -7262,6 +7576,17 @@ function restoreFocus(info){
   }
 }
 function syncDraftFieldsFromDom(){
+  // Correção de 20/09/2026 (rodada 39): o rascunho do SOLO nunca era lido de
+  // volta do DOM — só na hora de salvar. Como os botões do editor de tablatura
+  // (+ Compasso, técnicas, Limpar) mexem direto no .value do textarea, qualquer
+  // render() no meio do caminho ressuscitava a versão antiga do state e jogava
+  // fora o que tinha sido escrito. Agora o texto da tablatura é sincronizado
+  // antes de cada render, junto com o rascunho de cifra.
+  if(state.soloDraft){
+    const st = document.getElementById('solo_tab'); if(st) state.soloDraft.tab = st.value;
+    const sTit = document.getElementById('solo_titulo'); if(sTit) state.soloDraft.titulo = sTit.value;
+    const sArt = document.getElementById('solo_artista'); if(sArt) state.soloDraft.artista = sArt.value;
+  }
   if(!state.draft) return;
   const tEl = document.getElementById('f_titulo'); if(tEl) state.draft.titulo = tEl.value;
   const aEl = document.getElementById('f_artista'); if(aEl) state.draft.artista = aEl.value;
@@ -7364,6 +7689,7 @@ function render(){
   updateMobileDrawerFooter();
   updateProfessorBanner();
   updateProfessorAreaBanner();
+  updateYoutubePanel();
   updateGlobalDialogs();
   updateWhatsappFabVisibility();
   updateDocumentTitle();
@@ -7421,10 +7747,20 @@ function updateProfessorBanner(){
   // do professor". Quando o professor entra na área de um aluno específico
   // (professorMode.email preenchido), a faixa some — pedido do usuário em
   // 04/09/2026 — e o "Voltar à área do professor" passa a viver no menu do avatar
-  // (topbar-menu), junto de "Editar perfil"/"Sair da conta". A faixa continua
-  // existindo só pro caso raro de navegação administrativa sem aluno específico
-  // (professorMode = {email:null}), onde o topbar já mostra um botão "Sair" próprio.
-  const active = !!(state.professorMode && !state.professorMode.email && state.view!=='professorArea' && state.view!=='login');
+  // (topbar-menu), junto de "Editar perfil"/"Sair da conta". Sobrava o caso de
+  // navegação sem aluno específico (professorMode = {email:null}).
+  //
+  // [Aposentada em 20/09/2026 — rodada 39] Esse "caso raro" na verdade virou o
+  // caso COMUM: professorMode = {email:null} é o estado normal de um professor
+  // logado (ver o login e a restauração de sessão), então a faixa aparecia toda
+  // vez que ele abria um solo/cifra/material ou uma ferramenta a partir da área
+  // dele — que são telas dele mesmo, não "navegação geral". O usuário pediu
+  // explicitamente que ela não apareça nessas telas ("enquanto o professor
+  // estiver na sua tela, é sempre aquela faixa padrão em cima"). Hoje ela é
+  // desnecessária: a topbar dessas telas já traz o "Sair" do professor, e
+  // clicar em qualquer aba (setProfessorTab) volta pra Área do Professor.
+  // O elemento e o CSS continuam no arquivo, só nunca são ativados.
+  const active = false;
   banner.classList.toggle('show', active);
   document.body.classList.toggle('prof-mode', active);
   if(active && text){
@@ -7507,6 +7843,17 @@ function closeToolContextMenu(){ state.toolContextMenu = null; render(); }
 // "Excluir" não apaga na hora: entra no modo de seleção (state.selectMode +
 // state.selectedIds), com o item clicado já pré-selecionado, para a pessoa
 // poder escolher quais e quantos itens quer excluir antes de confirmar.
+// Botão "⋮" (mais opções) nas linhas das listas, só para o professor.
+// [Rodada 39 — 20/09/2026] Editar/Excluir só existiam no clique com o botão
+// direito (oncontextmenu): invisível pra quem não sabe que existe, e ruim no
+// celular, onde depende de "segurar" o item (era a pendência #8 deste
+// documento). Agora há um botão visível na própria linha, que abre exatamente
+// o mesmo menu — nas 3 listas (repertório, solos e materiais), tanto no banco
+// do professor quanto quando ele entra na área de um aluno.
+function rowMenuBtnHtml(type, id){
+  if(!state.professorMode) return '';
+  return `<button class="row-menu-btn" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openItemContextMenu(event,'${type}','${id}')">⋮</button>`;
+}
 function openItemContextMenu(ev, type, id){
   if(ev){ ev.preventDefault(); ev.stopPropagation(); }
   state.itemContextMenu = {type, id, x: ev.clientX, y: ev.clientY};
@@ -7795,7 +8142,7 @@ function renderApp(){
     // Por padrão, cifras novas só ficam visíveis para o professor — o aluno só vê
     // uma música depois que o professor a envia especificamente para ele (destinatarios
     // precisa incluir o e-mail dele). O professor (qualquer professorMode) sempre vê tudo.
-    const meusVisiveis = state.cifraIndex.filter(c=> !!state.professorMode || (state.session && c.destinatarios && c.destinatarios.includes(state.session.email)));
+    const meusVisiveis = state.cifraIndex.filter(c=> podeVerNaAreaDoAluno(c.destinatarios));
     const filtradas = meusVisiveis.filter(c=>
       (!f.artista||c.artista===f.artista) &&
       (!f.busca || (c.titulo+c.artista).toLowerCase().includes(f.busca.toLowerCase())));
@@ -7853,7 +8200,8 @@ function renderApp(){
                   <div class="row-stars">${[1,2,3,4,5].map(n=>`<span class="row-star ${n<=(c.dificuldade||0)?'filled':''}">★</span>`).join('')}</div>
                   <button class="row-brain ${c.memorizada?'on':''}" title="${c.memorizada?'Memorizada — clique para desmarcar':'Marcar como memorizada'}" onclick="toggleMemorizada('${c.id}', event)">${BRAIN_SVG}</button>
                   <button class="row-ear ${c.tiradaDeOuvido?'on':''}" title="${c.tiradaDeOuvido?'Tirada de ouvido — clique para desmarcar':'Marcar como tirada de ouvido'}" onclick="toggleTiradaDeOuvido('${c.id}', event)">${EAR_SVG}</button>
-                  ${state.professorMode?`<button class="row-ear ${c.destinatarios&&c.destinatarios.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('cifra','${c.id}')">${SEND_SVG}</button>`:''}
+                  ${(state.professorMode && !state.professorMode.email)?`<button class="row-ear ${c.destinatarios&&c.destinatarios.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('cifra','${c.id}')">${SEND_SVG}</button>`:''}
+                  ${rowMenuBtnHtml('cifra', c.id)}
                 </div>`}
               </div>`;
             }).join('')}
@@ -7946,7 +8294,7 @@ function renderApp(){
     // vazio tratado como "todo mundo vê"), diferente de cifras/materiais (vazio = só o
     // professor vê, até enviar de propósito). Agora segue exatamente o mesmo padrão delas.
     const filtrados = state.solosIndex.filter(s=>
-      (!!state.professorMode || (state.session && s.destinatarios && s.destinatarios.includes(state.session.email))) &&
+      podeVerNaAreaDoAluno(s.destinatarios) &&
       (!sf.busca || (s.titulo+s.artista).toLowerCase().includes(sf.busca.toLowerCase())));
     const groups = buildDisplayGroups(filtrados, state.solosSortMode, state.solosSortDir);
     app.innerHTML = `
@@ -8001,7 +8349,8 @@ function renderApp(){
                   <div class="row-stars">${[1,2,3,4,5].map(n=>`<span class="row-star ${n<=(s.dificuldade||0)?'filled':''}">★</span>`).join('')}</div>
                   <button class="row-brain ${s.memorizada?'on':''}" title="${s.memorizada?'Memorizado — clique para desmarcar':'Marcar como memorizado'}" onclick="toggleSoloMemorizada('${s.id}', event)">${BRAIN_SVG}</button>
                   <button class="row-ear ${s.tiradaDeOuvido?'on':''}" title="${s.tiradaDeOuvido?'Tirado de ouvido — clique para desmarcar':'Marcar como tirado de ouvido'}" onclick="toggleSoloTiradaDeOuvido('${s.id}', event)">${EAR_SVG}</button>
-                  ${state.professorMode?`<button class="row-ear ${s.destinatarios&&s.destinatarios.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('solo','${s.id}')">${SEND_SVG}</button>`:''}
+                  ${(state.professorMode && !state.professorMode.email)?`<button class="row-ear ${s.destinatarios&&s.destinatarios.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('solo','${s.id}')">${SEND_SVG}</button>`:''}
+                  ${rowMenuBtnHtml('solo', s.id)}
                 </div>`}
               </div>`;
             }).join('')}
@@ -8043,8 +8392,8 @@ function renderApp(){
         <div class="tab-toolbar">
           ${TAB_TECHNIQUES.map(t=>`<button type="button" class="btn-ghost btn-small" onclick="insertTabSymbol('${t.char}')" title="Inserir símbolo de ${t.label}">${t.label}</button>`).join('')}
         </div>
-        <textarea id="solo_tab" class="tab-editor-textarea" rows="10" spellcheck="false">${escapeHtml(d.tab||DEFAULT_TAB_SKELETON)}</textarea>
-        <div class="hint">Escreva os números das casas diretamente sobre os traços de cada corda (e B G D A E). Use "+ Compasso" para adicionar mais espaço às 6 linhas de uma vez. Os botões de técnica inserem o símbolo na posição do cursor.</div>
+        <textarea id="solo_tab" class="tab-editor-textarea" rows="10" spellcheck="false" onkeydown="handleTabEditorKeydown(event)" oninput="if(state.soloDraft) state.soloDraft.tab=this.value;">${escapeHtml(d.tab||DEFAULT_TAB_SKELETON)}</textarea>
+        <div class="hint">Escreva os números das casas diretamente sobre os traços de cada corda (e B G D A E) — eles entram por cima do traço, sem desalinhar as cordas. <b>Backspace</b> apaga devolvendo o tracinho, e a <b>barra de espaço</b> anda uma casa pra frente. Digite <b>|</b> (ou use "+ Compasso") para abrir um compasso novo nas 6 cordas de uma vez. Os botões de técnica inserem o símbolo na posição do cursor.</div>
       </div>
       ` : `
       <div class="field">
@@ -8068,7 +8417,7 @@ function renderApp(){
     const email = state.session && state.session.email;
     const mf = state.matFiltro;
     let visiveis = state.materiaisIndex.filter(m=>
-      (!!state.professorMode || (email && m.destinatarios && m.destinatarios.includes(email))) &&
+      podeVerNaAreaDoAluno(m.destinatarios) &&
       (!mf.busca || m.titulo.toLowerCase().includes(mf.busca.toLowerCase()))
     );
     const pastaAtiva = state.matPastaFiltro;
@@ -8118,7 +8467,7 @@ function renderApp(){
             <div class="tit">${escapeHtml(m.titulo)}</div>
             <div class="art">${formatDatePt(m.criadoEm)}</div>
           </div>
-          <div class="row-status"><button class="row-ear on" title="Baixar" onclick="event.stopPropagation();downloadMaterial('${m.id}')">${DOWNLOAD_SVG}</button></div>
+          <div class="row-status"><button class="row-ear on" title="Baixar" onclick="event.stopPropagation();downloadMaterial('${m.id}')">${DOWNLOAD_SVG}</button>${rowMenuBtnHtml('material', m.id)}</div>
         </div>`).join('')}</div>`}
     `;
     return;
@@ -8330,10 +8679,8 @@ function renderApp(){
         </div>
         ${mobileSongToolbarHtml(c, null)}
         <iframe class="pdf-embed" src="${c.pdfData}"></iframe>
-        ${youtubeVideoPanelHtml(c)}
         ${draftModalHtml()}
       `;
-      setTimeout(positionVideoPanelInitial, 220);
       return;
     }
 
@@ -8442,10 +8789,8 @@ function renderApp(){
         </div>
         ${diagramsRowHtml(chordSeen, state.diagOrient, false, c.chordOverrides, c.capo||0)}
       </div>
-      ${youtubeVideoPanelHtml(c)}
       ${draftModalHtml()}
     `;
-    setTimeout(positionVideoPanelInitial, 220);
     return;
   }
 }
