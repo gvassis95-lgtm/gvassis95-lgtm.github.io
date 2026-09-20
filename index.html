@@ -264,7 +264,9 @@
   .topbar-sair-btn svg{width:15px;height:15px;flex:0 0 auto;}
   .tab-toolbar{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
   .tab-editor-textarea{font-family:'Courier New',Courier,monospace;font-size:13.5px;line-height:1.7;white-space:pre;min-height:220px;}
-  .tab-display{font-family:'Courier New',Courier,monospace;font-size:13.5px;line-height:1.9;background:none;border:none;padding:6px 0;overflow-x:auto;white-space:pre;color:var(--text);}
+  /* [Rodada 45] Sem rolagem horizontal: a tablatura é cortada em blocos por
+     wrapTabBlocks()/updateTabDisplay(), sempre na mesma coluna nas 6 cordas. */
+  .tab-display{font-family:'Courier New',Courier,monospace;font-size:13.5px;line-height:1.9;background:none;border:none;padding:6px 0;overflow-x:hidden;white-space:pre;color:var(--text);}
   /* Mesmo tratamento de fundo em degradê diagonal usado nos cards do Perfil
      ("Artistas e bandas favoritos" etc, rodada 8) e na .cifra-col (rodada 9),
      terminando numa mistura de 35% da cor do card em vez de transparente
@@ -2486,16 +2488,79 @@ async function deleteSoloFromViewer(id){
   await deleteSoloRemote(id);
   backToSolos();
 }
-function renderTabHtml(tabText){
-  const lines = (tabText||'').split('\n');
-  return lines.map(line=>{
-    const m = line.match(/^([a-zA-Z#]{1,2})\|(.*)\|$/);
-    if(!m) return escapeHtml(line)+'\n';
-    const label = m[1], body = m[2];
-    const bodyHtml = body.split('').map(ch => ch==='-' ? ' ' : escapeHtml(ch)).join('');
-    return `<span class="tab-string-label">${escapeHtml(label)}</span>|<span class="tab-line-track">${bodyHtml}</span>|\n`;
-  }).join('');
+// [Rodada 45 — 20/09/2026] Quebra da tablatura em blocos, pra tela de ver o
+// solo. Pedido do usuário: "na tablatura, preciso que haja tipo uma quebra de
+// texto. Não quero essa rolagem horizontal." Não dá pra deixar o texto quebrar
+// sozinho (cada corda quebraria num ponto diferente e as 6 sairiam do lugar),
+// então a tablatura é cortada em "sistemas", como nos livros de tablatura: as
+// 6 cordas são cortadas SEMPRE na mesma coluna e os pedaços ficam empilhados,
+// um bloco embaixo do outro, cada um repetindo a letra da corda.
+// `cols` é quantos caracteres cabem na largura atual da tela (medido de
+// verdade em updateTabDisplay, porque a fonte é monoespaçada).
+function wrapTabBlocks(tabText, cols){
+  const texto = normalizeTabLines(tabText||'');
+  const linhas = texto.split('\n');
+  const partes = linhas.map(splitTabLine);
+  // Alguma linha fora do formato "e|...|"? Devolve como está, sem inventar.
+  if(!partes.length || partes.some(p=>!p)) return texto;
+  const prefixLen = Math.max(...partes.map(p=>p.prefix.length));
+  const util = Math.max(8, cols - prefixLen - 1); // -1 por causa da barra final
+  const total = Math.max(...partes.map(p=>p.body.length));
+  if(total <= util) return texto; // já cabe: nada a fazer
+  // Pontos onde dá pra cortar sem partir um compasso: colunas em que TODAS as
+  // cordas têm uma barra (o editor sempre põe a barra nas 6 de uma vez).
+  const depoisDeBarra = [];
+  for(let i=0;i<total;i++){
+    if(partes.every(p=>p.body[i]==='|')) depoisDeBarra.push(i+1);
+  }
+  const blocos = [];
+  let ini = 0;
+  while(ini < total){
+    const limite = ini + util;
+    let fim;
+    if(limite >= total){
+      fim = total;
+    } else {
+      // maior barra que ainda cabe; se não houver nenhuma, corta no limite
+      const candidatos = depoisDeBarra.filter(b=>b>ini && b<=limite);
+      fim = candidatos.length ? candidatos[candidatos.length-1] : limite;
+    }
+    blocos.push(partes.map(p=>{
+      const corpo = p.body.slice(ini, fim);
+      // Se o corte caiu logo depois de uma barra de compasso, o pedaço já
+      // termina com "|" — não põe outra em cima (sairia "||").
+      return p.prefix + corpo + (corpo.endsWith('|') ? '' : '|');
+    }).join('\n'));
+    ini = fim;
+  }
+  return blocos.join('\n\n');
 }
+// Mede quantos caracteres cabem na largura real do bloco e reescreve a
+// tablatura já quebrada. Chamada no fim de cada render() e quando a janela
+// muda de tamanho (girar o celular, redimensionar a janela).
+function updateTabDisplay(){
+  const el = document.getElementById('tabDisplay');
+  if(!el) return;
+  const s = state.solosDetailCache[state.soloViewId];
+  const bruto = (s && s.tab) || '';
+  if(!bruto){ el.textContent = ''; return; }
+  const largura = el.clientWidth || el.getBoundingClientRect().width;
+  if(!largura) return;
+  const medidor = document.createElement('span');
+  medidor.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;';
+  medidor.textContent = '-'.repeat(100);
+  el.appendChild(medidor);
+  const larguraChar = medidor.getBoundingClientRect().width / 100;
+  el.removeChild(medidor);
+  if(!larguraChar) return;
+  const cols = Math.max(20, Math.floor(largura / larguraChar));
+  el.textContent = wrapTabBlocks(bruto, cols);
+}
+let tabDisplayResizeTimer = null;
+window.addEventListener('resize', ()=>{
+  if(tabDisplayResizeTimer) clearTimeout(tabDisplayResizeTimer);
+  tabDisplayResizeTimer = setTimeout(updateTabDisplay, 150);
+});
 function normalizeTabLines(text){
   const lines = text.split('\n');
   const stripped = lines.map(l=> l.endsWith('|') ? l.slice(0,-1) : l);
@@ -7752,6 +7817,7 @@ function render(){
   updateGlobalDialogs();
   updateWhatsappFabVisibility();
   updateDocumentTitle();
+  updateTabDisplay();
   syncHistoryAfterRender();
 }
 // Título da aba do navegador — pedido do usuário em 13/09/2026: antes era sempre
@@ -8603,7 +8669,7 @@ function renderApp(){
       </div>
       ${s.fonte==='pdf' && s.pdfData
         ? `<iframe class="pdf-embed" src="${s.pdfData}"></iframe>`
-        : `<pre class="tab-display">${escapeHtml(normalizeTabLines(s.tab||''))}</pre>`}
+        : `<pre class="tab-display" id="tabDisplay"></pre>`}
     `;
     return;
   }
