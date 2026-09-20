@@ -725,9 +725,15 @@
      embaixo) sem querer, estourando a altura da linha inteira. Renomeado
      pra `.cal-blank` (nome que não existe em mais nenhum outro lugar do
      app) pra nunca mais colidir com nada. */
-  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:32px;gap:4px;width:100%;box-sizing:border-box;}
+  /* Correção de 19/09/2026: grid-auto-rows era um valor fixo (32px), então em
+     telas estreitas (mobile) a largura de cada coluna (1/7 da largura do card)
+     encolhia mas a altura da linha continuava travada em 32px — resultado eram
+     bolinhas achatadas (elipses), não círculos. Trocado pra grid-auto-rows:auto
+     + aspect-ratio:1/1 no .cal-cell (abaixo): a altura de cada linha passa a
+     seguir a largura real da coluna, sempre 1:1, em qualquer tamanho de tela. */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:auto;gap:4px;width:100%;box-sizing:border-box;}
   .cal-dow{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);opacity:.55;font-weight:600;}
-  .cal-cell{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;font-size:13px;cursor:pointer;color:var(--text);opacity:.85;transition:background .25s;}
+  .cal-cell{position:relative;width:100%;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;font-size:13px;cursor:pointer;color:var(--text);opacity:.85;transition:background .25s;}
   .cal-cell:hover{background:var(--pill-bg);}
   .cal-cell.cal-blank{visibility:hidden;cursor:default;}
   .cal-cell.future{opacity:.3;cursor:not-allowed;transition:background .25s;}
@@ -978,6 +984,10 @@
   @media(max-width:820px){
     .main-nav{display:none;}
     .mobile-menu-btn{display:flex;}
+    /* Correção de 19/09/2026: ver comentário em updateMobileDrawerFooter() —
+       "Voltar à área do professor" saiu do menu da fotinha do aluno no mobile
+       (foi pra gaveta do hambúrguer); no desktop o botão continua aqui. */
+    .voltar-prof-desktop{display:none;}
     .tools-rail{display:none;}
     .status-row{display:none;}
     .mobile-song-toolbar{display:flex;}
@@ -1004,8 +1014,14 @@
        variação vertical desproporcional pro espaço horizontal disponível).
        Agora o card tem o mesmo max-width do calendário, e a altura do SVG passa
        a ser proporcional (aspect-ratio) em vez de fixa — sem distorção em
-       nenhuma largura de tela. */
-    .profile-chart-card{max-width:340px;margin:0 auto;width:100%;}
+       nenhuma largura de tela.
+       [Ajuste em 19/09/2026] Com o mesmo max-width do calendário (340px) o
+       gráfico ficou pequeno demais — pedido do usuário pra aumentar um pouco
+       sem voltar a achatar. Como a largura aqui só define o tamanho do card
+       (a proporção quem trava é o aspect-ratio:280/68 logo abaixo), aumentar
+       esse max-width deixa o gráfico maior mantendo a mesma proporção — a
+       altura cresce junto com a largura, não distorce. */
+    .profile-chart-card{max-width:400px;margin:0 auto;width:100%;}
     .study-chart{height:auto;aspect-ratio:280/68;}
     .profile-layout{justify-content:center;}
     .profile-card{flex:1 1 100%;max-width:360px;text-align:center;}
@@ -1021,7 +1037,10 @@
     .search-box input{width:150px;}
     .btn{width:auto;}
     .profile-calendar-card{max-width:280px;margin:0 auto;width:100%;}
-    .profile-chart-card{max-width:280px;margin:0 auto;width:100%;}
+    /* Ajuste em 19/09/2026 — ver comentário na versão de 820px acima: um pouco
+       maior que o calendário aqui embaixo também, mesma lógica (aspect-ratio
+       fixo evita achatar). */
+    .profile-chart-card{max-width:330px;margin:0 auto;width:100%;}
     .task-check-label{display:none;}
     .row-stars{display:none;}
     .edit-perfil-header-btn{display:none;}
@@ -1263,8 +1282,19 @@ async function pushNotification(type, itemId, titulo, destinatarios){
   }catch(e){ console.error('Erro ao salvar notificação', e); }
 }
 function getVisibleNotifications(){
+  // Correção de 19/09/2026: notificação com destinatarios VAZIO era tratada
+  // como "todos os alunos veem" (mesma classe de bug já corrigida em
+  // materiais/solos — vazio deveria significar "ninguém vê ainda", não
+  // "todo mundo vê"). Na prática, hoje nenhum fluxo do app cria notificação
+  // vazia de propósito (cifra/solo/material só notifica quando realmente
+  // "enviado" pra alguém, via saveSendModal(); tarefa notifica só o próprio
+  // aluno dela) — mas notificações antigas, criadas antes dessa correção,
+  // ficaram com destinatarios vazio no banco e apareciam pra QUALQUER aluno
+  // (reportado pelo usuário: materiais do professor "vazando" como
+  // notificação pra todo mundo). Agora só aparece pra quem está de fato em
+  // destinatarios — sem esse bypass.
   const email = state.session && state.session.email;
-  return (state.notifications||[]).filter(n=>!n.destinatarios || n.destinatarios.length===0 || (email && n.destinatarios.includes(email)));
+  return (state.notifications||[]).filter(n=> !!email && n.destinatarios && n.destinatarios.includes(email));
 }
 function isNotifRead(id){ return (state.notificationsRead||[]).includes(id); }
 async function loadNotificationsRead(email){
@@ -2128,10 +2158,18 @@ async function submitNovaTarefa(ev){
   const observacoes = (document.getElementById('nt_obs')||{}).value?.trim() || '';
   const fixada = !!(document.getElementById('nt_fixar')||{}).checked;
   if(!titulo){ showToast('Digite um título para a tarefa.', true); return; }
-  state.tarefas.push({id:genUuid(), titulo, observacoes, fixada, concluida:false, concluidaEm:null, criadoEm:Date.now(), alunoEmail});
+  const id = genUuid();
+  state.tarefas.push({id, titulo, observacoes, fixada, concluida:false, concluidaEm:null, criadoEm:Date.now(), alunoEmail});
   state.novaTarefaModalOpen = false;
   render();
   await saveTarefas();
+  // Correção de 19/09/2026: uma tarefa nova nunca disparava notificação pro
+  // aluno — diferente de cifras/solos/materiais "enviados", que sempre
+  // notificam via pushNotification() em saveSendModal(). Tarefa é sempre
+  // "enviada" pra um aluno específico só (alunoEmail, o aluno cujo perfil o
+  // professor está editando), então notifica direto pra esse e-mail, sem
+  // passar pelo modal de "Enviar para".
+  await pushNotification('tarefa', id, titulo, [alunoEmail]);
   if(state.professorMode) loadPendentesPorAlunoMap();
   showToast('Tarefa adicionada.');
 }
@@ -4805,7 +4843,18 @@ function updateMobileDrawerFooter(){
     el.innerHTML = `<button type="button" class="mobile-drawer-help mobile-drawer-help-btn" onclick="state.mobileMenuOpen=false;applyMobileMenuVisualState();backToLogin()">${ICON_LOGOUT} Sair da conta</button>${ajudaLink}`;
     return;
   }
-  el.innerHTML = ajudaLink;
+  // Correção de 19/09/2026: "Voltar à área do professor" (quando o professor está
+  // vendo o app como um aluno específico) morava só no menu da fotinha do aluno
+  // (topbar-menu, ver o outro trecho com ICON_BACK_TO_PROF) — pedido do usuário
+  // pra mover pra dentro da gaveta do hambúrguer (3 tracinhos) no mobile, na parte
+  // de baixo da gaveta (rodapé, junto de Ajuda). No desktop o hambúrguer nem
+  // aparece (.mobile-menu-btn só existe ≤820px), então o item continua existindo
+  // também no menu da fotinha ali (classe voltar-prof-desktop, escondida só no
+  // mobile) — sem isso o professor ficaria sem jeito nenhum de voltar no desktop.
+  const voltarProfBtn = (state.professorMode && state.professorMode.email)
+    ? `<button type="button" class="mobile-drawer-help mobile-drawer-help-btn" onclick="state.mobileMenuOpen=false;applyMobileMenuVisualState();exitProfessorMode()">${ICON_BACK_TO_PROF} Voltar à área do professor</button>`
+    : '';
+  el.innerHTML = voltarProfBtn + ajudaLink;
 }
 function updateMobileDrawerHeader(){
   const el = document.getElementById('mobileDrawerProfile');
@@ -7728,7 +7777,7 @@ function renderApp(){
         <a class="topbar-avatar" onclick="toggleTopbarMenu(event)" title="Menu">${avatarHtml(state.session && state.session.foto, 30)}</a>
         ${state.topbarMenuOpen?`
         <div class="topbar-menu">
-          ${(state.professorMode && state.professorMode.email)?`<button type="button" class="topbar-menu-item" onclick="state.topbarMenuOpen=false;exitProfessorMode()">${ICON_BACK_TO_PROF} Voltar à área do professor</button>`:''}
+          ${(state.professorMode && state.professorMode.email)?`<button type="button" class="topbar-menu-item voltar-prof-desktop" onclick="state.topbarMenuOpen=false;exitProfessorMode()">${ICON_BACK_TO_PROF} Voltar à área do professor</button>`:''}
           <button type="button" class="topbar-menu-item" onclick="topbarMenuEditPerfil()">${EDIT_SVG} Editar perfil</button>
           <button type="button" class="topbar-menu-item" onclick="topbarMenuLogout()">${ICON_LOGOUT} Sair da conta</button>
           <a class="topbar-menu-item" href="https://wa.me/${getWhatsappNumber()}" target="_blank" rel="noopener">${ICON_HELP} Ajuda</a>
@@ -8174,7 +8223,7 @@ function renderApp(){
             </div>
             <div class="profile-list-card">
               <button type="button" class="card-edit-btn" title="Editar lista" onclick="openSectionEdit('wishlist')">${EDIT_SVG}</button>
-              <h4>Quero aprender</h4>
+              <h4>Músicas que quero aprender</h4>
               ${truncatedListHtml(p.wishlist||[], w=>`<li>${escapeHtml(w.musica)}${w.artista?' — '+escapeHtml(w.artista):''}</li>`, 'wishlist-view', 'wishlist', 'Nenhuma música ainda.')}
             </div>
           </div>
@@ -8477,7 +8526,7 @@ function dialogsHtml(){
       const items = p.artistas||[];
       body = items.length ? `<ul class="wishlist-view">${items.map(a=>`<li>${escapeHtml(a)}</li>`).join('')}</ul>` : '<p class="hint">Nenhum ainda.</p>';
     } else if(section==='wishlist'){
-      title = 'Quero aprender';
+      title = 'Músicas que quero aprender';
       const items = p.wishlist||[];
       body = items.length ? `<ul class="wishlist-view">${items.map(w=>`<li>${escapeHtml(w.musica)}${w.artista?' — '+escapeHtml(w.artista):''}</li>`).join('')}</ul>` : '<p class="hint">Nenhuma música ainda.</p>';
     }
@@ -8601,7 +8650,7 @@ async function submitTrocarSenha(ev){
 function sectionEditModalHtml(){
   const se = state.profileSectionEdit;
   if(!se) return '';
-  const titles = {metas:'Metas no instrumento', artistas:'Artistas e bandas favoritos', wishlist:'Quero aprender'};
+  const titles = {metas:'Metas no instrumento', artistas:'Artistas e bandas favoritos', wishlist:'Músicas que quero aprender'};
   let body = '';
   if(se.section==='metas'){
     body = `
