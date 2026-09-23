@@ -405,24 +405,40 @@
   .drumseq-row-icon:hover{background:color-mix(in srgb, var(--accent) 16%, transparent);}
   .drumseq-row-icon:active{transform:scale(.88);}
   .drumseq-row-icon svg{width:22px;height:22px;}
-  .drumseq-vol-btn{display:flex;flex:0 0 auto;background:none;border:none;color:var(--muted);padding:2px;border-radius:8px;transition:color .15s,background .15s;}
-  .drumseq-vol-btn svg{width:17px;height:17px;}
-  .drumseq-vol-btn:hover{color:var(--text);background:var(--pill-bg);}
-  .drumseq-vol-btn.aberto{color:var(--accent);background:color-mix(in srgb, var(--accent) 16%, transparent);}
-  .drumseq-vol-btn.mudo{color:var(--danger);}
-  .drumseq-vol-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;padding:10px 16px;border-radius:14px;background:var(--bg-panel-2);border:1px solid var(--border);}
-  .drumseq-vol-nome{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);}
-  .drumseq-vol-nome svg{width:20px;height:20px;color:var(--accent);}
-  .drumseq-vol-mudo{display:flex;background:none;border:none;color:var(--muted);padding:4px;border-radius:8px;}
-  .drumseq-vol-mudo svg{width:18px;height:18px;}
-  .drumseq-vol-mudo:hover{color:var(--text);background:var(--pill-bg);}
-  .drumseq-vol-mudo.ativo{color:var(--danger);}
-  .drumseq-vol-bar input[type=range]{flex:1;min-width:140px;max-width:280px;accent-color:var(--accent);}
-  .drumseq-vol-val{font-size:12px;font-weight:700;color:var(--muted);min-width:42px;}
-  .drumseq-headcell{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding-bottom:6px;border-radius:4px;}
-  .drumseq-headcell.beat{color:var(--text);}
-  .drumseq-cell.beat{box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--muted) 35%, transparent);}
-  .drumseq-headcell.current{color:var(--accent);font-weight:800;}
+  /* [Rodada 76] Mixagem embaixo da grade: um canal por peça, knob de pan em
+     cima e fader de volume embaixo. O fader é um input[type=range] na
+     vertical (writing-mode nos navegadores atuais, slider-vertical no
+     WebKit antigo). */
+  .drum-mixer{margin-top:18px;padding:16px 18px 18px;border-radius:14px;background:var(--bg-panel);}
+  .drum-mixer-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .drum-mixer-topo h4{margin:0;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+  .drum-mixer-canais{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .mix-canal{flex:1 1 92px;max-width:130px;min-width:88px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px 12px;border-radius:14px;background:var(--bg-panel-2);border:1px solid var(--border);transition:opacity .2s;}
+  .mix-canal.mudo{opacity:.5;}
+  .mix-nome{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--text);font-size:11.5px;font-weight:700;padding:2px 6px;border-radius:8px;}
+  .mix-nome svg{width:20px;height:20px;color:var(--accent);}
+  .mix-nome:hover{background:color-mix(in srgb, var(--accent) 14%, transparent);}
+  .mix-knob-wrap{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pill-bg) 70%, #fff 10%), var(--pill-bg));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+  .mix-knob-wrap:focus{outline:2px solid var(--accent);outline-offset:2px;}
+  .mix-knob{width:100%;height:100%;border-radius:50%;position:relative;}
+  .mix-knob-marca{position:absolute;left:50%;top:5px;width:2.5px;height:13px;margin-left:-1.25px;border-radius:2px;background:var(--accent);}
+  .mix-pan-val{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;}
+  .mix-fader{-webkit-appearance:none;appearance:none;writing-mode:vertical-lr;direction:rtl;width:26px;height:130px;background:transparent;cursor:ns-resize;}
+  .mix-fader::-webkit-slider-runnable-track{width:6px;height:130px;border-radius:999px;background:var(--pill-bg);border:1px solid var(--border);}
+  .mix-fader::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:13px;margin-left:-8px;border-radius:4px;background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 80%, #fff 10%), var(--accent));box-shadow:0 1px 4px rgba(0,0,0,.4);}
+  .mix-fader::-moz-range-track{width:6px;border-radius:999px;background:var(--pill-bg);border:1px solid var(--border);}
+  .mix-fader::-moz-range-thumb{width:22px;height:13px;border:none;border-radius:4px;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.4);}
+  .mix-fader:focus{outline:none;}
+  .mix-fader:focus::-webkit-slider-thumb{box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);}
+  .mix-vol-val{font-size:11px;font-weight:700;color:var(--muted);}
+  .mix-mudo{display:flex;background:none;border:none;color:var(--muted);padding:4px;border-radius:8px;}
+  .mix-mudo svg{width:16px;height:16px;}
+  .mix-mudo:hover{color:var(--text);background:var(--pill-bg);}
+  .mix-mudo.ativo{color:var(--danger);}
+  @media (max-width:560px){
+    .mix-canal{flex:1 1 42%;max-width:none;}
+    .mix-fader{height:110px;}
+  }
   .drumseq-cell{width:100%;height:38px;border-radius:6px;background:var(--pill-bg);cursor:pointer;transition:background .1s;}
   .drumseq-cell.on{background:var(--accent);}
   .drumseq-cell.current{box-shadow:inset 0 0 0 2px var(--text);}
@@ -2159,7 +2175,7 @@ let state = {
   tunerTuningIdx:0,
   topbarMenuOpen:false, mobileMenuOpen:false, mobileToolPanel:null, profAreaMenuOpen:false,
   drumSeq:{running:false, bpm:100, step:-1, preset:'vazio', steps:16, sub:4, pattern:emptyDrumPattern(16)},
-  drumVolumes:{}, drumVolOpen:null,
+  drumVolumes:{}, drumPans:{},
   tunerRunning:false, tunerStream:null
 };
 
@@ -2167,6 +2183,7 @@ async function loadData(){
   try{ const r = await storageGet('theme'); if(r && r.value==='light'){ state.theme='light'; document.body.classList.add('light'); } }catch(e){}
   // [Rodada 74] volume de cada peça da bateria, guardado no aparelho
   try{ const r = await storageGet('drumVolumes'); if(r && r.value) state.drumVolumes = JSON.parse(r.value)||{}; }catch(e){}
+  try{ const r = await storageGet('drumPans'); if(r && r.value) state.drumPans = JSON.parse(r.value)||{}; }catch(e){}
   // Repertório/solos/materiais/notificações/tarefas/perfil começam vazios — só dá
   // pra carregar de verdade depois de resolver a sessão de login logo abaixo (essas
   // tabelas exigem estar autenticado; um visitante anônimo nem tem GRANT pra lê-las).
@@ -3777,38 +3794,118 @@ function drumVolume(key){
 function setDrumVolume(key, valor){
   state.drumVolumes = state.drumVolumes || {};
   state.drumVolumes[key] = Math.max(0, Math.min(2, Number(valor)||0));
-  const lbl = document.getElementById('drumVolVal-'+key);
-  if(lbl) lbl.textContent = Math.round(drumVolume(key)*100)+'%';
-  const btn = document.getElementById('drumVolBtn-'+key);
-  if(btn) btn.classList.toggle('mudo', drumVolume(key)===0);
-  try{ storageSet('drumVolumes', JSON.stringify(state.drumVolumes)); }catch(e){}
+  atualizaCanalMixer(key);
+  salvarMixagem();
 }
-// Abrir/fechar a barrinha de volume de uma peça (uma de cada vez).
-function toggleDrumVolPanel(key, ev){
-  if(ev) ev.stopPropagation();
-  state.drumVolOpen = state.drumVolOpen===key ? null : key;
-  render();
-  if(state.drumVolOpen){
-    const sl = document.getElementById('drumVolSlider-'+state.drumVolOpen);
-    if(sl) sl.focus();
+// [Rodada 76 — 23/09/2026] Pan de cada peça: -1 (tudo à esquerda) a 1 (tudo à
+// direita), 0 = centro.
+function drumPan(key){
+  const v = (state.drumPans||{})[key];
+  return v==null ? 0 : v;
+}
+function setDrumPan(key, valor){
+  state.drumPans = state.drumPans || {};
+  state.drumPans[key] = Math.max(-1, Math.min(1, Number(valor)||0));
+  atualizaCanalMixer(key);
+  salvarMixagem();
+}
+let _mixSaveTimer = null;
+function salvarMixagem(){
+  // Agrupa as gravações: arrastar um fader dispara dezenas de eventos.
+  clearTimeout(_mixSaveTimer);
+  _mixSaveTimer = setTimeout(()=>{
+    try{ storageSet('drumVolumes', JSON.stringify(state.drumVolumes||{})); }catch(e){}
+    try{ storageSet('drumPans', JSON.stringify(state.drumPans||{})); }catch(e){}
+  }, 250);
+}
+// Atualiza só os números/ângulos do canal, sem re-renderizar a tela inteira
+// (senão o fader perderia o arraste no meio do movimento).
+function atualizaCanalMixer(key){
+  const vol = drumVolume(key), pan = drumPan(key);
+  const vLbl = document.getElementById('mixVolVal-'+key);
+  if(vLbl) vLbl.textContent = Math.round(vol*100)+'%';
+  const pLbl = document.getElementById('mixPanVal-'+key);
+  if(pLbl) pLbl.textContent = pan===0 ? 'C' : (pan<0 ? 'E'+Math.round(-pan*100) : 'D'+Math.round(pan*100));
+  const knob = document.getElementById('mixKnob-'+key);
+  if(knob){ knob.style.transform = 'rotate('+(pan*135)+'deg)'; knob.parentElement.setAttribute('aria-valuenow', Math.round(pan*100)); }
+  const canal = document.getElementById('mixCanal-'+key);
+  if(canal) canal.classList.toggle('mudo', vol===0);
+  const fader = document.getElementById('mixFader-'+key);
+  if(fader && Number(fader.value)!==vol) fader.value = vol;
+}
+function toggleDrumMute(key){
+  // Guarda o volume anterior pra "tirar do mudo" voltar onde estava.
+  state._drumVolAntes = state._drumVolAntes || {};
+  if(drumVolume(key)===0){
+    setDrumVolume(key, state._drumVolAntes[key] || 1);
+  } else {
+    state._drumVolAntes[key] = drumVolume(key);
+    setDrumVolume(key, 0);
   }
+  render();
 }
-function closeDrumVolPanel(){ if(state.drumVolOpen){ state.drumVolOpen = null; render(); } }
-// Clicar no ícone da peça toca ela (pedido do usuário) — e já destrava o áudio
-// do navegador, que só libera som depois de um clique.
-// A barrinha aparece acima da grade (e não colada no ícone) porque a grade
-// rola na horizontal e recortaria um balãozinho preso à linha.
-function drumVolBarHtml(key){
-  const row = DRUM_SEQ_ROWS.find(r=>r.key===key); if(!row) return '';
-  const v = drumVolume(key);
+function resetMixagem(){
+  state.drumVolumes = {}; state.drumPans = {};
+  salvarMixagem();
+  render();
+}
+// ---- knob de pan: arrastar pra cima/baixo (ou setas do teclado) ----
+let _knobDrag = null;
+function drumKnobStart(ev, key){
+  ev.preventDefault();
+  _knobDrag = {key, y: ev.clientY!=null?ev.clientY:(ev.touches&&ev.touches[0].clientY), inicio: drumPan(key)};
+  window.addEventListener('pointermove', drumKnobMove);
+  window.addEventListener('pointerup', drumKnobEnd);
+}
+function drumKnobMove(ev){
+  if(!_knobDrag) return;
+  const y = ev.clientY;
+  // 120px de arrasto = curso completo de um lado ao outro
+  setDrumPan(_knobDrag.key, _knobDrag.inicio + (_knobDrag.y - y)/120*2);
+}
+function drumKnobEnd(){
+  _knobDrag = null;
+  window.removeEventListener('pointermove', drumKnobMove);
+  window.removeEventListener('pointerup', drumKnobEnd);
+}
+function drumKnobKey(ev, key){
+  const passo = ev.shiftKey ? 0.01 : 0.1;
+  if(ev.key==='ArrowUp' || ev.key==='ArrowRight'){ ev.preventDefault(); setDrumPan(key, drumPan(key)+passo); }
+  else if(ev.key==='ArrowDown' || ev.key==='ArrowLeft'){ ev.preventDefault(); setDrumPan(key, drumPan(key)-passo); }
+  else if(ev.key==='Home' || ev.key==='0'){ ev.preventDefault(); setDrumPan(key, 0); }
+}
+// A mixagem fica embaixo da grade: um canal por peça, com knob de pan em cima
+// e fader de volume embaixo — pedido do usuário (rodada 76).
+function drumMixerHtml(){
+  const canais = DRUM_SEQ_ROWS.slice().reverse(); // bumbo primeiro, prato por último
   return `
-    <div class="drumseq-vol-bar">
-      <span class="drumseq-vol-nome">${row.icon} ${row.label}</span>
-      <button type="button" class="drumseq-vol-mudo ${v===0?'ativo':''}" title="${v===0?'Tirar do mudo':'Deixar mudo'}" onclick="setDrumVolume('${key}', ${v===0?1:0});render()">${v===0?ICON_SPEAKER_OFF:ICON_SPEAKER}</button>
-      <input type="range" id="drumVolSlider-${key}" min="0" max="2" step="0.05" value="${v}"
-        oninput="setDrumVolume('${key}', this.value)" onchange="tocarPecaBateria('${key}')">
-      <span class="drumseq-vol-val" id="drumVolVal-${key}">${Math.round(v*100)}%</span>
-      <button type="button" class="btn-ghost btn-small" onclick="closeDrumVolPanel()">Fechar</button>
+    <div class="drum-mixer">
+      <div class="drum-mixer-topo">
+        <h4>Mixagem</h4>
+        <button type="button" class="btn-ghost btn-small" onclick="resetMixagem()">Zerar mixagem</button>
+      </div>
+      <div class="drum-mixer-canais">
+        ${canais.map(r=>{
+          const vol = drumVolume(r.key), pan = drumPan(r.key);
+          const panTxt = pan===0 ? 'C' : (pan<0 ? 'E'+Math.round(-pan*100) : 'D'+Math.round(pan*100));
+          return `
+          <div class="mix-canal ${vol===0?'mudo':''}" id="mixCanal-${r.key}">
+            <button type="button" class="mix-nome" title="Ouvir ${r.label.toLowerCase()}" onclick="tocarPecaBateria('${r.key}')">${r.icon}<span>${r.label}</span></button>
+            <div class="mix-knob-wrap" tabindex="0" role="slider" aria-label="Pan do ${r.label.toLowerCase()}"
+                 aria-valuemin="-100" aria-valuemax="100" aria-valuenow="${Math.round(pan*100)}"
+                 onpointerdown="drumKnobStart(event,'${r.key}')" ondblclick="setDrumPan('${r.key}',0)" onkeydown="drumKnobKey(event,'${r.key}')">
+              <div class="mix-knob" id="mixKnob-${r.key}" style="transform:rotate(${pan*135}deg);"><span class="mix-knob-marca"></span></div>
+            </div>
+            <div class="mix-pan-val" id="mixPanVal-${r.key}">${panTxt}</div>
+            <input class="mix-fader" type="range" id="mixFader-${r.key}" min="0" max="2" step="0.01" value="${vol}"
+                   aria-label="Volume do ${r.label.toLowerCase()}" orient="vertical"
+                   oninput="setDrumVolume('${r.key}', this.value)" onchange="tocarPecaBateria('${r.key}')">
+            <div class="mix-vol-val" id="mixVolVal-${r.key}">${Math.round(vol*100)}%</div>
+            <button type="button" class="mix-mudo ${vol===0?'ativo':''}" title="${vol===0?'Tirar do mudo':'Deixar mudo'}" onclick="toggleDrumMute('${r.key}')">${vol===0?ICON_SPEAKER_OFF:ICON_SPEAKER}</button>
+          </div>`;
+        }).join('')}
+      </div>
+      <p class="hint" style="margin:10px 0 0;">Arraste o fader para o volume e gire o knob (arrastando para cima ou para baixo) para o pan. Dois cliques no knob voltam ao centro. Clique no nome da peça para ouvir.</p>
     </div>`;
 }
 function tocarPecaBateria(key, ev){
@@ -3858,9 +3955,17 @@ function tocarSample(key, fallback){
   src.buffer = s.buffer;
   const g = ctx.createGain();
   g.gain.value = (DRUM_SAMPLE_GAIN[key] != null ? DRUM_SAMPLE_GAIN[key] : 1) * drumVolume(key);
-  src.connect(g); g.connect(ctx.destination);
+  // [Rodada 76] pan por peça — StereoPannerNode não existe em navegador muito
+  // antigo, aí a peça simplesmente toca no centro.
+  let ultimo = g;
+  if(ctx.createStereoPanner && drumPan(key)!==0){
+    const p = ctx.createStereoPanner();
+    p.pan.value = drumPan(key);
+    g.connect(p); ultimo = p;
+  }
+  src.connect(g); ultimo.connect(ctx.destination);
   src.start(0, s.onsetOffset);
-  src.onended = ()=>{ try{ src.disconnect(); g.disconnect(); }catch(e){} };
+  src.onended = ()=>{ try{ src.disconnect(); g.disconnect(); if(ultimo!==g) ultimo.disconnect(); }catch(e){} };
 }
 function playKick(){ tocarSample('kick', playKickSintetizado); }
 function playSnare(){ tocarSample('snare', playSnareSintetizado); }
@@ -4660,7 +4765,6 @@ function renderToolDrums(app, themeSwitch){
         ${podeSalvar && ritmoTemPadraoSalvo(seq.preset)?`<button class="btn-ghost btn-small" onclick="restaurarRitmoOriginal()">Restaurar original</button>`:''}
       </div>
       ${podeSalvar?`<div class="hint" style="margin:-4px 0 14px;">${ritmoTemPadraoSalvo(seq.preset)?'Este ritmo está com uma levada sua salva — é ela que os alunos veem.':'Edite a levada e clique em "Salvar como padrão" para que todos os alunos passem a ver essa versão.'}</div>`:''}
-      ${state.drumVolOpen?drumVolBarHtml(state.drumVolOpen):''}
       <div class="drumseq-scroll">
         <div class="drumseq-grid" style="grid-template-columns:80px repeat(${steps},minmax(38px,1fr));">
           <div class="drumseq-rowlabel"></div>
@@ -4668,7 +4772,6 @@ function renderToolDrums(app, themeSwitch){
           ${DRUM_SEQ_ROWS.map(r=>`
             <div class="drumseq-rowlabel">
               <span>${r.label}</span>
-              <button type="button" class="drumseq-vol-btn ${drumVolume(r.key)===0?'mudo':''} ${seq && state.drumVolOpen===r.key?'aberto':''}" id="drumVolBtn-${r.key}" title="Volume do ${r.label.toLowerCase()}" aria-label="Volume do ${r.label.toLowerCase()}" onclick="toggleDrumVolPanel('${r.key}', event)">${drumVolume(r.key)===0?ICON_SPEAKER_OFF:ICON_SPEAKER}</button>
               <button type="button" class="drumseq-row-icon" title="Ouvir ${r.label.toLowerCase()}" aria-label="Ouvir ${r.label.toLowerCase()}" onclick="tocarPecaBateria('${r.key}', event)">${r.icon}</button>
             </div>
             ${Array.from({length:steps},(_,i)=>`<div class="drumseq-cell ${seq.pattern[r.key][i]?'on':''} ${i%sub===0?'beat':''}" data-step="${i}" onclick="toggleDrumStep('${r.key}',${i})"></div>`).join('')}
@@ -4676,6 +4779,7 @@ function renderToolDrums(app, themeSwitch){
         </div>
       </div>
       <div class="hint" style="margin-top:12px;">Clique nos quadrados para montar seu ritmo, ou escolha um pronto acima. ${compasso}</div>
+      ${drumMixerHtml()}
     </div>
   `;
 }
