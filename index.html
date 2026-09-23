@@ -3020,12 +3020,63 @@ const META_SUGGESTIONS = [
 ];
 // ---- Stage 2: perfil é por aluno de verdade agora — uma linha por aluno na
 // tabela public.perfis (chave = e-mail), em vez de um único blob global.
+// [Rodada 72 — 23/09/2026] Padronização de maiúsculas em metas, artistas e
+// "músicas que quero aprender" — pedido do usuário: o aluno pode digitar tudo
+// em maiúsculo ou tudo em minúsculo, o app sempre exibe certinho.
+//   • Metas: como frase (primeira letra maiúscula, e de novo depois de . ! ?).
+//   • Artistas e músicas: primeira letra de cada palavra em maiúscula.
+// Em texto MISTO (o aluno já escreveu com maiúsculas no meio) só mexemos no
+// começo das frases/palavras que estão em minúsculo, pra não estragar nome
+// próprio, sigla ou estilização que ele quis ("AC/DC", "iPhone", "McCartney").
+// Texto todo em CAIXA ALTA é tratado como "sem capitalização" e refeito do zero.
+function _souTodoMaiusculo(t){ return t === t.toUpperCase() && t !== t.toLowerCase(); }
+// Palavra digitada toda em caixa alta com 4+ letras é quase sempre caps lock
+// ("CHICO buarque"), então vira minúscula antes de capitalizar. Siglas curtas
+// (REM, ACDC…) e palavras com número/barra passam intactas.
+function _desfazCapsLock(w){
+  return (_souTodoMaiusculo(w) && w.replace(/\P{L}/gu,'').length>=4) ? w.toLowerCase() : w;
+}
+function _capitalizaPalavra(w){
+  // Primeira letra (ou primeira letra depois de hífen/apóstrofo) em maiúscula.
+  return w.replace(/(^|[-'’])(\p{L})/gu, (m,sep,ch)=> sep+ch.toUpperCase());
+}
+function tituloCase(texto){
+  const t = (texto||'').trim().replace(/\s+/g,' ');
+  if(!t) return '';
+  const todoMaiusculo = _souTodoMaiusculo(t);
+  return t.split(' ').map((w)=>{
+    // Palavra com número (U2, 30STM) ou com barra (AC/DC): mantém como veio,
+    // só garante a primeira letra maiúscula.
+    if(/[\d/]/.test(w)) return w.replace(/^(\p{L})/u, c=>c.toUpperCase());
+    // Pedido do usuário: primeira letra de CADA palavra em maiúscula.
+    const base = todoMaiusculo ? w.toLowerCase() : _desfazCapsLock(w);
+    return _capitalizaPalavra(base);
+  }).join(' ');
+}
+function fraseCase(texto){
+  let t = (texto||'').trim().replace(/[ \t]+/g,' ');
+  if(!t) return '';
+  if(_souTodoMaiusculo(t)) t = t.toLowerCase();
+  else t = t.split(' ').map(w=>/[\d/]/.test(w) ? w : _desfazCapsLock(w)).join(' ');
+  // Começo do texto e depois de . ! ? … e de quebra de linha.
+  return t.replace(/(^|[.!?…]\s+|\n\s*)(\p{L})/gu, (m,pre,ch)=> pre+ch.toUpperCase());
+}
+// Aplica as regras no perfil inteiro (usado ao carregar e ao salvar, pra que
+// itens antigos, gravados antes desta rodada, também apareçam certos).
+function normalizaPerfilTextos(p){
+  if(!p) return p;
+  if(Array.isArray(p.metas)) p.metas = p.metas.map(m=>fraseCase(m)).filter(Boolean);
+  else if(typeof p.metas === 'string') p.metas = fraseCase(p.metas);
+  if(Array.isArray(p.artistas)) p.artistas = p.artistas.map(a=>tituloCase(a)).filter(Boolean);
+  if(Array.isArray(p.wishlist)) p.wishlist = p.wishlist.map(w=>({...w, musica: tituloCase(w.musica), artista: tituloCase(w.artista)}));
+  return p;
+}
 async function loadPerfilForAluno(email){
   if(!sb || !email){ state.perfil = null; return; }
   try{
     const { data, error } = await sb.from('perfis').select('dados').eq('aluno_email', email).maybeSingle();
     if(error) throw error;
-    state.perfil = data ? data.dados : null;
+    state.perfil = data ? normalizaPerfilTextos(data.dados) : null;
   }catch(e){ console.error('Erro ao carregar perfil', e); state.perfil = null; }
 }
 async function savePerfil(){
@@ -3345,9 +3396,10 @@ function closeSectionEdit(){ state.profileSectionEdit = null; render(); }
 async function saveSectionEdit(){
   const se = state.profileSectionEdit; if(!se) return;
   if(!state.perfil) state.perfil = defaultPerfil();
-  if(se.section==='metas') state.perfil.metas = se.draft.map(m=>m.trim()).filter(Boolean);
-  else if(se.section==='artistas') state.perfil.artistas = se.draft.map(a=>a.trim()).filter(Boolean).slice(0,10);
-  else state.perfil.wishlist = se.draft.filter(w=>w.musica && w.musica.trim());
+  // [Rodada 72] padroniza as maiúsculas ao salvar
+  if(se.section==='metas') state.perfil.metas = se.draft.map(m=>fraseCase(m)).filter(Boolean);
+  else if(se.section==='artistas') state.perfil.artistas = se.draft.map(a=>tituloCase(a)).filter(Boolean).slice(0,10);
+  else state.perfil.wishlist = se.draft.filter(w=>w.musica && w.musica.trim()).map(w=>({...w, musica: tituloCase(w.musica), artista: tituloCase(w.artista)}));
   state.profileSectionEdit = null;
   render();
   await savePerfil();
