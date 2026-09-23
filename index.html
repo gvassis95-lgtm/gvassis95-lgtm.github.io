@@ -228,6 +228,19 @@
   .main-nav-icon svg{width:16px;height:16px;}
   .main-nav-btn:hover{color:var(--text);}
   .main-nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  /* [Rodada 67] Seções das Configurações do professor */
+  .cfg-layout{display:flex;gap:28px;align-items:flex-start;}
+  .cfg-secoes{flex:0 0 190px;display:flex;flex-direction:column;gap:4px;position:sticky;top:20px;}
+  .cfg-secao-btn{background:none;border:none;text-align:left;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:600;color:var(--muted);transition:background .2s,color .2s;}
+  .cfg-secao-btn:hover{background:var(--pill-bg);color:var(--text);}
+  .cfg-secao-btn.active{background:color-mix(in srgb, var(--accent) 14%, transparent);color:var(--accent);}
+  .cfg-corpo{flex:1;min-width:0;}
+  .cfg-card{max-width:600px;}
+  @media (max-width:820px){
+    .cfg-layout{flex-direction:column;gap:16px;}
+    .cfg-secoes{position:static;flex:none;flex-direction:row;flex-wrap:wrap;width:100%;gap:6px;}
+    .cfg-secao-btn{white-space:nowrap;padding:8px 14px;border-radius:999px;background:var(--pill-bg);font-size:13px;}
+  }
   /* [Rodada 64] Avisos do professor — faixa acima do menu do aluno */
   .avisos-stack{display:flex;flex-direction:column;gap:10px;margin:0 0 18px;}
   .aviso-banner{display:flex;align-items:center;gap:14px;padding:14px 16px 14px 18px;border-radius:14px;background:color-mix(in srgb, var(--accent) 12%, var(--bg-panel));border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);animation:avisoIn .35s ease;}
@@ -238,6 +251,13 @@
   .aviso-banner-ok:hover{filter:brightness(1.08);}
   @keyframes avisoIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
   .aviso-textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:80px;font-family:inherit;font-size:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);}
+  .aviso-expira-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px;margin-top:12px;}
+  .aviso-expira-label{font-size:13px;font-weight:600;}
+  .profile-list-card input.aviso-expira-input{width:auto;max-width:190px;margin:0;}
+  .aviso-expira-input{font-family:inherit;font-size:13px;padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);color-scheme:dark;}
+  body.light .aviso-expira-input{color-scheme:light;}
+  .aviso-enviado.is-expirado{opacity:.6;}
+  .aviso-expirado{color:var(--danger);font-weight:600;}
   .avisos-enviados{display:flex;flex-direction:column;gap:10px;}
   .aviso-enviado{padding:12px 14px;border-radius:12px;background:var(--pill-bg);}
   .aviso-enviado-texto{font-size:13.5px;line-height:1.45;overflow-wrap:anywhere;}
@@ -382,6 +402,8 @@
   .drumseq-row-icon{display:flex;flex:0 0 auto;color:var(--accent);}
   .drumseq-row-icon svg{width:22px;height:22px;}
   .drumseq-headcell{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding-bottom:6px;border-radius:4px;}
+  .drumseq-headcell.beat{color:var(--text);}
+  .drumseq-cell.beat{box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--muted) 35%, transparent);}
   .drumseq-headcell.current{color:var(--accent);font-weight:800;}
   .drumseq-cell{width:100%;height:38px;border-radius:6px;background:var(--pill-bg);cursor:pointer;transition:background .1s;}
   .drumseq-cell.on{background:var(--accent);}
@@ -548,8 +570,22 @@
   .variant-label{font-size:11px;color:var(--muted);margin-top:2px;}
   .chord-svg{width:136px;height:196px;display:block;margin:0 auto;}
   .dict-draw-name{font-size:44px;font-weight:800;color:var(--accent);line-height:1.1;}
+  .dict-draw-row{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap;}
+  .dict-neck-picker{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .dict-neck-arrow{background:var(--pill-bg);border:none;border-radius:999px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--text);}
+  .dict-neck-arrow svg{width:18px;height:18px;}
+  .dict-neck-arrow:disabled{opacity:.35;cursor:default;}
+  .dict-neck-wrap{display:flex;}
+  .dict-neck-svg{width:58px;height:auto;}
+  .dict-neck-label{font-size:11px;color:var(--muted);font-weight:600;}
+  .dict-draw-actions{display:flex;justify-content:center;margin-top:18px;}
   .dict-draw-big{display:flex;justify-content:center;}
-  .dict-draw-big svg{width:240px;height:auto;}
+  .dict-draw-big svg{width:250px;height:auto;max-width:100%;}
+  /* [Rodada 68] Lista de sugestões do Dicionário de Acordes */
+  .dict-search{position:relative;}
+  .dict-suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;max-height:300px;overflow-y:auto;background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.28);padding:6px;display:flex;flex-direction:column;}
+  .dict-suggest-item{background:none;border:none;text-align:left;padding:9px 12px;border-radius:8px;font-size:14.5px;font-weight:600;color:var(--text);}
+  .dict-suggest-item:hover,.dict-suggest-item.active{background:color-mix(in srgb, var(--accent) 16%, transparent);color:var(--accent);}
   .chord-svg.chord-svg-h{width:196px;height:132px;}
   .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;}
   .modal-bg{position:fixed;inset:0;background:rgba(20,15,10,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;}
@@ -2104,7 +2140,7 @@ let state = {
   dictDrawMode:false, dictDrawFrets:null, dictDrawBase:1,
   tunerTuningIdx:0,
   topbarMenuOpen:false, mobileMenuOpen:false, mobileToolPanel:null, profAreaMenuOpen:false,
-  drumSeq:{running:false, bpm:100, step:-1, preset:'vazio', pattern:emptyDrumPattern()},
+  drumSeq:{running:false, bpm:100, step:-1, preset:'vazio', steps:16, sub:4, pattern:emptyDrumPattern(16)},
   tunerRunning:false, tunerStream:null
 };
 
@@ -4148,49 +4184,87 @@ const DRUM_SEQ_ROWS = [
   {key:'snare', label:'Caixa', fn:playSnare, icon:DRUM_ICON_CAIXA},
   {key:'kick', label:'Bumbo', fn:playKick, icon:DRUM_ICON_BUMBO},
 ];
-function emptyDrumPattern(){ return {kick:Array(16).fill(false), snare:Array(16).fill(false), hihat:Array(16).fill(false), tom:Array(16).fill(false), crash:Array(16).fill(false)}; }
+function emptyDrumPattern(steps){
+  steps = steps || 16;
+  const z = ()=>Array(steps).fill(false);
+  return {kick:z(), snare:z(), hihat:z(), tom:z(), crash:z()};
+}
+// [Rodada 70 — 23/09/2026] Os ritmos da Bateria Virtual passaram a ser os mesmos
+// da lista de ritmos das cifras (RITMOS, rodada 47), a pedido do usuário.
+//
+// Cada ritmo diz quantos passos tem o compasso e quantos passos cabem em UM
+// tempo (sub) — antes tudo era 16 passos / 4 por tempo, o que só dá conta de
+// 4/4 em semicolcheias e deixaria valsa, guarânia, 6/8 e blues shuffle sem
+// como serem escritos:
+//   • 4/4 em semicolcheias  -> steps 16, sub 4 (1 e-&-a, 2 e-&-a, …)
+//   • 3/4 em semicolcheias  -> steps 12, sub 4 (valsa, guarânia)
+//   • compasso composto/shuffle -> steps 12, sub 3 (cada tempo = 3 colcheias)
+// `bpm` é o andamento sugerido, aplicado ao escolher o ritmo (o aluno muda
+// depois se quiser). "Dedilhado"/"Dedilhado ternário" são padrões de mão
+// direita no violão, não levadas de bateria: aqui viram uma marcação bem
+// simples (bumbo nos tempos fortes + chimbal na subdivisão) só pra servir de
+// referência de pulso.
+const P = (steps, on)=>{ const a = Array(steps).fill(false); on.forEach(i=>a[i]=true); return a; };
+function mkPreset(label, steps, sub, bpm, rows){
+  return {label, steps, sub, bpm, pattern:{
+    kick:  P(steps, rows.kick||[]),
+    snare: P(steps, rows.snare||[]),
+    hihat: P(steps, rows.hihat||[]),
+    tom:   P(steps, rows.tom||[]),
+    crash: P(steps, rows.crash||[]),
+  }};
+}
 const DRUM_PRESETS = {
-  vazio: emptyDrumPattern(),
-  rock: {
-    kick:  [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0].map(Boolean),
-    snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0].map(Boolean),
-    hihat: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0].map(Boolean),
-    tom:   Array(16).fill(false),
-    crash: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0].map(Boolean),
-  },
-  funk: {
-    kick:  [1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0].map(Boolean),
-    snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0].map(Boolean),
-    hihat: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].map(Boolean),
-    tom:   Array(16).fill(false),
-    crash: Array(16).fill(false),
-  },
-  reggae: {
-    kick:  [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0].map(Boolean),
-    snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0].map(Boolean),
-    hihat: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0].map(Boolean),
-    tom:   Array(16).fill(false),
-    crash: Array(16).fill(false),
-  },
-  bossa: {
-    kick:  [1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0].map(Boolean),
-    snare: Array(16).fill(false),
-    hihat: [0,0,1,0,1,0,0,1,0,0,1,0,1,0,0,1].map(Boolean),
-    tom:   Array(16).fill(false),
-    crash: Array(16).fill(false),
-  },
+  vazio: {label:'Vazio', steps:16, sub:4, bpm:100, pattern:emptyDrumPattern(16)},
+  // ---- 4/4, semicolcheias ----
+  pop:     mkPreset('Pop', 16, 4, 110, {kick:[0,8,10], snare:[4,12], hihat:[0,2,4,6,8,10,12,14]}),
+  funk:    mkPreset('Funk', 16, 4, 100, {kick:[0,3,6,10,13], snare:[4,12], hihat:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}),
+  groove:  mkPreset('Groove', 16, 4, 92, {kick:[0,6,10], snare:[4,12], hihat:[0,2,4,6,8,10,12,14]}),
+  balada:  mkPreset('Balada', 16, 4, 68, {kick:[0,8], snare:[4,12], hihat:[0,2,4,6,8,10,12,14]}),
+  rock:    mkPreset('Rock', 16, 4, 120, {kick:[0,8,11], snare:[4,12], hihat:[0,2,4,6,8,10,12,14], crash:[0]}),
+  country: mkPreset('Country', 16, 4, 118, {kick:[0,8], snare:[2,4,6,10,12,14], hihat:[0,4,8,12]}),
+  folk:    mkPreset('Folk', 16, 4, 104, {kick:[0,8], snare:[4,12], hihat:[0,4,8,12]}),
+  reggae:  mkPreset('Reggae', 16, 4, 80, {kick:[8], snare:[8], hihat:[2,6,10,14]}),
+  ska:     mkPreset('Ska', 16, 4, 160, {kick:[0,8], snare:[4,12], hihat:[2,6,10,14]}),
+  baiao:   mkPreset('Baião', 16, 4, 100, {kick:[0,6,8,14], snare:[4,12], hihat:[0,2,4,6,8,10,12,14]}),
+  bossa:   mkPreset('Bossa', 16, 4, 130, {kick:[0,6,8,14], snare:[3,6,10,13], hihat:[0,4,8,12]}),
+  samba:   mkPreset('Samba', 16, 4, 100, {kick:[4,12], snare:[0,3,6,8,11,14], hihat:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}),
+  dedilhado: mkPreset('Dedilhado', 16, 4, 84, {kick:[0,8], hihat:[0,2,4,6,8,10,12,14]}),
+  // ---- 3/4 ----
+  valsa:    mkPreset('Valsa', 12, 4, 130, {kick:[0], snare:[4,8], hihat:[0,4,8]}),
+  guarania: mkPreset('Guarânia', 12, 4, 92, {kick:[0,6], snare:[4,8], hihat:[0,2,4,6,8,10]}),
+  // ---- compasso composto / shuffle (cada tempo = 3 passos) ----
+  composto: mkPreset('Compasso Composto', 12, 3, 80, {kick:[0,6], snare:[3,9], hihat:[0,1,2,3,4,5,6,7,8,9,10,11]}),
+  blues:    mkPreset('Blues', 12, 3, 86, {kick:[0,6], snare:[3,9], hihat:[0,2,3,5,6,8,9,11]}),
+  dedilhado3: mkPreset('Dedilhado ternário', 12, 3, 72, {kick:[0,6], hihat:[0,1,2,3,4,5,6,7,8,9,10,11]}),
 };
+// Ordem do seletor = mesma ordem da lista de ritmos das cifras.
+const DRUM_PRESET_ORDER = ['vazio','pop','funk','groove','balada','guarania','rock','country','blues','folk','composto','reggae','ska','baiao','bossa','samba','valsa','dedilhado','dedilhado3'];
+function drumSeqSteps(){ return (state.drumSeq.pattern.kick||[]).length || 16; }
 let drumSeqTimer = null;
 function toggleDrumStep(row, idx){
   state.drumSeq.pattern[row][idx] = !state.drumSeq.pattern[row][idx];
   render();
 }
 function loadDrumPreset(name){
-  state.drumSeq.pattern = JSON.parse(JSON.stringify(DRUM_PRESETS[name] || DRUM_PRESETS.vazio));
+  const preset = DRUM_PRESETS[name] || DRUM_PRESETS.vazio;
+  state.drumSeq.pattern = JSON.parse(JSON.stringify(preset.pattern));
+  state.drumSeq.steps = preset.steps;
+  state.drumSeq.sub = preset.sub;
   state.drumSeq.preset = name;
+  if(name!=='vazio') state.drumSeq.bpm = preset.bpm;
+  state.drumSeq.step = -1;
+  if(state.drumSeq.running) startDrumSeq();
   render();
 }
-function clearDrumPattern(){ loadDrumPreset('vazio'); }
+// "Limpar" apaga o desenho mas mantém a métrica do ritmo escolhido (senão um
+// compasso de valsa virava 4/4 do nada ao limpar).
+function clearDrumPattern(){
+  const steps = drumSeqSteps();
+  state.drumSeq.pattern = emptyDrumPattern(steps);
+  state.drumSeq.preset = 'vazio';
+  render();
+}
 function setDrumBpm(v){
   state.drumSeq.bpm = Math.max(20, Math.min(300, Math.round(v)));
   if(state.drumSeq.running) startDrumSeq();
@@ -4198,7 +4272,7 @@ function setDrumBpm(v){
 }
 function drumStepTick(){
   const seq = state.drumSeq;
-  seq.step = (seq.step+1)%16;
+  seq.step = (seq.step+1)%drumSeqSteps();
   DRUM_SEQ_ROWS.forEach(r=>{ if(seq.pattern[r.key][seq.step]) r.fn(); });
   document.querySelectorAll('.drumseq-cell').forEach(c=>c.classList.remove('current'));
   document.querySelectorAll(`.drumseq-cell[data-step="${seq.step}"]`).forEach(c=>c.classList.add('current'));
@@ -4208,7 +4282,8 @@ function drumStepTick(){
 }
 function startDrumSeq(){
   stopDrumSeq();
-  const stepMs = (60000/state.drumSeq.bpm)/4;
+  // sub = passos por tempo (4 em semicolcheias, 3 em compasso composto/shuffle)
+  const stepMs = (60000/state.drumSeq.bpm)/(state.drumSeq.sub||4);
   state.drumSeq.step = -1;
   drumSeqTimer = setInterval(drumStepTick, stepMs);
 }
@@ -4223,6 +4298,10 @@ function toggleDrumSeqPlay(){
 }
 function renderToolDrums(app, themeSwitch){
   const seq = state.drumSeq;
+  const steps = drumSeqSteps();
+  const sub = seq.sub || 4;
+  const tempos = Math.round(steps/sub);
+  const compasso = `${steps} passos = 1 compasso de ${tempos}/${sub===3?'8 (composto)':'4'} — os números marcam os tempos.`;
   app.innerHTML = `
     <div class="topbar">${brandHtml(false)}${themeSwitch}</div>
     ${professorIsInAdminMode()?professorToolNavHtml():mainNavHtml()}
@@ -4235,11 +4314,7 @@ function renderToolDrums(app, themeSwitch){
         <div class="piano-control-group">
           <span class="rail-label">Ritmo</span>
           <select onchange="loadDrumPreset(this.value)">
-            <option value="vazio" ${seq.preset==='vazio'?'selected':''}>Vazio</option>
-            <option value="rock" ${seq.preset==='rock'?'selected':''}>Rock</option>
-            <option value="funk" ${seq.preset==='funk'?'selected':''}>Funk</option>
-            <option value="reggae" ${seq.preset==='reggae'?'selected':''}>Reggae</option>
-            <option value="bossa" ${seq.preset==='bossa'?'selected':''}>Bossa Nova</option>
+            ${DRUM_PRESET_ORDER.map(k=>`<option value="${k}" ${seq.preset===k?'selected':''}>${DRUM_PRESETS[k].label}</option>`).join('')}
           </select>
         </div>
         <div class="piano-control-group">
@@ -4254,16 +4329,16 @@ function renderToolDrums(app, themeSwitch){
         <button class="btn-ghost btn-small" onclick="clearDrumPattern()">Limpar</button>
       </div>
       <div class="drumseq-scroll">
-        <div class="drumseq-grid">
+        <div class="drumseq-grid" style="grid-template-columns:80px repeat(${steps},minmax(38px,1fr));">
           <div class="drumseq-rowlabel"></div>
-          ${Array.from({length:16},(_,i)=>`<div class="drumseq-headcell" data-step="${i}">${i+1}</div>`).join('')}
+          ${Array.from({length:steps},(_,i)=>`<div class="drumseq-headcell ${i%sub===0?'beat':''}" data-step="${i}">${i%sub===0?(i/sub+1):'·'}</div>`).join('')}
           ${DRUM_SEQ_ROWS.map(r=>`
             <div class="drumseq-rowlabel"><span>${r.label}</span><span class="drumseq-row-icon">${r.icon}</span></div>
-            ${Array.from({length:16},(_,i)=>`<div class="drumseq-cell ${seq.pattern[r.key][i]?'on':''}" data-step="${i}" onclick="toggleDrumStep('${r.key}',${i})"></div>`).join('')}
+            ${Array.from({length:steps},(_,i)=>`<div class="drumseq-cell ${seq.pattern[r.key][i]?'on':''} ${i%sub===0?'beat':''}" data-step="${i}" onclick="toggleDrumStep('${r.key}',${i})"></div>`).join('')}
           `).join('')}
         </div>
       </div>
-      <div class="hint" style="margin-top:12px;">Clique nos quadrados para montar seu ritmo, ou escolha um pronto acima. 16 passos = 1 compasso.</div>
+      <div class="hint" style="margin-top:12px;">Clique nos quadrados para montar seu ritmo, ou escolha um pronto acima. ${compasso}</div>
     </div>
   `;
 }
@@ -4475,10 +4550,113 @@ function renderToolRecorder(app, themeSwitch){
 }
 
 // ---- Dicionário de Acordes ----
-const COMMON_CHORDS = ['C','D','E','F','G','A','B','Am','Dm','Em','C7','G7','D7','A7','C7M','Am7','Dm7','Gsus4'];
+// [Rodada 68 — 22/09/2026] O Dicionário deixou de ter a fileira de "acordes
+// comuns" e passou a ter autocomplete: ao digitar, lista embaixo do campo
+// todos os acordes possíveis que começam com o que foi digitado (pedido do
+// usuário, com referência de um site de cifras). A lista é gerada na hora a
+// partir das tônicas × qualidades que o CHORD_RE entende — nada de tabela
+// fixa, então tudo que aparece na lista é um acorde que o app sabe desenhar.
+const DICT_ROOTS = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
+// Ordem = ordem que aparece na lista (do mais comum pro mais raro).
+const DICT_QUALITIES = ['','m','7','m7','7M','6','m6','9','m9','sus2','sus4','add9','madd9','dim','dim7','aug','m7b5','mMaj7','11','13'];
+function dictAllChordNames(){
+  if(!dictAllChordNames._cache){
+    const out = [];
+    // Tônica por fora, qualidade por dentro: digitando "A" a lista vem
+    // A, Am, A7, Am7… antes de passar pra A#/Ab (ordem da referência).
+    DICT_ROOTS.forEach(r=> DICT_QUALITIES.forEach(q=> out.push(r+q)));
+    dictAllChordNames._cache = out;
+  }
+  return dictAllChordNames._cache;
+}
+// Normaliza o que o aluno digitou pra comparar com os nomes: tônica sempre
+// maiúscula, resto como veio (assim "am7" acha "Am7", e "AM7"/"a" também).
+function dictNormalizeQuery(q){
+  q = (q||'').trim();
+  if(!q) return '';
+  return q[0].toUpperCase() + q.slice(1);
+}
+function dictSuggestions(raw){
+  const q = dictNormalizeQuery(raw);
+  if(!q) return [];
+  // Acorde com baixo (ex: "A/C#"): sugere o mesmo acorde com cada baixo possível.
+  const barra = q.indexOf('/');
+  if(barra > 0){
+    const base = q.slice(0, barra);
+    const bassTyped = q.slice(barra+1).toLowerCase();
+    if(!parseChord(base)) return [];
+    return DICT_ROOTS.filter(r=> r.toLowerCase().startsWith(bassTyped)).map(r=> base+'/'+r).slice(0, 24);
+  }
+  const lower = q.toLowerCase();
+  const nomes = dictAllChordNames().filter(n=> n.toLowerCase().startsWith(lower));
+  // Match exato primeiro; o resto já vem na ordem tônica/qualidade da geração.
+  // Ordem: match exato primeiro; depois os acordes da tônica exatamente
+  // digitada (digitou "A" → A, Am, A7… antes de Ab/A#); o resto mantém a
+  // ordem de geração (tônica × qualidade).
+  const raizDigitada = q[0] + ((q[1]==='#'||q[1]==='b') ? q[1] : '');
+  const raizDe = (n)=> n[0] + ((n[1]==='#'||n[1]==='b') ? n[1] : '');
+  nomes.sort((a,b)=>{
+    const ea = a.toLowerCase()===lower ? 0 : 1, eb = b.toLowerCase()===lower ? 0 : 1;
+    if(ea!==eb) return ea-eb;
+    const ra = raizDe(a)===raizDigitada ? 0 : 1, rb = raizDe(b)===raizDigitada ? 0 : 1;
+    return ra-rb;
+  });
+  return nomes.slice(0, 24);
+}
+function dictSuggestHtml(){
+  if(!state.dictSuggestOpen) return '';
+  const lista = dictSuggestions(state.dictChordQuery);
+  if(!lista.length) return '';
+  const sel = state.dictSuggestIdx;
+  return `<div class="dict-suggest" id="dictSuggestList">${lista.map((n,i)=>
+    `<button type="button" class="dict-suggest-item ${i===sel?'active':''}" onmousedown="event.preventDefault()" onclick="dictPickChord('${n}')">${escapeHtml(n)}</button>`).join('')}</div>`;
+}
+function refreshDictSuggest(){
+  const el = document.getElementById('dictSuggestWrap');
+  if(el) el.innerHTML = dictSuggestHtml();
+}
+function dictInputChanged(v){
+  state.dictChordQuery = v;
+  state.dictSuggestOpen = true;
+  state.dictSuggestIdx = -1;
+  refreshDictSuggest();
+  const el = document.getElementById('dictResults');
+  if(el) el.innerHTML = dictResultsHtml();
+}
+// Setas pra andar na lista, Enter pra escolher, Esc pra fechar.
+function dictInputKey(ev){
+  const lista = dictSuggestions(state.dictChordQuery);
+  if(ev.key==='ArrowDown' || ev.key==='ArrowUp'){
+    if(!lista.length) return;
+    ev.preventDefault();
+    state.dictSuggestOpen = true;
+    const d = ev.key==='ArrowDown' ? 1 : -1;
+    state.dictSuggestIdx = (state.dictSuggestIdx + d + lista.length + 1) % (lista.length+1) - (d<0 && state.dictSuggestIdx<0 ? 0 : 0);
+    if(state.dictSuggestIdx > lista.length-1) state.dictSuggestIdx = 0;
+    if(state.dictSuggestIdx < 0) state.dictSuggestIdx = lista.length-1;
+    refreshDictSuggest();
+    const it = document.querySelectorAll('.dict-suggest-item')[state.dictSuggestIdx];
+    if(it && it.scrollIntoView) it.scrollIntoView({block:'nearest'});
+  } else if(ev.key==='Enter'){
+    if(state.dictSuggestOpen && state.dictSuggestIdx>=0 && lista[state.dictSuggestIdx]){
+      ev.preventDefault();
+      dictPickChord(lista[state.dictSuggestIdx]);
+    } else if(lista.length){
+      ev.preventDefault();
+      dictPickChord(lista[0]);
+    }
+  } else if(ev.key==='Escape'){
+    state.dictSuggestOpen = false;
+    refreshDictSuggest();
+  }
+}
+function dictCloseSuggest(){
+  // timeout pequeno pra um clique na lista ainda contar antes de ela fechar
+  setTimeout(()=>{ state.dictSuggestOpen = false; refreshDictSuggest(); }, 120);
+}
 function dictResultsHtml(){
   const q = (state.dictChordQuery||'').trim();
-  if(!q) return '<p class="hint">Digite um acorde acima (ex: G, Am7, D/F#) ou escolha um dos comuns abaixo.</p>';
+  if(!q) return '<p class="hint">Digite um acorde acima (ex: G, Am7, D/F#) e escolha uma das opções que aparecem.</p>';
   const p = parseChord(q);
   if(!p) return '<p class="hint">Não reconheci esse acorde. Tente algo como "G", "Am7" ou "D/F#".</p>';
   const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
@@ -4501,8 +4679,15 @@ function updateDictResults(v){
 function dictPickChord(name){
   const input = document.getElementById('dictInput');
   if(input) input.value = name;
-  updateDictResults(name);
+  state.dictChordQuery = name;
+  state.dictSuggestOpen = false;
+  state.dictSuggestIdx = -1;
+  refreshDictSuggest();
+  const el = document.getElementById('dictResults');
+  if(el) el.innerHTML = dictResultsHtml();
 }
+// [Rodada 68] Não há mais botão de abrir/fechar o desenho (ele vive aberto),
+// mas a função fica pra não quebrar nada que ainda chame.
 function toggleDictDrawMode(){
   state.dictDrawMode = !state.dictDrawMode;
   if(state.dictDrawMode && !state.dictDrawFrets){
@@ -4513,7 +4698,7 @@ function toggleDictDrawMode(){
 }
 function refreshDictDrawPanel(){
   const el = document.getElementById('dictDrawPanel');
-  if(el) el.innerHTML = state.dictDrawMode ? dictDrawPanelHtml() : '';
+  if(el) el.innerHTML = dictDrawPanelHtml();
 }
 function setDictDrawFret(stringIdx, fret){
   const cur = state.dictDrawFrets[stringIdx];
@@ -4525,7 +4710,7 @@ function toggleDictDrawMute(stringIdx){
   refreshDictDrawPanel();
 }
 function changeDictDrawBase(delta){
-  state.dictDrawBase = Math.max(1, Math.min(15, state.dictDrawBase+delta));
+  state.dictDrawBase = Math.max(1, Math.min(DICT_NECK_FRETS-4, state.dictDrawBase+delta));
   refreshDictDrawPanel();
 }
 function resetDictDraw(){
@@ -4535,11 +4720,17 @@ function resetDictDraw(){
 }
 function dictDrawEditorSvg(){
   const frets = state.dictDrawFrets, base = state.dictDrawBase;
-  const xs=[10,26,42,58,74,90], fy=32, gap=20, nf=5;
-  let s = `<svg viewBox="0 0 100 148" class="chord-svg dict-draw-svg" xmlns="http://www.w3.org/2000/svg">`;
+  const xs=[10,26,42,58,74,90], fy=44, gap=20, nf=5;
+  const NOMES = ['E','A','D','G','B','E'];
+  let s = `<svg viewBox="-16 0 116 160" class="chord-svg dict-draw-svg" xmlns="http://www.w3.org/2000/svg">`;
+  // [Rodada 68] Nome das cordas em cima, como na referência que o usuário mandou.
+  xs.forEach((x,i)=> s += `<text x="${x}" y="11" font-size="8" fill="var(--muted)" text-anchor="middle">${NOMES[i]}</text>`);
   xs.forEach((x)=> s += `<line x1="${x}" y1="${fy}" x2="${x}" y2="${fy+gap*nf}" stroke="var(--text)" stroke-width="1.4"/>`);
   for(let fr=0; fr<=nf; fr++){ const y=fy+fr*gap; s += `<line x1="10" y1="${y}" x2="90" y2="${y}" stroke="var(--text)" stroke-width="${(base===1&&fr===0)?3:1}"/>`; }
-  if(base>1) s += `<text x="0" y="${fy+gap*0.7}" font-size="9" fill="var(--muted)">${base}ª</text>`;
+  // [Rodada 68] Número de cada casa na lateral (como na referência).
+  for(let f=0; f<nf; f++){
+    s += `<text x="-4" y="${fy+(f+0.5)*gap+3}" font-size="9" fill="var(--muted)" text-anchor="end">${base+f}</text>`;
+  }
   xs.forEach((x,i)=>{
     for(let f=0; f<nf; f++){
       const fretNum = base+f;
@@ -4610,28 +4801,59 @@ function detectChordFromFrets(frets){
   }
   return best ? best.name : null;
 }
+// [Rodada 68] Painel de desenhar acorde, no formato da referência enviada pelo
+// usuário: minibraço à esquerda (com setas) pra escolher a região do braço, o
+// diagrama grande à direita, e o "Limpar" embaixo.
+const DICT_NECK_FRETS = 17;
+function dictNeckPickerSvg(){
+  const base = state.dictDrawBase, nf = 5;
+  const w = 46, topY = 6, rowH = 9, xs = [8,15,22,29,36,43].map(x=>x*0.86+2);
+  let s = `<svg viewBox="0 0 ${w} ${topY + rowH*DICT_NECK_FRETS + 6}" class="dict-neck-svg" xmlns="http://www.w3.org/2000/svg">`;
+  // região escolhida (as 5 casas que aparecem no diagrama grande)
+  const selY = topY + (base-1)*rowH;
+  s += `<rect x="1" y="${selY}" width="${w-2}" height="${rowH*nf}" fill="color-mix(in srgb, var(--accent) 22%, transparent)" stroke="var(--accent)" stroke-width="1.2" rx="2"/>`;
+  for(let fr=0; fr<=DICT_NECK_FRETS; fr++){
+    const y = topY + fr*rowH;
+    s += `<line x1="2" y1="${y}" x2="${w-2}" y2="${y}" stroke="var(--muted)" stroke-opacity="${fr===0?.9:.45}" stroke-width="${fr===0?2:0.7}"/>`;
+  }
+  xs.forEach(x=> s += `<line x1="${x}" y1="${topY}" x2="${x}" y2="${topY+rowH*DICT_NECK_FRETS}" stroke="var(--muted)" stroke-opacity=".45" stroke-width="0.7"/>`);
+  // cada casa é clicável: leva a janela de 5 casas pra começar ali
+  for(let fr=1; fr<=DICT_NECK_FRETS-nf+1; fr++){
+    s += `<rect x="1" y="${topY+(fr-1)*rowH}" width="${w-2}" height="${rowH}" fill="transparent" style="cursor:pointer;" onclick="setDictDrawBase(${fr})"><title>Casa ${fr}</title></rect>`;
+  }
+  s += '</svg>';
+  return s;
+}
+function setDictDrawBase(fr){
+  state.dictDrawBase = Math.max(1, Math.min(DICT_NECK_FRETS-4, fr));
+  refreshDictDrawPanel();
+}
 function dictDrawPanelHtml(){
   const detectedName = detectChordFromFrets(state.dictDrawFrets);
+  const base = state.dictDrawBase;
   return `
     <div style="text-align:center;">
       <div class="dict-draw-name">${detectedName?escapeHtml(detectedName):'?'}</div>
-      <div class="hint" style="margin-bottom:14px;">${detectedName?escapeHtml(chordFullNamePt(detectedName)):'Desenhe um acorde no braço abaixo para descobrir o nome'}</div>
-      <div class="piano-controls" style="justify-content:center;margin-bottom:14px;">
-        <div class="piano-control-group">
-          <span class="rail-label">Casa inicial</span>
-          <div class="tool-group">
-            <button class="rail-mini" onclick="changeDictDrawBase(-1)">−</button>
-            <span class="piano-octave-val">${state.dictDrawBase}ª</span>
-            <button class="rail-mini" onclick="changeDictDrawBase(1)">+</button>
-          </div>
+      <div class="hint" style="margin-bottom:16px;">${detectedName?escapeHtml(chordFullNamePt(detectedName)):'Desenhe um acorde no braço abaixo para descobrir o nome'}</div>
+      <div class="dict-draw-row">
+        <div class="dict-neck-picker">
+          <button type="button" class="dict-neck-arrow" onclick="changeDictDrawBase(-1)" ${base<=1?'disabled':''} aria-label="Subir região">${ICON_CHEV_UP}</button>
+          <div class="dict-neck-wrap">${dictNeckPickerSvg()}</div>
+          <button type="button" class="dict-neck-arrow" onclick="changeDictDrawBase(1)" ${base>=DICT_NECK_FRETS-4?'disabled':''} aria-label="Descer região">${ICON_CHEV_DOWN}</button>
+          <span class="dict-neck-label">Casa ${base}–${base+4}</span>
         </div>
-        <button class="btn-ghost btn-small" onclick="resetDictDraw()">Limpar</button>
+        <div class="dict-draw-big">${dictDrawEditorSvg()}</div>
       </div>
-      <div class="dict-draw-big">${dictDrawEditorSvg()}</div>
-      <div class="hint" style="max-width:280px;margin:12px auto 0;">Clique no braço para colocar o dedo na casa. Clique na bolinha/× acima da corda pra marcar solta ou presa.</div>
+      <div class="dict-draw-actions">
+        <button type="button" class="btn-ghost" onclick="resetDictDraw()">Limpar</button>
+      </div>
+      <div class="hint" style="max-width:320px;margin:12px auto 0;">Clique no braço para colocar o dedo na casa. Clique na bolinha/× acima da corda pra marcar solta ou presa.</div>
     </div>`;
 }
 function renderToolDict(app, themeSwitch){
+  // [Rodada 68] O desenho do acorde não fica mais atrás de um botão: o braço já
+  // abre grande, embaixo da busca.
+  if(!state.dictDrawFrets){ state.dictDrawFrets = [0,0,0,0,0,0]; state.dictDrawBase = 1; }
   app.innerHTML = `
     <div class="topbar">${brandHtml(false)}${themeSwitch}</div>
     ${professorIsInAdminMode()?professorToolNavHtml():mainNavHtml()}
@@ -4640,14 +4862,17 @@ function renderToolDict(app, themeSwitch){
       <a class="tool-back" onclick="navigateTo('ferramentas')">&larr; Ferramentas</a>
     </div>
     <div class="tool-card" style="max-width:760px;">
-      <input id="dictInput" value="${escapeHtml(state.dictChordQuery||'')}" oninput="updateDictResults(this.value)" placeholder="Digite um acorde (ex: G, Am7, D/F#)" style="font-size:15px;">
-      <div class="chip-row" style="margin-top:14px;">
-        ${COMMON_CHORDS.map(c=>`<button type="button" class="chip chip-btn" onclick="dictPickChord('${c}')">${c}</button>`).join('')}
+      <div class="dict-search">
+        <input id="dictInput" autocomplete="off" value="${escapeHtml(state.dictChordQuery||'')}"
+          oninput="dictInputChanged(this.value)" onkeydown="dictInputKey(event)"
+          onfocus="state.dictSuggestOpen=true;refreshDictSuggest()" onblur="dictCloseSuggest()"
+          placeholder="Digite um acorde (ex: G, Am7, D/F#)" style="font-size:15px;">
+        <div id="dictSuggestWrap">${dictSuggestHtml()}</div>
       </div>
       <div id="dictResults" style="margin-top:22px;">${dictResultsHtml()}</div>
-      <div class="rail-divider-h" style="margin:22px 0;"></div>
-      <button type="button" class="btn-ghost" onclick="toggleDictDrawMode()">${state.dictDrawMode?'✕ Fechar desenho':'✎ Desenhar acorde'}</button>
-      <div id="dictDrawPanel" style="margin-top:18px;">${state.dictDrawMode?dictDrawPanelHtml():''}</div>
+      <div class="rail-divider-h" style="margin:26px 0 20px;"></div>
+      <h4 style="margin:0 0 4px;text-align:center;">Desenhar acorde</h4>
+      <div id="dictDrawPanel">${dictDrawPanelHtml()}</div>
     </div>
   `;
 }
@@ -5653,7 +5878,7 @@ async function loadAvisos(){
   try{
     const { data, error } = await sb.from('avisos').select('*').order('criado_em', {ascending:false}).limit(100);
     if(error) throw error;
-    state.avisos = (data||[]).map(r=>({id:r.id, texto:r.texto, destinatarios:r.destinatarios||[], criadoEm: tsToMs(r.criado_em)}));
+    state.avisos = (data||[]).map(r=>({id:r.id, texto:r.texto, destinatarios:r.destinatarios||[], criadoEm: tsToMs(r.criado_em), expiraEm: r.expira_em ? tsToMs(r.expira_em) : null}));
   }catch(e){ console.error('Erro ao carregar avisos', e); state.avisos = []; }
 }
 async function loadAvisosLidos(email){
@@ -5669,7 +5894,8 @@ function avisosPendentesDoAluno(){
   const email = state.session && state.session.email;
   if(!email) return [];
   const lidos = state.avisosLidos||[];
-  return (state.avisos||[]).filter(a=>a.destinatarios.includes(email) && !lidos.includes(a.id))
+  const agora = Date.now();
+  return (state.avisos||[]).filter(a=>a.destinatarios.includes(email) && !lidos.includes(a.id) && !(a.expiraEm && a.expiraEm <= agora))
     .sort((a,b)=>a.criadoEm-b.criadoEm);
 }
 function avisosBannerHtml(){
@@ -5677,7 +5903,7 @@ function avisosBannerHtml(){
   if(!lista.length) return '';
   return `<div class="avisos-stack no-print">${lista.map(a=>`
     <div class="aviso-banner">
-      <span class="aviso-banner-icon">${ICON_MEGAFONE}</span>
+      <span class="aviso-banner-icon">${ICON_AVISO}</span>
       <div class="aviso-banner-texto">${escapeHtml(a.texto).replace(/\n/g,'<br>')}</div>
       <button type="button" class="aviso-banner-ok" onclick="dispensarAviso('${a.id}')">OK</button>
     </div>`).join('')}</div>`;
@@ -5695,6 +5921,7 @@ async function dispensarAviso(id){
   }catch(e){ console.error('Erro ao marcar aviso como lido', e); }
 }
 // ---- lado do professor (Configurações)
+function hojeIsoLocal(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function avisoAlunosAtivos(){ return (state.alunosAutorizados||[]).filter(a=>a.ativo!==false); }
 function toggleAvisoAluno(email){
   state.avisoExcluidos = state.avisoExcluidos || new Set();
@@ -5714,15 +5941,23 @@ async function enviarAviso(){
   const excl = state.avisoExcluidos || new Set();
   const destinatarios = avisoAlunosAtivos().map(a=>a.email).filter(e=>!excl.has(e));
   if(!destinatarios.length){ showToast('Selecione pelo menos um aluno.', true); return; }
-  const aviso = {id: genUuid(), texto, destinatarios, criadoEm: Date.now()};
+  // [Rodada 67] Data de expiração opcional: vale até o fim do dia escolhido
+  // (23:59:59 no horário do aparelho do professor).
+  let expiraEm = null;
+  if(state.avisoExpiraDraft){
+    const [y,m,d] = state.avisoExpiraDraft.split('-').map(Number);
+    expiraEm = new Date(y, m-1, d, 23, 59, 59).getTime();
+    if(expiraEm <= Date.now()){ showToast('A data de expiração já passou.', true); return; }
+  }
+  const aviso = {id: genUuid(), texto, destinatarios, criadoEm: Date.now(), expiraEm};
   if(sb){
     try{
-      const { error } = await sb.from('avisos').insert({id: aviso.id, texto, destinatarios});
+      const { error } = await sb.from('avisos').insert({id: aviso.id, texto, destinatarios, expira_em: expiraEm ? new Date(expiraEm).toISOString() : null});
       if(error) throw error;
     }catch(e){ console.error('Erro ao enviar aviso', e); showToast('Não foi possível enviar o aviso.', true); return; }
   }
   state.avisos = [aviso, ...(state.avisos||[])];
-  state.avisoDraft = ''; state.avisoExcluidos = new Set();
+  state.avisoDraft = ''; state.avisoExpiraDraft = ''; state.avisoExcluidos = new Set();
   render();
   showToast(destinatarios.length===1?'Aviso enviado para 1 aluno.':'Aviso enviado para '+destinatarios.length+' alunos.');
 }
@@ -5745,10 +5980,15 @@ function avisosConfigCardHtml(){
   const nomeDe = (email)=>{ const a=(state.alunosAutorizados||[]).find(x=>x.email===email); return a?(a.nome||a.email):email; };
   const enviados = state.avisos||[];
   return `
-    <div class="profile-list-card" style="max-width:560px;margin-top:20px;">
+    <div class="profile-list-card cfg-card">
       <h4 style="margin:0 0 4px;">Avisos para os alunos</h4>
       <p class="hint" style="margin:0 0 14px;">O aviso aparece no topo de todas as telas do aluno até ele clicar em "OK". Por padrão vai para todos os alunos ativos — desmarque quem não deve receber.</p>
       <textarea id="avisoTexto" class="aviso-textarea" rows="3" placeholder="Ex.: Semana que vem não teremos aula na quinta-feira." oninput="state.avisoDraft=this.value">${escapeHtml(state.avisoDraft||'')}</textarea>
+      <div class="aviso-expira-row">
+        <span class="aviso-expira-label">Expira em</span>
+        <input type="date" id="avisoExpira" class="aviso-expira-input" min="${hojeIsoLocal()}" value="${escapeHtml(state.avisoExpiraDraft||'')}" onchange="state.avisoExpiraDraft=this.value;render()">
+        ${state.avisoExpiraDraft?`<button type="button" class="text-link-btn" onclick="state.avisoExpiraDraft='';render()">Sem expiração</button>`:'<span class="hint">Opcional — sem data, o aviso fica até o aluno clicar em OK.</span>'}
+      </div>
       ${alunos.length?`<div class="aluno-select-list" style="margin-top:14px;">
         <label class="aluno-select-row aluno-select-todos ${todos?'checked':''}">
           <input type="checkbox" ${todos?'checked':''} onchange="toggleAvisoTodos()">
@@ -5773,9 +6013,11 @@ function avisosConfigCardHtml(){
       <div class="avisos-enviados">${enviados.map(a=>{
         const n=a.destinatarios.length;
         const quem = n===alunos.length && alunos.every(x=>a.destinatarios.includes(x.email)) ? 'Todos os alunos' : (n<=3 ? a.destinatarios.map(nomeDe).join(', ') : n+' alunos');
-        return `<div class="aviso-enviado">
+        const expirado = a.expiraEm && a.expiraEm <= Date.now();
+        const expTxt = a.expiraEm ? (expirado ? ' · <span class="aviso-expirado">Expirado</span>' : ' · expira em '+formatDatePt(a.expiraEm)) : '';
+        return `<div class="aviso-enviado ${expirado?'is-expirado':''}">
           <div class="aviso-enviado-texto">${escapeHtml(a.texto).replace(/\n/g,'<br>')}</div>
-          <div class="aviso-enviado-meta"><span>${formatDatePt(a.criadoEm)} · ${escapeHtml(quem)}</span>
+          <div class="aviso-enviado-meta"><span>${formatDatePt(a.criadoEm)} · ${escapeHtml(quem)}${expTxt}</span>
           <button type="button" class="text-link-btn" onclick="excluirAviso('${a.id}')">Excluir</button></div>
         </div>`;}).join('')}</div>`:''}
     </div>`;
@@ -6220,21 +6462,25 @@ async function saveConfigEscola(){
     if(error) throw error;
   }catch(e){ console.error('Erro ao salvar configurações', e); }
 }
-async function submitConfiguracoes(ev){
+async function submitConfiguracoes(ev, secao){
   if(ev) ev.preventDefault();
   state.config = state.config || {};
-  state.config.logoLight = state.cfgLogoLightPreview || '';
-  state.config.logoDark = state.cfgLogoDarkPreview || '';
-  state.config.loginLayout = state.cfgLoginLayoutDraft || 'padrao';
-  state.config.loginImage = state.cfgLoginImagePreview || '';
-  state.config.accent = (document.getElementById('cfg_accent')||{}).value || '';
-  state.config.whatsapp = (document.getElementById('cfg_whatsapp')||{}).value?.trim() || '';
-  state.config.instagram = (document.getElementById('cfg_instagram')||{}).value?.trim() || '';
-  state.config.youtube = (document.getElementById('cfg_youtube')||{}).value?.trim() || '';
-  state.config.tiktok = (document.getElementById('cfg_tiktok')||{}).value?.trim() || '';
-  state.config.facebook = (document.getElementById('cfg_facebook')||{}).value?.trim() || '';
-  state.config.x = (document.getElementById('cfg_x')||{}).value?.trim() || '';
-  state.config.backingTracksUrl = (document.getElementById('cfg_backing')||{}).value?.trim() || '';
+  // [Rodada 67] Só grava os campos que estão na tela (cada seção tem os seus).
+  const campo = (id, key)=>{ const el=document.getElementById(id); if(el) state.config[key] = el.value.trim(); };
+  if(secao==='visual'){
+    state.config.logoLight = state.cfgLogoLightPreview || '';
+    state.config.logoDark = state.cfgLogoDarkPreview || '';
+    state.config.loginLayout = state.cfgLoginLayoutDraft || 'padrao';
+    state.config.loginImage = state.cfgLoginImagePreview || '';
+  }
+  campo('cfg_accent','accent');
+  campo('cfg_whatsapp','whatsapp');
+  campo('cfg_instagram','instagram');
+  campo('cfg_youtube','youtube');
+  campo('cfg_tiktok','tiktok');
+  campo('cfg_facebook','facebook');
+  campo('cfg_x','x');
+  campo('cfg_backing','backingTracksUrl');
   applyAccentColor();
   const waBtn = document.getElementById('whatsappBtn'); if(waBtn) waBtn.href = 'https://wa.me/'+getWhatsappNumber();
   render();
@@ -6701,18 +6947,34 @@ function sendModalHtml(){
   </div>`;
 }
 
+// [Rodada 67 — 21/09/2026] Configurações do professor divididas em seções:
+// Avisos · ID visual (logos, cor, tela de login) · Redes sociais · Links
+// (WhatsApp geral + Backing Tracks) · Alterar senha. Menu lateral no
+// computador, faixa de "pílulas" com rolagem no celular. Cada seção salva
+// só os próprios campos (submitConfiguracoes só lê os inputs que existem na
+// tela), pra não apagar o que está nas outras seções.
+const CFG_SECOES = [
+  {key:'avisos', label:'Avisos'},
+  {key:'visual', label:'ID visual'},
+  {key:'redes', label:'Redes sociais'},
+  {key:'links', label:'Links'},
+  {key:'senha', label:'Alterar senha'},
+];
+function setCfgSecao(k){ state.cfgSecao = k; render(); }
 function professorConfiguracoesTabHtml(){
   const cfg = state.config||{};
+  const secao = CFG_SECOES.some(x=>x.key===state.cfgSecao) ? state.cfgSecao : 'avisos';
   const logoLight = state.cfgLogoLightPreview;
   const logoDark = state.cfgLogoDarkPreview;
   const loginLayoutDraft = state.cfgLoginLayoutDraft || cfg.loginLayout || 'padrao';
   const loginImg = state.cfgLoginImagePreview;
-  return `
-    <div class="page-header-row" style="margin-top:0;">
-      <h3 style="margin:0;">Configurações</h3>
-    </div>
-    ${avisosConfigCardHtml().replace('margin-top:20px;','margin-top:0;margin-bottom:20px;')}
-    <div class="profile-list-card" style="max-width:560px;">
+  const salvar = `<div class="form-actions" style="justify-content:flex-start;"><button type="submit" class="btn">Salvar</button></div>`;
+  let corpo = '';
+  if(secao==='avisos'){
+    corpo = avisosConfigCardHtml();
+  } else if(secao==='visual'){
+    corpo = `
+    <div class="profile-list-card cfg-card">
       <h4 style="margin:0 0 4px;">Logo</h4>
       <p class="hint" style="margin:0 0 14px;">Envie duas versões: a logo clara aparece automaticamente no tema escuro, e a logo escura no tema claro.</p>
       <div class="logo-upload-row">
@@ -6727,46 +6989,71 @@ function professorConfiguracoesTabHtml(){
           ${logoDark?`<button type="button" class="text-link-btn" onclick="clearLogoPreview('dark')">Remover</button>`:''}
         </div>
       </div>
-    </div>
-    <div class="profile-list-card" style="max-width:560px;margin-top:20px;">
-      <h4 style="margin:0 0 4px;">Layout da tela de login</h4>
-      <p class="hint" style="margin:0 0 14px;">O layout padrão continua sendo o de sempre. "Imagem lateral" é uma variação pra testar, em tela cheia: o formulário ocupa a metade esquerda da tela e uma foto grande ocupa a metade direita — troque quando quiser, sem perder o padrão.</p>
-      <div class="source-toggle">
-        <button type="button" class="${loginLayoutDraft==='padrao'?'active':''}" onclick="setLoginLayoutDraft('padrao')">Padrão</button>
-        <button type="button" class="${loginLayoutDraft==='lateral'?'active':''}" onclick="setLoginLayoutDraft('lateral')">Imagem lateral</button>
-      </div>
-      ${loginLayoutDraft==='lateral'?`
-      <div class="logo-upload-box" style="margin-top:16px;max-width:200px;">
-        <div class="logo-upload-preview" style="height:150px;background:var(--pill-bg);">${loginImg?`<img src="${escapeHtml(loginImg)}" alt="" style="object-fit:cover;width:100%;height:100%;max-width:none;max-height:none;">`:'<span class="hint">Sem imagem</span>'}</div>
-        <label class="btn-ghost btn-small" style="cursor:pointer;">${loginImg?'Trocar':'Enviar'} imagem<input type="file" accept="image/*" style="display:none;" onchange="handleLoginImageUpload(this)"></label>
-        ${loginImg?`<button type="button" class="text-link-btn" onclick="clearLoginImagePreview()">Remover</button>`:''}
-      </div>
-      <p class="hint" style="margin-top:10px;">Medida recomendada: imagem vertical (retrato) e em alta resolução — agora ela ocupa a metade da tela de cima a baixo, então quanto maior a imagem enviada, mais nítida fica em telas grandes. Por exemplo, 1200×1600px ou mais. Sem imagem enviada, usamos um fundo padrão no lugar.</p>
-      `:''}
-    </div>
-    <div class="profile-list-card" style="max-width:560px;margin-top:20px;">
-      <form onsubmit="submitConfiguracoes(event)">
-        <div class="login-field" style="margin-top:20px;"><label>Cor de destaque</label><input id="cfg_accent" type="color" value="${escapeHtml(cfg.accent||'#bf622c')}" style="width:64px;height:38px;padding:2px;"></div>
-        <h4 style="margin:22px 0 4px;">Redes sociais</h4>
-        <p class="hint" style="margin:0 0 14px;">Todos os campos são opcionais. Se preenchidos, o ícone correspondente aparece na tela de login.</p>
-        <div class="login-field"><label>${WA_SVG} WhatsApp (número com DDI/DDD)</label><input id="cfg_whatsapp" type="text" placeholder="5532991610300" value="${escapeHtml(cfg.whatsapp||'')}"></div>
+      <form onsubmit="submitConfiguracoes(event,'visual')">
+        <div class="login-field" style="margin-top:24px;"><label>Cor de destaque</label><input id="cfg_accent" type="color" value="${escapeHtml(cfg.accent||'#bf622c')}" style="width:64px;height:38px;padding:2px;"></div>
+        <h4 style="margin:26px 0 4px;">Layout da tela de login</h4>
+        <p class="hint" style="margin:0 0 14px;">O layout padrão continua sendo o de sempre. "Imagem lateral" mostra o formulário na metade esquerda da tela e uma foto grande na metade direita.</p>
+        <div class="source-toggle">
+          <button type="button" class="${loginLayoutDraft==='padrao'?'active':''}" onclick="setLoginLayoutDraft('padrao')">Padrão</button>
+          <button type="button" class="${loginLayoutDraft==='lateral'?'active':''}" onclick="setLoginLayoutDraft('lateral')">Imagem lateral</button>
+        </div>
+        ${loginLayoutDraft==='lateral'?`
+        <div class="logo-upload-box" style="margin-top:16px;max-width:200px;">
+          <div class="logo-upload-preview" style="height:150px;background:var(--pill-bg);">${loginImg?`<img src="${escapeHtml(loginImg)}" alt="" style="object-fit:cover;width:100%;height:100%;max-width:none;max-height:none;">`:'<span class="hint">Sem imagem</span>'}</div>
+          <label class="btn-ghost btn-small" style="cursor:pointer;">${loginImg?'Trocar':'Enviar'} imagem<input type="file" accept="image/*" style="display:none;" onchange="handleLoginImageUpload(this)"></label>
+          ${loginImg?`<button type="button" class="text-link-btn" onclick="clearLoginImagePreview()">Remover</button>`:''}
+        </div>
+        <p class="hint" style="margin-top:10px;">Medida recomendada: imagem vertical (retrato) e em alta resolução.</p>
+        `:''}
+        ${salvar}
+      </form>
+    </div>`;
+  } else if(secao==='redes'){
+    corpo = `
+    <div class="profile-list-card cfg-card">
+      <h4 style="margin:0 0 4px;">Redes sociais</h4>
+      <p class="hint" style="margin:0 0 14px;">Todos os campos são opcionais. Se preenchidos, o ícone correspondente aparece na tela de login.</p>
+      <form onsubmit="submitConfiguracoes(event,'redes')">
         <div class="login-field"><label>${IG_SVG} Instagram (link)</label><input id="cfg_instagram" type="text" placeholder="https://instagram.com/…" value="${escapeHtml(cfg.instagram||'')}"></div>
         <div class="login-field"><label>${YT_SVG} YouTube (link)</label><input id="cfg_youtube" type="text" placeholder="https://youtube.com/…" value="${escapeHtml(cfg.youtube||'')}"></div>
         <div class="login-field"><label>${TIKTOK_SVG} TikTok (link)</label><input id="cfg_tiktok" type="text" placeholder="https://tiktok.com/@…" value="${escapeHtml(cfg.tiktok||'')}"></div>
         <div class="login-field"><label>${FB_SVG} Facebook (link)</label><input id="cfg_facebook" type="text" placeholder="https://facebook.com/…" value="${escapeHtml(cfg.facebook||'')}"></div>
         <div class="login-field"><label>${X_SVG} X (link)</label><input id="cfg_x" type="text" placeholder="https://x.com/…" value="${escapeHtml(cfg.x||'')}"></div>
-        <h4 style="margin:22px 0 4px;">Backing Tracks</h4>
-        <p class="hint" style="margin:0 0 14px;">Cole aqui o link (Google Drive, por exemplo) de onde o aluno pode baixar as backing tracks. Ao clicar no botão na ferramenta "Backing Tracks", o aluno é levado até esse link em uma nova aba.</p>
-        <div class="login-field"><label>${DOWNLOAD_SVG} Link para baixar</label><input id="cfg_backing" type="text" placeholder="https://drive.google.com/…" value="${escapeHtml(cfg.backingTracksUrl||'')}"></div>
-        <div class="form-actions" style="justify-content:flex-start;"><button type="submit" class="btn">Salvar configurações</button></div>
+        ${salvar}
       </form>
-      <h4 style="margin:28px 0 4px;">Trocar minha senha</h4>
+    </div>`;
+  } else if(secao==='links'){
+    corpo = `
+    <div class="profile-list-card cfg-card">
+      <h4 style="margin:0 0 4px;">Links</h4>
+      <p class="hint" style="margin:0 0 14px;">Links usados pelo app inteiro.</p>
+      <form onsubmit="submitConfiguracoes(event,'links')">
+        <div class="login-field"><label>${WA_SVG} WhatsApp geral (número com DDI/DDD)</label><input id="cfg_whatsapp" type="text" placeholder="5532991610300" value="${escapeHtml(cfg.whatsapp||'')}"></div>
+        <p class="hint" style="margin:-4px 0 18px;">Usado em todos os botões de WhatsApp e de Ajuda do app (botão flutuante, menu, tela de login).</p>
+        <div class="login-field"><label>${DOWNLOAD_SVG} Backing Tracks (link para baixar)</label><input id="cfg_backing" type="text" placeholder="https://drive.google.com/…" value="${escapeHtml(cfg.backingTracksUrl||'')}"></div>
+        <p class="hint" style="margin:-4px 0 0;">Ao clicar no botão da ferramenta "Backing Tracks", o aluno é levado até esse link (Google Drive, por exemplo).</p>
+        ${salvar}
+      </form>
+    </div>`;
+  } else {
+    corpo = `
+    <div class="profile-list-card cfg-card">
+      <h4 style="margin:0 0 4px;">Alterar senha</h4>
       <p class="hint" style="margin:0 0 12px;">Sua senha atual de professor.</p>
       ${state.trocarSenhaError?`<div class="login-error">${escapeHtml(state.trocarSenhaError)}</div>`:''}
       <form onsubmit="submitTrocarSenha(event)">
         <div class="login-field"><label>Nova senha</label><input id="nova_senha_input" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
         <div class="form-actions" style="justify-content:flex-start;"><button type="submit" class="btn">Trocar senha</button></div>
       </form>
+    </div>`;
+  }
+  return `
+    <div class="page-header-row" style="margin-top:0;">
+      <h3 style="margin:0;">Configurações</h3>
+    </div>
+    <div class="cfg-layout">
+      <nav class="cfg-secoes no-print">${CFG_SECOES.map(x=>`<button type="button" class="cfg-secao-btn ${x.key===secao?'active':''}" onclick="setCfgSecao('${x.key}')">${x.label}</button>`).join('')}</nav>
+      <div class="cfg-corpo">${corpo}</div>
     </div>
   `;
 }
@@ -7880,7 +8167,10 @@ const ICON_FILE_BIG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 // 15px do ICON_CHECK_CIRCLE vencia o `.empty .big svg{34px}` e deixava o
 // estado vazio de Tarefas menor que o de Repertório/Solos. Versão sem o style.
 const ICON_CHECK_CIRCLE_BIG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9"/></svg>';
-const ICON_MEGAFONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+// [Rodada 67] Triângulo de alerta com "!" (trocou o megafone da r64).
+const ICON_CHEV_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>';
+const ICON_CHEV_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+const ICON_AVISO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18.2A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13.5"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>';
 const ICON_HOURGLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;width:15px;height:15px;vertical-align:-3px;"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>';
 const ICON_BUG_SMALL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:inline;width:14px;height:14px;vertical-align:-3px;"><rect x="8" y="7" width="8" height="11" rx="4"/><line x1="12" y1="4" x2="12" y2="7"/><line x1="4" y1="10" x2="8" y2="10"/><line x1="4" y1="14" x2="8" y2="14"/><line x1="16" y1="10" x2="20" y2="10"/><line x1="16" y1="14" x2="20" y2="14"/></svg>';
 const ICON_TOM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>';
@@ -8828,7 +9118,7 @@ function renderApp(){
             <option value="asc" ${state.solosSortDir==='asc'?'selected':''}>Mais antigos primeiro</option>
           </select>`:''}
         </div>
-        <span class="total-count no-print" style="margin-left:auto;">Total de solos: ${state.solosIndex.length}</span>
+        <span class="total-count no-print" style="margin-left:auto;">Total de solos: ${state.professorMode && !state.professorMode.email ? state.solosIndex.length : state.solosIndex.filter(x=>podeVerNaAreaDoAluno(x.destinatarios)).length}</span>
       </div>
       ${filtrados.length===0?`<div class="empty"><span class="big">${NAV_ICON_SOLOS}</span>${state.solosIndex.length===0?'Nenhum solo ainda. Clique em "Novo solo" para começar.':'Nenhum solo encontrado com esse filtro.'}</div>`:
       groups.map(group=>`
@@ -9044,7 +9334,11 @@ function renderApp(){
 
   if(state.view==='perfil'){
     const p = state.perfil || defaultPerfil();
-    const totalMusicas = state.cifraIndex.length;
+    // [Rodada 69 — 23/09/2026] Bug reportado: aluno recém-cadastrado, sem nenhuma
+    // música enviada, via "1 música no repertório". O contador usava o índice
+    // inteiro (todas as cifras do professor) em vez de só as que foram enviadas
+    // pra esse aluno — mesmo filtro da tela de Repertório (podeVerNaAreaDoAluno).
+    const totalMusicas = state.cifraIndex.filter(c=> podeVerNaAreaDoAluno(c.destinatarios)).length;
     app.innerHTML = `
       <div class="topbar">
         ${brandHtml(false)}
