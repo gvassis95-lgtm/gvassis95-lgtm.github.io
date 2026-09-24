@@ -145,9 +145,13 @@
      acima dela também, por isso o z-index maior que o do .topbar-menu comum
      (60), que nunca precisou disputar espaço com a faixa. */
   .topbar-menu.prof-area-menu{z-index:310;}
-  .mobile-drawer-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:90;}
+  /* [Rodada 85] Mesmo motivo do .prof-area-menu acima: a gaveta do menu mobile
+     (hamburger) tinha z-index:91, bem abaixo da faixa "Área do Professor"
+     (z-index:300, position:fixed no topo) — a faixa ficava por cima da gaveta
+     aberta, cobrindo o topo dela. Overlay e gaveta sobem pra acima da faixa. */
+  .mobile-drawer-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:305;}
   .mobile-drawer-overlay.open{opacity:1;pointer-events:auto;}
-  .mobile-drawer{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:78vw;max-width:300px;background:color-mix(in srgb, var(--bg-panel) 55%, transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:91;opacity:0;transform:translateX(24px);pointer-events:none;transition:opacity .25s ease,transform .25s ease;box-shadow:-4px 0 20px rgba(0,0,0,.3);padding:20px;box-sizing:border-box;overflow-y:auto;}
+  .mobile-drawer{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:78vw;max-width:300px;background:color-mix(in srgb, var(--bg-panel) 55%, transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:311;opacity:0;transform:translateX(24px);pointer-events:none;transition:opacity .25s ease,transform .25s ease;box-shadow:-4px 0 20px rgba(0,0,0,.3);padding:20px;box-sizing:border-box;overflow-y:auto;}
   .mobile-drawer.open{opacity:1;transform:translateX(0);pointer-events:auto;}
   .mobile-drawer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
   .mobile-drawer-profile{display:flex;align-items:center;gap:10px;min-width:0;}
@@ -450,8 +454,22 @@
   .mix-ms-btn.ativo{background:var(--danger);border-color:transparent;color:#fff;}
   .mix-ms-btn.solo.ativo{background:var(--accent);}
   @media (max-width:560px){
-    .mix-canal{flex:1 1 42%;max-width:none;}
-    .mix-fader{height:110px;}
+    /* [Rodada 85] Pedido do usuário: os 5 canais numa linha só, mesmo espremido,
+       em vez de quebrar em 2-3 linhas (flex:1 1 42% fazia 2 por linha antes). */
+    .drum-mixer{padding:14px 8px 16px;}
+    .drum-mixer-canais{gap:5px;flex-wrap:nowrap;}
+    .mix-canal{flex:1 1 0;min-width:0;max-width:none;padding:8px 2px 8px;gap:5px;}
+    .mix-nome{font-size:8.5px;gap:2px;padding:2px 1px;}
+    .mix-nome svg{width:14px;height:14px;}
+    .mix-knob-wrap{width:28px;height:28px;}
+    .mix-knob-marca{height:11px;top:4px;}
+    .mix-pan-val{font-size:8px;min-height:11px;}
+    .mix-fader{height:100px;width:20px;}
+    .mix-fader::-webkit-slider-runnable-track{height:100px;}
+    .mix-fader::-moz-range-track{height:100px;}
+    .mix-vol-val{font-size:9px;}
+    .mix-ms{gap:3px;}
+    .mix-ms-btn{width:19px;height:18px;font-size:9px;border-radius:5px;}
   }
   /* [Rodada 79] Estas regras do cabeçalho/células tinham se perdido na
      reescrita do CSS da rodada 76 — sem elas os números não centralizavam
@@ -636,6 +654,18 @@
   .dict-draw-actions{display:flex;justify-content:center;margin-top:18px;}
   .dict-draw-big{display:flex;justify-content:center;}
   .dict-draw-big svg{width:250px;height:auto;max-width:100%;}
+  /* [Rodada 85] No mobile a largura some e .dict-draw-row (flex-wrap:wrap)
+     derrubava o seletor de região pra CIMA do diagrama grande — pedido do
+     usuário pra ficar sempre AO LADO, mesmo espremido. Encolhe os dois lados
+     o bastante pra caber lado a lado até em telas bem estreitas. */
+  @media (max-width:640px){
+    .dict-draw-row{gap:10px;flex-wrap:nowrap;align-items:center;}
+    .dict-draw-big svg{width:165px;}
+    .dict-neck-svg{width:44px;}
+    .dict-neck-arrow{width:26px;height:26px;}
+    .dict-neck-arrow svg{width:13px;height:13px;}
+    .dict-neck-label{font-size:10px;}
+  }
   /* [Rodada 68] Lista de sugestões do Dicionário de Acordes */
   .dict-search{position:relative;}
   .dict-suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;max-height:300px;overflow-y:auto;background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.28);padding:6px;display:flex;flex-direction:column;}
@@ -727,8 +757,20 @@
   .yt-video-resize-l{left:-5px;}
   .yt-video-resize-r{right:-5px;}
   .yt-video-resize:hover, .yt-video-resize:active{background:color-mix(in srgb, var(--accent) 30%, transparent);}
+  /* [Rodada 85] Espaçador que reserva, no fluxo normal da página, o lugar do
+     vídeo logo acima do título da cifra no mobile (ver #ytVideoSpacer e
+     positionVideoPanelMobile() em JS). No desktop o painel continua flutuando
+     por cima de tudo (position:fixed) e esse espaçador não é usado — por isso
+     fica com altura 0 fora da media query abaixo. */
+  .yt-video-spacer{height:0;}
   @media (max-width:640px){
-    .yt-video-panel{width:min(76vw,260px);top:auto;bottom:96px;right:12px;}
+    /* No mobile o vídeo não fica mais "grudado" na tela (position:fixed
+       acompanhando a rolagem) — vira um bloco ancorado no documento, logo
+       acima do título da música, que sobe/desce junto com o resto da página
+       ao rolar, como pedido. */
+    .yt-video-panel{position:absolute;top:0;left:12px;right:12px;bottom:auto;width:auto;}
+    .yt-video-resize{display:none;}
+    .yt-drag-dots{display:none;}
   }
   .status-row{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:16px;}
   .mobile-song-toolbar{display:none;position:fixed;left:12px;right:12px;bottom:14px;z-index:55;flex-direction:column;gap:10px;}
@@ -1201,12 +1243,30 @@
     .autoscroll-fab{left:20px;right:auto;}
     body:has(.mobile-song-toolbar) .autoscroll-fab{bottom:98px;}
 
-    .viewer-body-row{flex-direction:column;}
+    /* [Rodada 85] Pedido do usuário: no mobile o retângulo de fundo da cifra
+       só ia até onde a letra mais longa terminava (ficando assimétrico, com
+       um vão vazio à direita), em vez de ocupar a largura toda da tela. A
+       causa: `.viewer-body-row` usa align-items:flex-start (pra alinhar os
+       itens pelo topo quando lado a lado, no desktop) — e isso, no eixo
+       cruzado, também faz os itens NÃO esticarem pra preencher a largura,
+       encolhendo pro tamanho do conteúdo. No mobile o eixo cruzado vira a
+       largura (flex-direction:column), então o mesmo align-items:flex-start
+       passa a encolher `.cifra-col` horizontalmente — daí o vão assimétrico.
+       align-items:stretch aqui restaura o comportamento esperado: a coluna
+       ocupa toda a largura disponível (a margem já vem do padding do #app). */
+    .viewer-body-row{flex-direction:column;align-items:stretch;}
     .cifra-col{padding:20px 18px;}
     .tools-rail{flex-direction:row;flex-wrap:wrap;width:100%;order:-1;gap:12px 18px;}
     .rail-section{flex:1 1 130px;}
     .rail-divider-h{display:none;}
     .diag-section{margin-left:0;}
+    /* [Rodada 85] Pedido do usuário: centralizar os diagramas de acorde no
+       final da cifra, no mobile. Sem isso eles ficavam alinhados à esquerda
+       (justify-content:flex-start herdado do desktop) — natural quando cabem
+       vários lado a lado numa tela larga, mas no mobile, com poucos por
+       linha (às vezes só 1 ou 2, cada um com largura fixa via .diagram-box),
+       sobrava um vão vazio à direita e ficava com cara de alinhado torto. */
+    .diagrams-row{justify-content:center;}
     .cifra-nav{margin-left:0;}
     .tools-grid{grid-template-columns:repeat(2,1fr);gap:8px;padding:4px;}
     .profile-side{grid-template-columns:1fr;}
@@ -1241,6 +1301,13 @@
     .theme-switch{margin-left:auto;}
     .search-box input{width:150px;}
     .btn{width:auto;}
+    /* [Rodada 85] Pedido do usuário: o painel de notificações abria "grudado"
+       no sino, que fica perto da borda direita, então saía quase todo pra
+       fora de tela pra esquerda. No mobile ele passa a ser filho posicionado
+       do .topbar (que já é position:relative e ocupa a largura toda) em vez
+       do .notif-bell-wrap, e fica centralizado na tela. */
+    .notif-bell-wrap{position:static;}
+    .notif-panel{left:50%;right:auto;transform:translateX(-50%);width:min(92vw,320px);}
     .profile-calendar-card{max-width:280px;margin:0 auto;width:100%;}
     /* Ajuste em 19/09/2026 — ver comentário na versão de 820px acima: um pouco
        maior que o calendário aqui embaixo também, mesma lógica (aspect-ratio
@@ -1282,6 +1349,15 @@
     #debugToggle,#debugPanel{display:none;}
     .wa-fab{width:44px;height:44px;right:14px;bottom:14px;}
     .wa-fab svg{width:21px;height:21px;}
+
+    /* [Rodada 85] Painel do seletor "temático" que substitui o picker nativo
+       do <select> no mobile (ver JS logo depois de endVideoPanelResize()). */
+    .tsel-panel{position:fixed;display:none;background:var(--bg-panel);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:400;padding:6px;max-height:55vh;overflow-y:auto;}
+    .tsel-panel.open{display:block;}
+    .tsel-opt{padding:11px 14px;border-radius:8px;font-size:14px;color:var(--text);cursor:pointer;line-height:1.3;}
+    .tsel-opt:active{background:var(--bg-panel-2);}
+    .tsel-opt.sel{background:var(--pill-bg);color:var(--accent);font-weight:600;}
+    .tsel-opt.disabled{opacity:.4;pointer-events:none;}
   }
 </style>
 </head>
@@ -2056,11 +2132,14 @@ function chordDiagramSVG(frets, base, barre, orientation, mirror, fingers, capo)
   let bassIdx=-1; for(let i=0;i<f.length;i++){ if(f[i]!=='x'){ bassIdx=i; break; } }
   if(orientation==='h'){
     const ys=[10,26,42,58,74,90], fx=36, gap=17;
-    let s=`<svg viewBox="0 0 148 118" class="chord-svg chord-svg-h" xmlns="http://www.w3.org/2000/svg">`;
+    // [Rodada 85] Margem extra no topo (viewBox começa em -12 em vez de 0) só
+    // pro número da casa inicial não ficar colado/sobreposto na linha de cima
+    // do grid — mesmo motivo da orientação vertical, acima.
+    let s=`<svg viewBox="0 -12 148 130" class="chord-svg chord-svg-h" xmlns="http://www.w3.org/2000/svg">`;
     const yOff = showCapo ? 18 : 0;
     ys.forEach((y,i)=> s+=`<line x1="${fx}" y1="${y+yOff}" x2="${fx+gap*nf}" y2="${y+yOff}" stroke="${text}" stroke-width="${thick[i]}"/>`);
     for(let fr=0; fr<=nf; fr++){ const x=fx+fr*gap; const th=(base===1&&fr===0)?3:1; s+=`<line x1="${x}" y1="${6+yOff}" x2="${x}" y2="${94+yOff}" stroke="${text}" stroke-width="${th}"/>`; }
-    if(base>1) s+=`<text x="${fx-4}" y="${4+yOff}" font-size="8" fill="${text}">${base}ª</text>`;
+    if(base>1) s+=`<text x="${fx-4}" y="${-2+yOff}" font-size="8" fill="${text}">${base}ª</text>`;
     if(showCapo){ s+=`<rect x="${fx-24}" y="0" width="${gap*nf+24}" height="13" rx="6.5" fill="${accent}"/><text x="${fx-12+gap*nf/2}" y="9.3" font-size="9" fill="#fff" font-weight="700" text-anchor="middle" letter-spacing="1">Capo ${capo}</text>`; }
     if(barre){ const idxs=f.map((v,i)=>v===barre?i:-1).filter(i=>i>=0);
       if(idxs.length>1){ const x=fx+(barre-base+0.5)*gap; s+=`<line x1="${x}" y1="${ys[Math.min(...idxs)]+yOff}" x2="${x}" y2="${ys[Math.max(...idxs)]+yOff}" stroke="${accent}" stroke-width="9" stroke-linecap="round" opacity="0.55"/>`; } }
@@ -2079,10 +2158,14 @@ function chordDiagramSVG(frets, base, barre, orientation, mirror, fingers, capo)
   const xs=[10,26,42,58,74,90], fyBase=32, gap=20;
   const yOff = showCapo ? 16 : 0;
   const fy = fyBase + yOff;
-  let s=`<svg viewBox="0 0 100 ${148+yOff}" class="chord-svg" xmlns="http://www.w3.org/2000/svg">`;
+  // [Rodada 85] Espaço reservado à esquerda (viewBox começa em -16 em vez de 0)
+  // só pro número da casa inicial (ex. "7ª") ter onde respirar — antes ele saía
+  // em x=0, quase colado na primeira corda (x=10), difícil de ler. As demais
+  // coordenadas do diagrama continuam as mesmas, só ganharam essa margem extra.
+  let s=`<svg viewBox="-16 0 116 ${148+yOff}" class="chord-svg" xmlns="http://www.w3.org/2000/svg">`;
   xs.forEach((x,i)=> s+=`<line x1="${x}" y1="${fy}" x2="${x}" y2="${fy+gap*nf}" stroke="${text}" stroke-width="${thick[i]}"/>`);
   for(let fr=0; fr<=nf; fr++){ const y=fy+fr*gap; const th=(base===1&&fr===0)?3:1; s+=`<line x1="10" y1="${y}" x2="90" y2="${y}" stroke="${text}" stroke-width="${th}"/>`; }
-  if(base>1) s+=`<text x="0" y="${fy+gap*0.7}" font-size="9" fill="${text}">${base}ª</text>`;
+  if(base>1) s+=`<text x="2" y="${fy+gap*0.7}" font-size="9" fill="${text}" text-anchor="end">${base}ª</text>`;
   if(showCapo){ s+=`<rect x="7" y="0" width="86" height="15" rx="7.5" fill="${accent}"/><text x="50" y="10.5" font-size="10" fill="#fff" font-weight="700" text-anchor="middle" letter-spacing="1">Capo ${capo}</text>`; }
   if(barre){ const idxs=f.map((v,i)=>v===barre?i:-1).filter(i=>i>=0);
     if(idxs.length>1){ const y=fy+(barre-base+0.5)*gap; s+=`<line x1="${xs[Math.min(...idxs)]}" y1="${y}" x2="${xs[Math.max(...idxs)]}" y2="${y}" stroke="${accent}" stroke-width="10" stroke-linecap="round" opacity="0.55"/>`; } }
@@ -2182,8 +2265,8 @@ let state = {
   matSortMode:'data', matSortDir:'desc', matPastaFiltro:null, materialMoveId:null,
   matNovaPastaModalOpen:false, matNovaPastaNomeDraft:'', matNovaPastaReturnTo:null, matPastaEditId:null,
   notifications:[], notificationsRead:[], notifPanelOpen:false,
-  cadNomeDraft:'', cadEmailDraft:'', cadSenhaDraft:'',
-  detNomeDraft:'', detEmailDraft:'', detSenhaDraft:'', detDataInicioDraft:'', detDataFimDraft:'',
+  cadNomeDraft:'', cadEmailDraft:'', cadSenhaDraft:'', cadObservacoesDraft:'',
+  detNomeDraft:'', detEmailDraft:'', detSenhaDraft:'', detDataInicioDraft:'', detDataFimDraft:'', detObservacoesDraft:'',
   cfgLogoLightPreview:null, cfgLogoDarkPreview:null,
   sendModalType:null, sendModalItemId:null, sendModalSelected:null,
   cifraIndex:[], detailCache:{},
@@ -2535,13 +2618,13 @@ const DEFAULT_TAB_SKELETON = 'e|--------------------------------|\nB|-----------
 // `dados` (que pode conter um PDF em base64, quando o solo é enviado como
 // PDF em vez de tablatura) — senão o índice de solos teria o mesmo risco de
 // ficar lento/travar conforme mais solos em PDF forem cadastrados.
-const SOLO_INDEX_SELECT = 'id,titulo,destinatarios,artista,criado_em';
+const SOLO_INDEX_SELECT = 'id,titulo,destinatarios,artista,criado_em,criado_por_aluno';
 async function loadSolosIndex(){
   if(!sb){ state.solosIndex = []; return; }
   try{
     const { data, error } = await sb.from('solos').select(SOLO_INDEX_SELECT).order('criado_em', {ascending:true});
     if(error) throw error;
-    state.solosIndex = (data||[]).map(r=>({ id:r.id, titulo:r.titulo||'', artista:r.artista||'', destinatarios:r.destinatarios||[], criadoEm: r.criado_em ? new Date(r.criado_em).getTime() : Date.now() }));
+    state.solosIndex = (data||[]).map(r=>({ id:r.id, titulo:r.titulo||'', artista:r.artista||'', destinatarios:r.destinatarios||[], criadoEm: r.criado_em ? new Date(r.criado_em).getTime() : Date.now(), criadoPorAluno: !!r.criado_por_aluno }));
     state._soloKnownIds = new Set(state.solosIndex.map(s=>s.id));
   }catch(e){ console.error('Erro ao carregar solos', e); state.solosIndex=[]; }
 }
@@ -2549,7 +2632,7 @@ async function saveSolosIndex(){ return true; }
 async function saveSoloDetail(id, obj){
   if(!sb) return false;
   try{
-    await insertOrUpdate('solos', '_soloKnownIds', id, { id, titulo: obj.titulo||'', destinatarios: obj.destinatarios||[], artista: obj.artista||'', dados: obj });
+    await insertOrUpdate('solos', '_soloKnownIds', id, { id, titulo: obj.titulo||'', destinatarios: obj.destinatarios||[], artista: obj.artista||'', criado_por_aluno: !!obj.criadoPorAluno, dados: obj });
     return true;
   }catch(e){ console.error('Erro ao salvar solo', e); return false; }
 }
@@ -2715,8 +2798,13 @@ async function saveSoloDraft(){
   if(d.isNew && !state.professorMode && state.session && state.session.email && !destinatarios.includes(state.session.email)){
     destinatarios = destinatarios.concat([state.session.email]);
   }
-  const full = Object.assign({}, existingFull, {id, titulo, artista, tab, criadoEm, fonte, pdfData: fonte==='pdf'?d.pdfData:null, pdfName: fonte==='pdf'?d.pdfName:'', destinatarios});
-  const meta = Object.assign({}, existingMeta, {id, titulo, artista, criadoEm, destinatarios});
+  // Regra pedida pelo usuário em 24/09/2026: mesmo tratamento de cifras — um solo
+  // que o próprio ALUNO cria por conta própria não aparece no banco geral do
+  // professor (professorSolosTabHtml() exclui esses itens), só no perfil daquele
+  // aluno específico. `criadoPorAluno` é fixado na criação e preservado nas edições.
+  const criadoPorAluno = d.isNew ? !state.professorMode : !!(existingFull.criadoPorAluno || existingMeta.criadoPorAluno);
+  const full = Object.assign({}, existingFull, {id, titulo, artista, tab, criadoEm, fonte, pdfData: fonte==='pdf'?d.pdfData:null, pdfName: fonte==='pdf'?d.pdfName:'', destinatarios, criadoPorAluno});
+  const meta = Object.assign({}, existingMeta, {id, titulo, artista, criadoEm, destinatarios, criadoPorAluno});
   if(d.isNew){ state.solosIndex.push(meta); } else { const idx=state.solosIndex.findIndex(s=>s.id===id); if(idx>=0) state.solosIndex[idx]=meta; else state.solosIndex.push(meta); }
   state.solosDetailCache[id] = full;
   state.soloDraft = null;
@@ -3252,15 +3340,17 @@ function readImageFitDataUrl(file, maxDim, cb){
 async function handleAlunoFotoUpload(input, which){
   const file0 = input.files[0]; if(!file0) return;
   if(which==='cad'){
-    const nEl=document.getElementById('cad_nome'), eEl=document.getElementById('cad_email'), sEl=document.getElementById('cad_senha');
+    const nEl=document.getElementById('cad_nome'), eEl=document.getElementById('cad_email'), sEl=document.getElementById('cad_senha'), oEl=document.getElementById('cad_observacoes');
     if(nEl) state.cadNomeDraft = nEl.value;
     if(eEl) state.cadEmailDraft = eEl.value;
     if(sEl) state.cadSenhaDraft = sEl.value;
+    if(oEl) state.cadObservacoesDraft = oEl.value;
   } else {
-    const nEl=document.getElementById('det_nome'), eEl=document.getElementById('det_email'), sEl=document.getElementById('det_senha');
+    const nEl=document.getElementById('det_nome'), eEl=document.getElementById('det_email'), sEl=document.getElementById('det_senha'), oEl=document.getElementById('det_observacoes');
     if(nEl) state.detNomeDraft = nEl.value;
     if(eEl) state.detEmailDraft = eEl.value;
     if(sEl) state.detSenhaDraft = sEl.value;
+    if(oEl) state.detObservacoesDraft = oEl.value;
   }
   const file = await normalizeImageFile(file0);
   readImageSquareDataUrl(file, 160, (dataUrl)=>{
@@ -6137,7 +6227,7 @@ function closeMobileMenu(){ if(!state.mobileMenuOpen) return; state.mobileMenuOp
 // — colunas reais, nunca `dados->campo`, pro índice de cifras não ficar
 // sujeito ao mesmo risco de travar conforme cifras em PDF (`corpo`/`pdfData`
 // dentro de `dados`) se acumularem.
-const CIFRA_INDEX_SELECT = 'id,titulo,destinatarios,artista,tom,tipo,memorizada,dificuldade,capo,tirada_de_ouvido,ritmos,criado_em';
+const CIFRA_INDEX_SELECT = 'id,titulo,destinatarios,artista,tom,tipo,memorizada,dificuldade,capo,tirada_de_ouvido,ritmos,criado_em,criado_por_aluno';
 async function loadCifraIndex(){
   if(!sb){ state.cifraIndex = []; return; }
   try{
@@ -6146,7 +6236,8 @@ async function loadCifraIndex(){
     state.cifraIndex = (data||[]).map(r=>({
       id:r.id, titulo:r.titulo||'', artista:r.artista||'', tom:r.tom||'', tipo:r.tipo||'texto',
       memorizada:!!r.memorizada, dificuldade:r.dificuldade||0, capo:r.capo||0, tiradaDeOuvido:!!r.tirada_de_ouvido,
-      ritmos:r.ritmos||[], destinatarios:r.destinatarios||[], criadoEm: r.criado_em ? new Date(r.criado_em).getTime() : Date.now()
+      ritmos:r.ritmos||[], destinatarios:r.destinatarios||[], criadoEm: r.criado_em ? new Date(r.criado_em).getTime() : Date.now(),
+      criadoPorAluno: !!r.criado_por_aluno
     }));
     state._cifraKnownIds = new Set(state.cifraIndex.map(c=>c.id));
   }catch(e){ console.error('Erro ao carregar repertório', e); state.cifraIndex=[]; }
@@ -6163,6 +6254,7 @@ async function saveDetail(id, obj){
       artista: obj.artista||'', tom: obj.tom||'', tipo: obj.tipo||'texto',
       memorizada: !!obj.memorizada, dificuldade: obj.dificuldade||0, capo: obj.capo||0,
       tirada_de_ouvido: !!obj.tiradaDeOuvido, ritmos: obj.ritmos||[],
+      criado_por_aluno: !!obj.criadoPorAluno,
       dados: obj
     });
     return true;
@@ -6829,17 +6921,19 @@ async function refreshAlunosAutorizados(){
     state.alunosAutorizados = (data||[]).map(p=>({
       id: p.id, email: p.email, nome: p.nome||'', foto: p.foto||'',
       ativo: p.ativo!==false, dataInicio: p.data_inicio||'', dataFim: p.data_fim||'',
+      observacoes: p.observacoes||'',
       disabledToolsPersonal: p.disabled_tools_personal||[]
     }));
   }catch(e){ console.error('Erro ao buscar alunos', e); state.alunosAutorizados = state.alunosAutorizados||[]; }
 }
-function openAlunoCadastro(){ state.professorCadastroOpen = true; state.cadFotoPreview = null; state.cadNomeDraft=''; state.cadEmailDraft=''; state.cadSenhaDraft=''; render(); }
+function openAlunoCadastro(){ state.professorCadastroOpen = true; state.cadFotoPreview = null; state.cadNomeDraft=''; state.cadEmailDraft=''; state.cadSenhaDraft=''; state.cadObservacoesDraft=''; render(); }
 function closeAlunoCadastro(){ state.professorCadastroOpen = false; state.cadFotoPreview = null; render(); }
 async function submitAlunoCadastro(ev){
   if(ev) ev.preventDefault();
   const nome = (document.getElementById('cad_nome')||{}).value?.trim() || '';
   const emailRaw = (document.getElementById('cad_email')||{}).value?.trim() || '';
   const senha = (document.getElementById('cad_senha')||{}).value?.trim() || '';
+  const observacoes = (document.getElementById('cad_observacoes')||{}).value?.trim() || '';
   const email = normalizeEmail(emailRaw);
   if(!email){ showToast('Informe o e-mail do aluno.', true); return; }
   if((state.alunosAutorizados||[]).some(a=>normalizeEmail(a.email)===email)){
@@ -6860,7 +6954,9 @@ async function submitAlunoCadastro(ev){
     });
     const out = await resp.json();
     if(!resp.ok) throw new Error(out.error||'Erro ao cadastrar aluno.');
-    if(fotoParaSalvar){ try{ await sb.from('profiles').update({foto: fotoParaSalvar}).eq('id', out.id); }catch(e){} }
+    if(fotoParaSalvar || observacoes){
+      try{ await sb.from('profiles').update({foto: fotoParaSalvar||undefined, observacoes: observacoes||undefined}).eq('id', out.id); }catch(e){}
+    }
     await refreshAlunosAutorizados();
     render();
     showToast('Aluno cadastrado. Senha inicial: '+(senha||'123456'));
@@ -6942,6 +7038,7 @@ function openAlunoDetalhe(email){
   state.detSenhaDraft = '';
   state.detDataInicioDraft = (aluno && aluno.dataInicio) || '';
   state.detDataFimDraft = (aluno && aluno.dataFim) || '';
+  state.detObservacoesDraft = (aluno && aluno.observacoes) || '';
   render();
 }
 function closeAlunoDetalhe(){ state.professorStudentEmail = null; state.detFotoPreview = null; render(); }
@@ -6954,6 +7051,7 @@ async function saveAlunoDetalhe(ev){
   const nome = (document.getElementById('det_nome')||{}).value?.trim() || '';
   const dataInicio = (document.getElementById('det_data_inicio')||{}).value || '';
   const dataFim = (document.getElementById('det_data_fim')||{}).value || '';
+  const observacoes = (document.getElementById('det_observacoes')||{}).value?.trim() || '';
   const emailRaw = (document.getElementById('det_email')||{}).value?.trim() || '';
   const novoEmail = normalizeEmail(emailRaw);
   const emailMudou = !!novoEmail && novoEmail!==normalizeEmail(emailAtual);
@@ -6987,10 +7085,10 @@ async function saveAlunoDetalhe(ev){
   }
   try{
     await sb.from('profiles').update({
-      nome, foto: state.detFotoPreview||'', data_inicio: dataInicio||null, data_fim: dataFim||null
+      nome, foto: state.detFotoPreview||'', data_inicio: dataInicio||null, data_fim: dataFim||null, observacoes: observacoes||null
     }).eq('email', emailFinal);
   }catch(e){ showToast('Não foi possível salvar. Verifique a conexão.', true); return; }
-  state.alunosAutorizados[idx] = Object.assign({}, state.alunosAutorizados[idx], {nome, email: emailFinal, foto: state.detFotoPreview||'', dataInicio, dataFim});
+  state.alunosAutorizados[idx] = Object.assign({}, state.alunosAutorizados[idx], {nome, email: emailFinal, foto: state.detFotoPreview||'', dataInicio, dataFim, observacoes});
   // Pedido do usuário em 14/09/2026: ao salvar, a tela deve voltar sozinha para a
   // lista de alunos, em vez de ficar parada na própria tela de edição — por isso
   // professorStudentEmail (e o preview de foto, que só faz sentido dentro do
@@ -7133,7 +7231,11 @@ function initialsFor(nome, email){
 function professorRepertorioTabHtml(){
   const f = state.filtro;
   const selecting = state.selectMode==='cifra';
-  const filtradas = state.cifraIndex.filter(c=>
+  // Regra de 24/09/2026: o banco de cifras do professor não mostra cifras que um
+  // ALUNO criou por conta própria (criadoPorAluno) — essas ficam só na área
+  // daquele aluno (aqui e no perfil individual dele, não no banco geral).
+  const bancoDoProfessor = state.cifraIndex.filter(c=>!c.criadoPorAluno);
+  const filtradas = bancoDoProfessor.filter(c=>
     (!f.artista||c.artista===f.artista) &&
     (!f.ritmos || !f.ritmos.length || (c.ritmos&&c.ritmos.some(r=>f.ritmos.includes(r)))) &&
     (!f.busca || (c.titulo+c.artista).toLowerCase().includes(f.busca.toLowerCase())));
@@ -7168,9 +7270,9 @@ function professorRepertorioTabHtml(){
         <span class="tlabel">Ritmo</span>
         ${filtroRitmoDropdownHtml()}
       </div>
-      <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${state.cifraIndex.length}</span>
+      <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${bancoDoProfessor.length}</span>
     </div>
-    ${filtradas.length===0?`<div class="empty"><span class="big">${ICON_NOTE}</span>${state.cifraIndex.length===0?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Nenhuma música encontrada com esse filtro.'}</div>`:
+    ${filtradas.length===0?`<div class="empty"><span class="big">${ICON_NOTE}</span>${bancoDoProfessor.length===0?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Nenhuma música encontrada com esse filtro.'}</div>`:
     groups.map(group=>`
       <div class="letter-group">
         ${group.letter!==null?`<div class="letter-header">${escapeHtml(group.letter)}</div>`:''}
@@ -7330,7 +7432,10 @@ function novaPastaModalHtml(){
 function professorSolosTabHtml(){
   const sf = state.solosFiltro;
   const selecting = state.selectMode==='solo';
-  const filtrados = state.solosIndex.filter(s=>!sf.busca || (s.titulo+s.artista).toLowerCase().includes(sf.busca.toLowerCase()));
+  // Regra de 24/09/2026: mesmo tratamento de cifras — solo que um ALUNO criou por
+  // conta própria não aparece no banco geral do professor.
+  const bancoDoProfessor = state.solosIndex.filter(s=>!s.criadoPorAluno);
+  const filtrados = bancoDoProfessor.filter(s=>!sf.busca || (s.titulo+s.artista).toLowerCase().includes(sf.busca.toLowerCase()));
   const groups = buildDisplayGroups(filtrados, state.solosSortMode, state.solosSortDir);
   return `
     <div class="page-header-row" style="margin-top:0;">
@@ -7357,9 +7462,9 @@ function professorSolosTabHtml(){
           <option value="asc" ${state.solosSortDir==='asc'?'selected':''}>Mais antigos primeiro</option>
         </select>`:''}
       </div>
-      <span class="total-count no-print" style="margin-left:auto;">Total de solos: ${state.solosIndex.length}</span>
+      <span class="total-count no-print" style="margin-left:auto;">Total de solos: ${bancoDoProfessor.length}</span>
     </div>
-    ${filtrados.length===0?`<div class="empty"><span class="big">${NAV_ICON_SOLOS}</span>${state.solosIndex.length===0?'Nenhum solo cadastrado ainda. Clique em "Novo solo" para começar.':'Nenhum solo encontrado com esse filtro.'}</div>`:
+    ${filtrados.length===0?`<div class="empty"><span class="big">${NAV_ICON_SOLOS}</span>${bancoDoProfessor.length===0?'Nenhum solo cadastrado ainda. Clique em "Novo solo" para começar.':'Nenhum solo encontrado com esse filtro.'}</div>`:
     groups.map(group=>`
       <div class="letter-group">
         ${group.letter!==null?`<div class="letter-header">${escapeHtml(group.letter)}</div>`:''}
@@ -7461,11 +7566,34 @@ function professorAlunosTabHtml(){
     `:''}
   `;
 }
+// [Rodada 85] Pedido do usuário: no cadastro do aluno, depois que a data de
+// início das aulas é salva, mostrar em algum lugar há quanto tempo ele já
+// estuda — só anos e meses completados (sem dias soltos, pra não ficar um
+// texto complicado tipo "2 anos, 3 meses e 12 dias"). Usa a data já SALVA no
+// cadastro (aluno.dataInicio), não o valor ainda não salvo no campo — por
+// isso o texto só aparece de novo depois de salvar uma data nova.
+function tempoEstudandoTexto(dataInicioStr){
+  if(!dataInicioStr) return '';
+  const inicio = new Date(dataInicioStr+'T00:00:00');
+  if(isNaN(inicio.getTime())) return '';
+  const agora = new Date();
+  if(inicio > agora) return '';
+  let anos = agora.getFullYear() - inicio.getFullYear();
+  let meses = agora.getMonth() - inicio.getMonth();
+  if(agora.getDate() < inicio.getDate()) meses--;
+  if(meses < 0){ anos--; meses += 12; }
+  if(anos<=0 && meses<=0) return 'Começou a estudar este mês';
+  const partes = [];
+  if(anos>0) partes.push(anos===1 ? '1 ano' : anos+' anos');
+  if(meses>0) partes.push(meses===1 ? '1 mês' : meses+' meses');
+  return 'Estudando há '+partes.join(' e ');
+}
 function professorAlunoDetalheHtml(){
   const email = state.professorStudentEmail;
   const aluno = (state.alunosAutorizados||[]).find(a=>a.email===email);
   if(!aluno){ state.professorStudentEmail = null; return professorAlunosTabHtml(); }
   const foto = state.detFotoPreview;
+  const tempoEstudando = tempoEstudandoTexto(aluno.dataInicio);
   return `
     <button type="button" class="text-link-btn" style="margin-bottom:14px;" onclick="closeAlunoDetalhe()">← Voltar para a lista</button>
     <div class="profile-list-card" style="max-width:480px;">
@@ -7481,9 +7609,11 @@ function professorAlunoDetalheHtml(){
         <p class="hint" style="margin:-4px 0 4px;">A senha é definida no cadastro. O próprio aluno pode trocar em "Editar perfil".</p>
         <button type="button" class="text-link-btn" style="margin-bottom:12px;" onclick='resetarSenhaAluno(${JSON.stringify(aluno.email)})'>Redefinir senha do aluno</button>
         <div class="aluno-datas-row">
-          <div class="login-field"><label>Início das aulas</label><input id="det_data_inicio" type="date" value="${escapeHtml(state.detDataInicioDraft||'')}"></div>
+          <div class="login-field"><label>Início das aulas</label><input id="det_data_inicio" type="date" value="${escapeHtml(state.detDataInicioDraft||'')}">
+            ${tempoEstudando?`<div class="hint" style="margin-top:6px;">${escapeHtml(tempoEstudando)}</div>`:''}</div>
           <div class="login-field"><label>Encerramento</label><input id="det_data_fim" type="date" value="${escapeHtml(state.detDataFimDraft||'')}"></div>
         </div>
+        <div class="login-field"><label>Observações (opcional)</label><textarea id="det_observacoes" rows="3" placeholder="Anotações sobre este aluno, visíveis só para você">${escapeHtml(state.detObservacoesDraft||'')}</textarea></div>
         <div class="form-actions">
           <button type="button" class="btn-ghost" onclick='removeAlunoAutorizado(${JSON.stringify(aluno.email)})'>Remover aluno</button>
           <button type="submit" class="btn">Salvar</button>
@@ -7506,6 +7636,7 @@ function professorCadastroModalHtml(){
         <div class="login-field"><label>Nome</label><input id="cad_nome" type="text" placeholder="Nome do aluno" value="${escapeHtml(state.cadNomeDraft||'')}"></div>
         <div class="login-field"><label>E-mail</label><input id="cad_email" type="text" placeholder="seuemail@exemplo.com" value="${escapeHtml(state.cadEmailDraft||'')}"></div>
         <div class="login-field"><label>Senha</label><input id="cad_senha" type="text" placeholder="Em branco = senha padrão (123456)" value="${escapeHtml(state.cadSenhaDraft||'')}"></div>
+        <div class="login-field"><label>Observações (opcional)</label><textarea id="cad_observacoes" rows="3" placeholder="Anotações sobre este aluno, visíveis só para você">${escapeHtml(state.cadObservacoesDraft||'')}</textarea></div>
         <div class="form-actions">
           <button type="button" class="btn-ghost" onclick="closeAlunoCadastro()">Cancelar</button>
           <button type="submit" class="btn">Cadastrar</button>
@@ -7699,7 +7830,13 @@ function brandHtml(showText){
   return `<div class="topbar-left-group"><div class="brand" onclick="goHome()">${logoImgHtml('brand-logo-img')}${showText?'<div class="logo-text">Repert<span>ó</span>rio</div>':''}</div></div>`;
 }
 function sortedCifraIdsAlpha(){
-  return state.cifraIndex.slice()
+  // Mesma regra de visibilidade do banco de cifras: "música anterior/próxima"
+  // não deve pular pra uma cifra que um aluno criou por conta própria quando
+  // quem está navegando é o professor no banco geral dele (sem estar dentro do
+  // perfil de um aluno específico — aí sim vale ver o que aquele aluno criou).
+  const isProfessorAdmin = !!(state.professorMode && !state.professorMode.email);
+  const base = isProfessorAdmin ? state.cifraIndex.filter(c=>!c.criadoPorAluno) : state.cifraIndex.filter(c=>podeVerNaAreaDoAluno(c.destinatarios));
+  return base.slice()
     .sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'','pt',{sensitivity:'base'}))
     .map(c=>c.id);
 }
@@ -8025,7 +8162,7 @@ async function openEditCifra(id, ev){
     ritmoOutro: customizados.join(', '), ritmoOutroChecked: customizados.length>0, criadoEm: d.criadoEm,
     memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, corpo: d.corpo||'',
     pdfData: d.pdfData||null, pdfName: d.pdfName||'', chordOverrides: d.chordOverrides||{}, capo: d.capo||0, destinatarios: d.destinatarios||[],
-    youtubeUrl: d.youtubeUrl||''};
+    youtubeUrl: d.youtubeUrl||'', criadoPorAluno: d.criadoPorAluno||false};
   render();
 }
 function closeDraft(){ state.draft=null; render(); }
@@ -8135,6 +8272,11 @@ function unloadYoutubeFrame(){
   if(frame && frame.getAttribute('src')) frame.removeAttribute('src'); // para o áudio
   ytPanelVideoId = null;
 }
+// [Rodada 85] No mobile o painel do vídeo vira um bloco ancorado no
+// documento (acima do título — ver positionVideoPanelMobile) em vez de
+// flutuar fixo na tela, então arrastar/redimensionar deixam de fazer
+// sentido ali (ver startVideoPanelDrag/startVideoPanelResize mais abaixo).
+function isMobileVideoLayout(){ return window.innerWidth <= 640; }
 function updateYoutubePanel(){
   ensureYtPanelMounted();
   const panel = document.getElementById('ytVideoPanel');
@@ -8143,9 +8285,25 @@ function updateYoutubePanel(){
   if(!vid){
     panel.style.display = 'none';
     unloadYoutubeFrame();
+    const spacer = document.getElementById('ytVideoSpacer');
+    if(spacer) spacer.style.height = '0';
     return;
   }
   panel.style.display = '';
+  const isNewVideo = vid !== ytPanelVideoId;
+  if(isMobileVideoLayout()){
+    if(isNewVideo){
+      const frame = document.getElementById('ytVideoFrame');
+      if(frame) frame.src = youtubeEmbedUrl(vid);
+      ytPanelVideoId = vid;
+    }
+    // O #app inteiro é recriado a cada render(), então #ytVideoSpacer é um
+    // elemento novo (nasce com altura 0) — por isso reposiciona sempre,
+    // mesmo quando o vídeo já era o mesmo de antes.
+    positionVideoPanelMobile();
+    if(isNewVideo) setTimeout(positionVideoPanelMobile, 220);
+    return;
+  }
   if(state.videoPanelWidth) panel.style.width = state.videoPanelWidth+'px';
   if(state.videoPanelPos){
     panel.style.left = state.videoPanelPos.left+'px';
@@ -8153,13 +8311,42 @@ function updateYoutubePanel(){
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
   }
-  if(vid === ytPanelVideoId) return; // mesma música: não recarrega (não reinicia)
+  if(!isNewVideo) return; // mesma música: não recarrega (não reinicia)
   const frame = document.getElementById('ytVideoFrame');
   if(frame) frame.src = youtubeEmbedUrl(vid);
   ytPanelVideoId = vid;
   setTimeout(positionVideoPanelInitial, 220);
 }
 function closeVideoPanel(){ state.videoPanelHidden = true; unloadYoutubeFrame(); render(); }
+// [Rodada 85] No mobile o vídeo mora logo acima do título da cifra e rola
+// junto com a página (não fica "grudado" na tela) — ver #ytVideoSpacer, o
+// elemento que reserva esse espaço dentro do fluxo normal de `.cifra-col`/
+// `.viewer-header`. O painel em si continua fora do innerHTML do #app (pra
+// não recarregar o vídeo a cada render), só que agora com position:absolute
+// (ver CSS), então basta somar a rolagem atual (window.scrollY) à posição do
+// espaçador na tela pra achar sua posição "no documento" — e, sendo
+// absolute, ele acompanha a página ao rolar (diferente de position:fixed,
+// que fica sempre no mesmo lugar da tela).
+function positionVideoPanelMobile(){
+  const panel = document.getElementById('ytVideoPanel');
+  const spacer = document.getElementById('ytVideoSpacer');
+  if(!panel || !spacer) return;
+  const gap = 12;
+  const top = spacer.getBoundingClientRect().top + window.scrollY;
+  panel.style.left = '';
+  panel.style.right = '';
+  panel.style.width = '';
+  panel.style.top = top + 'px';
+  spacer.style.height = (panel.offsetHeight + gap) + 'px';
+}
+let ytVideoResizeTimer = null;
+window.addEventListener('resize', ()=>{
+  if(ytVideoResizeTimer) clearTimeout(ytVideoResizeTimer);
+  ytVideoResizeTimer = setTimeout(()=>{
+    const panel = document.getElementById('ytVideoPanel');
+    if(panel && panel.style.display!=='none' && isMobileVideoLayout()) positionVideoPanelMobile();
+  }, 150);
+});
 // Posiciona o painel, na primeira vez que aparece pra uma música, ancorado no
 // canto superior direito do próprio retângulo da cifra (não do viewport) — é
 // isso que faz ele nascer "dentro" da área da música, no topo, como pedido.
@@ -8195,6 +8382,9 @@ function videoPanelDragXY(ev){
 }
 let videoPanelDragState = null;
 function startVideoPanelDrag(ev){
+  // No mobile o vídeo é um bloco ancorado acima do título (não flutua mais
+  // livremente) — arrastar não se aplica ali.
+  if(isMobileVideoLayout()) return;
   // O botão de fechar fica dentro da barra de arraste — não deve iniciar o drag.
   if(ev.target.closest('.yt-video-drag-actions')) return;
   ev.preventDefault();
@@ -8242,6 +8432,7 @@ function endVideoPanelDrag(){
 // resultado já é sempre proporcional, sem precisar calcular a altura aqui) ----
 let videoPanelResizeState = null;
 function startVideoPanelResize(ev, side){
+  if(isMobileVideoLayout()) return; // no mobile a largura já ocupa a coluna toda (CSS)
   ev.preventDefault(); ev.stopPropagation();
   const panel = document.getElementById('ytVideoPanel');
   if(!panel) return;
@@ -8278,6 +8469,109 @@ function endVideoPanelResize(){
   document.removeEventListener('touchmove', moveVideoPanelResize);
   document.removeEventListener('touchend', endVideoPanelResize);
 }
+
+// ============================================================================
+// [Rodada 85] Menus de seleção (<select>) com aparência própria no mobile.
+// Pedido do usuário: "tem alguns menus de seleção que abrem dentro do app, no
+// tema, e tem alguns que parece que abre pelo navegador, muito grande, feio,
+// fora das cores. Quero todos como a primeira opção citada." — ou seja, o
+// mesmo tratamento que o dropdown de filtro de ritmo (.ritmo-panel) já tinha:
+// um painel próprio, com as cores do app, em vez do seletor nativo do
+// navegador/SO (que no mobile é grande, sai do tema, e não dá pra estilizar).
+//
+// Em vez de reescrever cada um dos ~26 <select> do app num componente novo
+// (um por metrônomo, afinador, piano, bateria, campo harmônico, tirada de
+// ouvido, capotraste, ordenação de repertório/solos/materiais, pasta de
+// material…), a estratégia é interceptar TODOS eles de uma vez só, sem tocar
+// no HTML de cada um: no mobile, um único listener "delegado" (no document,
+// fase de captura) escuta mousedown/touchstart em qualquer <select> dentro do
+// #app, cancela a abertura nativa (preventDefault antes do foco) e abre, no
+// lugar, um painel nosso com as mesmas <option> — ao escolher uma, o valor é
+// aplicado no <select> de verdade e um evento 'change' de verdade é disparado
+// nele, então TODOS os onchange="..." que já existem em cada um continuam
+// funcionando sem nenhuma mudança. No desktop nada disso roda — os <select>
+// continuam 100% nativos, como sempre foram.
+function isMobileLayout(){ return window.innerWidth <= 640; }
+let tselActiveSelect = null;
+function ensureThemedSelectPanelMounted(){
+  if(document.getElementById('tselPanel')) return;
+  const el = document.createElement('div');
+  el.id = 'tselPanel';
+  el.className = 'tsel-panel';
+  document.body.appendChild(el);
+  // Clicar dentro do painel não deve contar como "clique fora" (o que fecharia).
+  el.addEventListener('mousedown', e=>e.stopPropagation());
+  el.addEventListener('touchstart', e=>e.stopPropagation());
+}
+function closeThemedSelect(){
+  const panel = document.getElementById('tselPanel');
+  if(panel) panel.classList.remove('open');
+  tselActiveSelect = null;
+  document.removeEventListener('mousedown', themedSelectOutsideCheck, true);
+  document.removeEventListener('touchstart', themedSelectOutsideCheck, true);
+  window.removeEventListener('scroll', closeThemedSelect, true);
+  window.removeEventListener('resize', closeThemedSelect);
+}
+function themedSelectOutsideCheck(e){
+  const panel = document.getElementById('tselPanel');
+  if(panel && !panel.contains(e.target)) closeThemedSelect();
+}
+function openThemedSelect(select){
+  ensureThemedSelectPanelMounted();
+  const panel = document.getElementById('tselPanel');
+  tselActiveSelect = select;
+  const opts = [...select.options];
+  panel.innerHTML = opts.map((o,i)=>`<div class="tsel-opt ${o.selected?'sel':''} ${o.disabled?'disabled':''}" data-i="${i}">${escapeHtml(o.textContent)}</div>`).join('');
+  panel.querySelectorAll('.tsel-opt').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const opt = opts[+row.dataset.i];
+      if(opt.disabled) return;
+      if(select.value !== opt.value){
+        select.value = opt.value;
+        select.dispatchEvent(new Event('change', {bubbles:true}));
+      }
+      closeThemedSelect();
+    });
+  });
+  // Mede o painel escondido antes de posicionar, pra caber tanto embaixo
+  // quanto (se não houver espaço) em cima do <select>, sempre dentro da tela.
+  panel.style.visibility = 'hidden';
+  panel.classList.add('open');
+  const rect = select.getBoundingClientRect();
+  const margin = 6;
+  const pw = Math.max(rect.width, 190);
+  panel.style.width = pw + 'px';
+  const ph = panel.offsetHeight;
+  let top = rect.bottom + margin;
+  if(top + ph > window.innerHeight - 8) top = Math.max(8, rect.top - ph - margin);
+  let left = Math.max(8, Math.min(rect.left, window.innerWidth - pw - 8));
+  panel.style.top = top + 'px';
+  panel.style.left = left + 'px';
+  panel.style.visibility = 'visible';
+  document.addEventListener('mousedown', themedSelectOutsideCheck, true);
+  document.addEventListener('touchstart', themedSelectOutsideCheck, true);
+  window.addEventListener('scroll', closeThemedSelect, true);
+  window.addEventListener('resize', closeThemedSelect);
+}
+// Captura o toque/clique ANTES do navegador abrir o picker nativo do <select>
+// (por isso na fase de captura, e cancelando no mousedown/touchstart — depois
+// que o foco acontece, em alguns navegadores já é tarde pra cancelar).
+document.addEventListener('mousedown', function(e){
+  if(!isMobileLayout()) return;
+  const sel = e.target.closest('select');
+  if(!sel) return;
+  const app = document.getElementById('app');
+  if(!app || !app.contains(sel)) return;
+  e.preventDefault();
+  if(tselActiveSelect === sel){ closeThemedSelect(); return; }
+  openThemedSelect(sel);
+}, true);
+document.addEventListener('touchstart', function(e){
+  if(!isMobileLayout()) return;
+  if(!e.target.closest('select')) return;
+  e.preventDefault();
+}, {passive:false, capture:true});
+
 function checkFormatSelection(){
   const ta = document.getElementById('f_texto');
   const toolbar = document.getElementById('formatToolbar');
@@ -8628,14 +8922,22 @@ async function submitDraft(ev){
     if(d.isNew && !state.professorMode && state.session && state.session.email && !destinatarios.includes(state.session.email)){
       destinatarios = destinatarios.concat([state.session.email]);
     }
+    // Regra pedida pelo usuário em 24/09/2026: uma cifra que o próprio ALUNO cria
+    // por conta própria (sem professorMode) nunca aparece no banco geral do
+    // professor (nem pra outros alunos — isso já era garantido por destinatarios).
+    // `criadoPorAluno` marca essa origem (fica gravado, não recalculado a cada
+    // edição) e professorRepertorioTabHtml() exclui esses itens do banco dele.
+    // Continua visível quando o professor entra no perfil daquele aluno
+    // específico (podeVerNaAreaDoAluno segue olhando só pra destinatarios).
+    const criadoPorAluno = d.isNew ? !state.professorMode : !!d.criadoPorAluno;
     // O link do YouTube só é editável "na área do professor" (draftModalHtml esconde o
     // campo quando quem edita é o próprio aluno) — mas preservamos o valor já existente
     // mesmo que o campo não tenha sido exibido nesta edição, para não apagar o vídeo
     // de uma música ao salvar uma edição feita pelo aluno.
     const youtubeUrl = state.professorMode ? (document.getElementById('f_youtube') ? document.getElementById('f_youtube').value.trim() : (d.youtubeUrl||'').trim()) : (d.youtubeUrl||'');
     if(d.fonte==='pdf'){
-      full = {id, titulo, artista, tom:'', ritmos, criadoEm, tipo:'pdf', pdfData:d.pdfData, pdfName:d.pdfName, memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, chordOverrides: d.chordOverrides||{}, capo:0, destinatarios, youtubeUrl};
-      meta = {id, titulo, artista, tom:'', ritmos, criadoEm, tipo:'pdf', memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, capo:0, destinatarios};
+      full = {id, titulo, artista, tom:'', ritmos, criadoEm, tipo:'pdf', pdfData:d.pdfData, pdfName:d.pdfName, memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, chordOverrides: d.chordOverrides||{}, capo:0, destinatarios, youtubeUrl, criadoPorAluno};
+      meta = {id, titulo, artista, tom:'', ritmos, criadoEm, tipo:'pdf', memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, capo:0, destinatarios, criadoPorAluno};
     } else {
       const corpo = dedupeEchoedLyrics(document.getElementById('f_texto').value);
       const tom = detectTomFromText(corpo);
@@ -8643,8 +8945,8 @@ async function submitDraft(ev){
       // cifra (rail-compact-row "Capotraste", chamando setCapo()), então preserva
       // o valor que já estava salvo.
       const capo = d.capo||0;
-      full = {id, titulo, artista, tom, ritmos, criadoEm, tipo:'texto', corpo, memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, chordOverrides: d.chordOverrides||{}, capo, destinatarios, youtubeUrl};
-      meta = {id, titulo, artista, tom, ritmos, criadoEm, tipo:'texto', memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, capo, destinatarios};
+      full = {id, titulo, artista, tom, ritmos, criadoEm, tipo:'texto', corpo, memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, chordOverrides: d.chordOverrides||{}, capo, destinatarios, youtubeUrl, criadoPorAluno};
+      meta = {id, titulo, artista, tom, ritmos, criadoEm, tipo:'texto', memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, capo, destinatarios, criadoPorAluno};
     }
 
     // Update the visible repertoire right away — the teacher should always see the song appear.
@@ -8808,7 +9110,14 @@ const TOOL_ICON_DICT = '<svg viewBox="0 0 750 750"><g><path fill="currentColor" 
 const TOOL_ICON_BRACHO = '<svg viewBox="0 0 750 750"><g><path fill="currentColor" d="M 449.890625 351.902344 C 444.011719 349.722656 439.785156 344.175781 439.523438 337.636719 L 388.472656 602.480469 L 404.917969 602.480469 L 404.984375 602.019531 Z M 450.417969 439.414062 C 446.191406 438.027344 442.757812 434.921875 440.976562 430.894531 L 410.199219 602.480469 L 426.644531 602.480469 L 426.644531 602.085938 Z M 345.085938 602.480469 L 361.53125 602.480469 L 310.480469 337.636719 C 310.21875 344.175781 305.992188 349.722656 300.113281 351.902344 L 345.019531 602.019531 Z M 323.359375 602.480469 L 339.804688 602.480469 L 309.027344 430.894531 C 307.179688 434.855469 303.746094 437.960938 299.585938 439.414062 L 323.359375 602.152344 Z M 383.257812 688.144531 L 383.257812 619.390625 L 366.746094 619.390625 L 366.746094 688.210938 L 383.257812 688.210938 Z M 404.984375 688.144531 L 404.984375 619.390625 L 388.472656 619.390625 L 388.472656 688.210938 L 404.984375 688.210938 Z M 426.644531 688.144531 L 426.644531 619.390625 L 410.136719 619.390625 L 410.136719 688.210938 L 426.644531 688.210938 Z M 447.050781 688.144531 L 447.050781 619.390625 L 431.863281 619.390625 L 431.863281 688.210938 L 447.050781 688.210938 Z M 318.207031 688.144531 L 318.207031 619.390625 L 303.019531 619.390625 L 303.019531 688.210938 L 318.207031 688.210938 Z M 339.867188 688.144531 L 339.867188 619.390625 L 323.359375 619.390625 L 323.359375 688.210938 L 339.867188 688.210938 Z M 361.597656 688.144531 L 361.597656 619.390625 L 345.085938 619.390625 L 345.085938 688.210938 L 361.597656 688.210938 Z M 375 61.960938 C 289.480469 61.960938 278.714844 108.324219 208.316406 113.871094 C 219.941406 165.191406 228.460938 209.96875 234.402344 254.882812 L 220.269531 254.882812 C 220.007812 248.277344 219.414062 241.339844 218.222656 233.878906 L 185.402344 233.878906 C 178.269531 254.285156 179.523438 270.601562 185.402344 288.960938 L 218.222656 288.960938 C 219.148438 282.488281 219.875 275.949219 220.207031 269.148438 L 236.1875 269.148438 C 239.027344 292.921875 241.140625 316.964844 242.59375 342.195312 L 220.269531 342.195312 C 220.007812 335.589844 219.414062 328.65625 218.222656 321.191406 L 185.402344 321.191406 C 178.269531 341.601562 179.523438 357.914062 185.402344 376.273438 L 218.222656 376.273438 C 219.148438 369.800781 219.875 363.261719 220.207031 356.460938 L 243.320312 356.460938 C 244.441406 379.445312 244.96875 403.550781 245.101562 429.507812 L 220.269531 429.507812 C 220.007812 422.902344 219.414062 415.96875 218.222656 408.503906 L 185.402344 408.503906 C 178.269531 428.914062 179.523438 445.226562 185.402344 463.585938 L 218.222656 463.585938 C 219.148438 457.113281 219.875 450.574219 220.207031 443.773438 L 245.167969 443.773438 C 245.101562 468.671875 244.707031 495.222656 243.914062 524.085938 C 285.714844 528.179688 303.019531 551.625 303.019531 601.027344 L 303.019531 602.417969 L 318.207031 602.417969 L 294.5 440.140625 C 285.714844 440.074219 278.585938 432.941406 278.585938 424.15625 C 278.585938 415.308594 285.714844 408.175781 294.566406 408.175781 C 298.992188 408.175781 302.953125 409.957031 305.859375 412.863281 L 295.09375 352.828125 L 294.566406 352.828125 C 285.714844 352.828125 278.585938 345.695312 278.585938 336.84375 C 278.585938 327.996094 285.714844 320.859375 294.566406 320.859375 C 301.039062 320.859375 306.585938 324.691406 309.09375 330.238281 L 296.613281 265.382812 C 295.953125 265.449219 295.226562 265.515625 294.566406 265.515625 C 285.714844 265.515625 278.585938 258.382812 278.585938 249.53125 C 278.585938 240.679688 285.714844 233.546875 294.566406 233.546875 C 303.414062 233.546875 310.546875 240.679688 310.546875 249.53125 C 310.546875 255.804688 306.914062 261.289062 301.632812 263.863281 L 366.746094 601.953125 L 366.8125 602.417969 L 383.324219 602.417969 L 383.390625 601.953125 L 448.503906 263.863281 C 443.21875 261.289062 439.589844 255.804688 439.589844 249.53125 C 439.589844 240.679688 446.71875 233.546875 455.570312 233.546875 C 464.417969 233.546875 471.550781 240.679688 471.550781 249.53125 C 471.550781 258.382812 464.417969 265.515625 455.570312 265.515625 C 454.910156 265.515625 454.183594 265.449219 453.523438 265.382812 L 441.042969 330.238281 C 443.550781 324.691406 449.097656 320.859375 455.570312 320.859375 C 464.417969 320.859375 471.550781 327.996094 471.550781 336.84375 C 471.550781 345.695312 464.417969 352.828125 455.570312 352.828125 L 455.042969 352.828125 L 444.277344 412.863281 C 447.183594 409.957031 451.144531 408.175781 455.570312 408.175781 C 464.417969 408.175781 471.550781 415.308594 471.550781 424.15625 C 471.550781 432.941406 464.417969 440.074219 455.636719 440.140625 L 431.929688 602.417969 L 447.117188 602.417969 L 447.117188 601.027344 C 447.117188 551.625 464.417969 528.179688 506.222656 524.085938 C 505.429688 495.222656 505.035156 468.671875 504.96875 443.773438 L 529.863281 443.773438 C 530.195312 450.574219 530.855469 457.113281 531.84375 463.585938 L 564.667969 463.585938 C 570.542969 445.226562 571.800781 428.914062 564.667969 408.503906 L 531.84375 408.503906 C 530.722656 415.96875 530.0625 422.902344 529.796875 429.507812 L 504.96875 429.507812 C 505.097656 403.550781 505.695312 379.445312 506.75 356.460938 L 529.863281 356.460938 C 530.195312 363.261719 530.855469 369.800781 531.84375 376.273438 L 564.667969 376.273438 C 570.542969 357.914062 571.800781 341.601562 564.667969 321.191406 L 531.84375 321.191406 C 530.722656 328.65625 530.0625 335.589844 529.796875 342.195312 L 507.476562 342.195312 C 508.929688 316.964844 511.042969 292.921875 513.882812 269.148438 L 529.863281 269.148438 C 530.195312 275.949219 530.855469 282.488281 531.84375 288.960938 L 564.667969 288.960938 C 570.542969 270.601562 571.800781 254.285156 564.667969 233.878906 L 531.84375 233.878906 C 530.722656 241.339844 530.0625 248.277344 529.796875 254.882812 L 515.664062 254.882812 C 521.542969 209.96875 530.128906 165.191406 541.75 113.871094 C 471.289062 108.324219 460.589844 61.960938 375 61.960938 Z M 375 61.960938 " fill-opacity="1" fill-rule="evenodd"/></g></svg>';
 const TOOL_ICON_BACKING = '<svg viewBox="0 0 750 750"><g><path fill="currentColor" d="M 645.054688 567.855469 C 645.054688 589.15625 627.753906 606.457031 606.457031 606.457031 L 143.257812 606.457031 C 121.957031 606.457031 104.65625 589.15625 104.65625 567.855469 L 104.65625 143.257812 C 104.65625 125.3125 117.019531 110.347656 133.605469 106.011719 L 133.605469 558.207031 C 133.605469 568.835938 142.277344 577.507812 152.90625 577.507812 L 596.804688 577.507812 C 607.4375 577.507812 616.105469 568.835938 616.105469 558.207031 L 616.105469 106.011719 C 632.691406 110.347656 645.054688 125.3125 645.054688 143.257812 Z M 577.507812 635.40625 C 577.507812 640.722656 573.171875 645.054688 567.855469 645.054688 L 529.257812 645.054688 C 526.242188 645.054688 523.339844 643.625 521.527344 641.210938 L 509.957031 625.757812 L 577.507812 625.757812 Z M 228.183594 641.210938 C 226.375 643.625 223.472656 645.054688 220.457031 645.054688 L 181.855469 645.054688 C 176.542969 645.054688 172.207031 640.722656 172.207031 635.40625 L 172.207031 625.757812 L 239.757812 625.757812 Z M 596.804688 210.804688 L 152.90625 210.804688 L 152.90625 104.65625 L 596.804688 104.65625 Z M 152.90625 230.105469 L 596.804688 230.105469 L 596.804688 558.207031 L 152.90625 558.207031 Z M 606.457031 85.355469 L 143.257812 85.355469 C 111.328125 85.355469 85.355469 111.328125 85.355469 143.257812 L 85.355469 567.855469 C 85.355469 599.785156 111.328125 625.757812 143.257812 625.757812 L 152.90625 625.757812 L 152.90625 635.40625 C 152.90625 651.390625 165.875 664.355469 181.855469 664.355469 L 220.457031 664.355469 C 229.542969 664.355469 238.171875 660.023438 243.601562 652.785156 L 263.882812 625.757812 L 485.832031 625.757812 L 506.113281 652.785156 C 511.539062 660.023438 520.171875 664.355469 529.257812 664.355469 L 567.855469 664.355469 C 583.839844 664.355469 596.804688 651.390625 596.804688 635.40625 L 596.804688 625.757812 L 606.457031 625.757812 C 638.382812 625.757812 664.355469 599.785156 664.355469 567.855469 L 664.355469 143.257812 C 664.355469 111.328125 638.382812 85.355469 606.457031 85.355469 " fill-opacity="1" fill-rule="nonzero"/></g><path fill="currentColor" d="M 201.15625 143.257812 C 206.472656 143.257812 210.804688 147.589844 210.804688 152.90625 C 210.804688 158.222656 206.472656 162.554688 201.15625 162.554688 C 195.839844 162.554688 191.507812 158.222656 191.507812 152.90625 C 191.507812 147.589844 195.839844 143.257812 201.15625 143.257812 Z M 201.15625 181.855469 C 217.140625 181.855469 230.105469 168.890625 230.105469 152.90625 C 230.105469 136.921875 217.140625 123.957031 201.15625 123.957031 C 185.171875 123.957031 172.207031 136.921875 172.207031 152.90625 C 172.207031 168.890625 185.171875 181.855469 201.15625 181.855469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 278.355469 143.257812 C 283.671875 143.257812 288.007812 147.589844 288.007812 152.90625 C 288.007812 158.222656 283.671875 162.554688 278.355469 162.554688 C 273.042969 162.554688 268.707031 158.222656 268.707031 152.90625 C 268.707031 147.589844 273.042969 143.257812 278.355469 143.257812 Z M 278.355469 181.855469 C 294.339844 181.855469 307.304688 168.890625 307.304688 152.90625 C 307.304688 136.921875 294.339844 123.957031 278.355469 123.957031 C 262.375 123.957031 249.40625 136.921875 249.40625 152.90625 C 249.40625 168.890625 262.375 181.855469 278.355469 181.855469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 355.554688 143.257812 C 360.871094 143.257812 365.207031 147.589844 365.207031 152.90625 C 365.207031 158.222656 360.871094 162.554688 355.554688 162.554688 C 350.242188 162.554688 345.90625 158.222656 345.90625 152.90625 C 345.90625 147.589844 350.242188 143.257812 355.554688 143.257812 Z M 355.554688 181.855469 C 371.539062 181.855469 384.507812 168.890625 384.507812 152.90625 C 384.507812 136.921875 371.539062 123.957031 355.554688 123.957031 C 339.574219 123.957031 326.605469 136.921875 326.605469 152.90625 C 326.605469 168.890625 339.574219 181.855469 355.554688 181.855469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 432.757812 143.257812 C 438.070312 143.257812 442.40625 147.589844 442.40625 152.90625 C 442.40625 158.222656 438.070312 162.554688 432.757812 162.554688 C 427.441406 162.554688 423.105469 158.222656 423.105469 152.90625 C 423.105469 147.589844 427.441406 143.257812 432.757812 143.257812 Z M 432.757812 181.855469 C 448.738281 181.855469 461.707031 168.890625 461.707031 152.90625 C 461.707031 136.921875 448.738281 123.957031 432.757812 123.957031 C 416.773438 123.957031 403.804688 136.921875 403.804688 152.90625 C 403.804688 168.890625 416.773438 181.855469 432.757812 181.855469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 374.855469 268.40625 C 369.542969 268.40625 365.207031 272.703125 365.207031 278.054688 L 365.207031 278.355469 C 365.207031 283.671875 369.542969 287.855469 374.855469 287.855469 C 380.171875 287.855469 384.507812 283.371094 384.507812 278.054688 C 384.507812 272.703125 380.171875 268.40625 374.855469 268.40625 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 316.957031 268.40625 C 311.640625 268.40625 307.304688 272.703125 307.304688 278.054688 L 307.304688 278.355469 C 307.304688 283.671875 311.640625 287.855469 316.957031 287.855469 C 322.273438 287.855469 326.605469 283.371094 326.605469 278.054688 C 326.605469 272.703125 322.273438 268.40625 316.957031 268.40625 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 259.054688 268.40625 C 253.742188 268.40625 249.40625 272.703125 249.40625 278.054688 L 249.40625 278.355469 C 249.40625 283.671875 253.742188 287.855469 259.054688 287.855469 C 264.371094 287.855469 268.707031 283.371094 268.707031 278.054688 C 268.707031 272.703125 264.371094 268.40625 259.054688 268.40625 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 201.15625 268.40625 C 195.839844 268.40625 191.507812 272.703125 191.507812 278.054688 L 191.507812 278.355469 C 191.507812 283.671875 195.839844 287.855469 201.15625 287.855469 C 206.472656 287.855469 210.804688 283.371094 210.804688 278.054688 C 210.804688 272.703125 206.472656 268.40625 201.15625 268.40625 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 548.554688 268.40625 C 543.242188 268.40625 538.90625 272.703125 538.90625 278.054688 L 538.90625 278.355469 C 538.90625 283.671875 543.242188 287.855469 548.554688 287.855469 C 553.871094 287.855469 558.207031 283.371094 558.207031 278.054688 C 558.207031 272.703125 553.871094 268.40625 548.554688 268.40625 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 490.65625 268.40625 C 485.339844 268.40625 481.007812 272.703125 481.007812 278.054688 L 481.007812 278.355469 C 481.007812 283.671875 485.339844 287.855469 490.65625 287.855469 C 495.972656 287.855469 500.304688 283.371094 500.304688 278.054688 C 500.304688 272.703125 495.972656 268.40625 490.65625 268.40625 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 432.757812 268.40625 C 427.441406 268.40625 423.105469 272.703125 423.105469 278.054688 L 423.105469 278.355469 C 423.105469 283.671875 427.441406 287.855469 432.757812 287.855469 C 438.070312 287.855469 442.40625 283.371094 442.40625 278.054688 C 442.40625 272.703125 438.070312 268.40625 432.757812 268.40625 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 374.855469 326.304688 C 369.542969 326.304688 365.207031 330.601562 365.207031 335.953125 L 365.207031 336.257812 C 365.207031 341.570312 369.542969 345.753906 374.855469 345.753906 C 380.171875 345.753906 384.507812 341.269531 384.507812 335.953125 C 384.507812 330.601562 380.171875 326.304688 374.855469 326.304688 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 316.957031 326.304688 C 311.640625 326.304688 307.304688 330.601562 307.304688 335.953125 L 307.304688 336.257812 C 307.304688 341.570312 311.640625 345.753906 316.957031 345.753906 C 322.273438 345.753906 326.605469 341.269531 326.605469 335.953125 C 326.605469 330.601562 322.273438 326.304688 316.957031 326.304688 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 259.054688 326.304688 C 253.742188 326.304688 249.40625 330.601562 249.40625 335.953125 L 249.40625 336.257812 C 249.40625 341.570312 253.742188 345.753906 259.054688 345.753906 C 264.371094 345.753906 268.707031 341.269531 268.707031 335.953125 C 268.707031 330.601562 264.371094 326.304688 259.054688 326.304688 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 201.15625 326.304688 C 195.839844 326.304688 191.507812 330.601562 191.507812 335.953125 L 191.507812 336.257812 C 191.507812 341.570312 195.839844 345.753906 201.15625 345.753906 C 206.472656 345.753906 210.804688 341.269531 210.804688 335.953125 C 210.804688 330.601562 206.472656 326.304688 201.15625 326.304688 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 548.554688 326.304688 C 543.242188 326.304688 538.90625 330.601562 538.90625 335.953125 L 538.90625 336.257812 C 538.90625 341.570312 543.242188 345.753906 548.554688 345.753906 C 553.871094 345.753906 558.207031 341.269531 558.207031 335.953125 C 558.207031 330.601562 553.871094 326.304688 548.554688 326.304688 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 490.65625 326.304688 C 485.339844 326.304688 481.007812 330.601562 481.007812 335.953125 L 481.007812 336.257812 C 481.007812 341.570312 485.339844 345.753906 490.65625 345.753906 C 495.972656 345.753906 500.304688 341.269531 500.304688 335.953125 C 500.304688 330.601562 495.972656 326.304688 490.65625 326.304688 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 432.757812 326.304688 C 427.441406 326.304688 423.105469 330.601562 423.105469 335.953125 L 423.105469 336.257812 C 423.105469 341.570312 427.441406 345.753906 432.757812 345.753906 C 438.070312 345.753906 442.40625 341.269531 442.40625 335.953125 C 442.40625 330.601562 438.070312 326.304688 432.757812 326.304688 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 374.855469 384.203125 C 369.542969 384.203125 365.207031 388.503906 365.207031 393.855469 L 365.207031 394.15625 C 365.207031 399.472656 369.542969 403.65625 374.855469 403.65625 C 380.171875 403.65625 384.507812 399.171875 384.507812 393.855469 C 384.507812 388.503906 380.171875 384.203125 374.855469 384.203125 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 316.957031 384.203125 C 311.640625 384.203125 307.304688 388.503906 307.304688 393.855469 L 307.304688 394.15625 C 307.304688 399.472656 311.640625 403.65625 316.957031 403.65625 C 322.273438 403.65625 326.605469 399.171875 326.605469 393.855469 C 326.605469 388.503906 322.273438 384.203125 316.957031 384.203125 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 259.054688 384.203125 C 253.742188 384.203125 249.40625 388.503906 249.40625 393.855469 L 249.40625 394.15625 C 249.40625 399.472656 253.742188 403.65625 259.054688 403.65625 C 264.371094 403.65625 268.707031 399.171875 268.707031 393.855469 C 268.707031 388.503906 264.371094 384.203125 259.054688 384.203125 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 201.15625 384.203125 C 195.839844 384.203125 191.507812 388.503906 191.507812 393.855469 L 191.507812 394.15625 C 191.507812 399.472656 195.839844 403.65625 201.15625 403.65625 C 206.472656 403.65625 210.804688 399.171875 210.804688 393.855469 C 210.804688 388.503906 206.472656 384.203125 201.15625 384.203125 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 548.554688 384.203125 C 543.242188 384.203125 538.90625 388.503906 538.90625 393.855469 L 538.90625 394.15625 C 538.90625 399.472656 543.242188 403.65625 548.554688 403.65625 C 553.871094 403.65625 558.207031 399.171875 558.207031 393.855469 C 558.207031 388.503906 553.871094 384.203125 548.554688 384.203125 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 490.65625 384.203125 C 485.339844 384.203125 481.007812 388.503906 481.007812 393.855469 L 481.007812 394.15625 C 481.007812 399.472656 485.339844 403.65625 490.65625 403.65625 C 495.972656 403.65625 500.304688 399.171875 500.304688 393.855469 C 500.304688 388.503906 495.972656 384.203125 490.65625 384.203125 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 432.757812 384.203125 C 427.441406 384.203125 423.105469 388.503906 423.105469 393.855469 L 423.105469 394.15625 C 423.105469 399.472656 427.441406 403.65625 432.757812 403.65625 C 438.070312 403.65625 442.40625 399.171875 442.40625 393.855469 C 442.40625 388.503906 438.070312 384.203125 432.757812 384.203125 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 374.855469 442.105469 C 369.542969 442.105469 365.207031 446.402344 365.207031 451.753906 L 365.207031 452.054688 C 365.207031 457.371094 369.542969 461.554688 374.855469 461.554688 C 380.171875 461.554688 384.507812 457.070312 384.507812 451.753906 C 384.507812 446.402344 380.171875 442.105469 374.855469 442.105469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 316.957031 442.105469 C 311.640625 442.105469 307.304688 446.402344 307.304688 451.753906 L 307.304688 452.054688 C 307.304688 457.371094 311.640625 461.554688 316.957031 461.554688 C 322.273438 461.554688 326.605469 457.070312 326.605469 451.753906 C 326.605469 446.402344 322.273438 442.105469 316.957031 442.105469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 259.054688 442.105469 C 253.742188 442.105469 249.40625 446.402344 249.40625 451.753906 L 249.40625 452.054688 C 249.40625 457.371094 253.742188 461.554688 259.054688 461.554688 C 264.371094 461.554688 268.707031 457.070312 268.707031 451.753906 C 268.707031 446.402344 264.371094 442.105469 259.054688 442.105469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 201.15625 442.105469 C 195.839844 442.105469 191.507812 446.402344 191.507812 451.753906 L 191.507812 452.054688 C 191.507812 457.371094 195.839844 461.554688 201.15625 461.554688 C 206.472656 461.554688 210.804688 457.070312 210.804688 451.753906 C 210.804688 446.402344 206.472656 442.105469 201.15625 442.105469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 548.554688 442.105469 C 543.242188 442.105469 538.90625 446.402344 538.90625 451.753906 L 538.90625 452.054688 C 538.90625 457.371094 543.242188 461.554688 548.554688 461.554688 C 553.871094 461.554688 558.207031 457.070312 558.207031 451.753906 C 558.207031 446.402344 553.871094 442.105469 548.554688 442.105469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 490.65625 442.105469 C 485.339844 442.105469 481.007812 446.402344 481.007812 451.753906 L 481.007812 452.054688 C 481.007812 457.371094 485.339844 461.554688 490.65625 461.554688 C 495.972656 461.554688 500.304688 457.070312 500.304688 451.753906 C 500.304688 446.402344 495.972656 442.105469 490.65625 442.105469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 432.757812 442.105469 C 427.441406 442.105469 423.105469 446.402344 423.105469 451.753906 L 423.105469 452.054688 C 423.105469 457.371094 427.441406 461.554688 432.757812 461.554688 C 438.070312 461.554688 442.40625 457.070312 442.40625 451.753906 C 442.40625 446.402344 438.070312 442.105469 432.757812 442.105469 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 374.855469 500.003906 C 369.542969 500.003906 365.207031 504.300781 365.207031 509.65625 L 365.207031 509.957031 C 365.207031 515.273438 369.542969 519.457031 374.855469 519.457031 C 380.171875 519.457031 384.507812 514.96875 384.507812 509.65625 C 384.507812 504.300781 380.171875 500.003906 374.855469 500.003906 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 316.957031 500.003906 C 311.640625 500.003906 307.304688 504.300781 307.304688 509.65625 L 307.304688 509.957031 C 307.304688 515.273438 311.640625 519.457031 316.957031 519.457031 C 322.273438 519.457031 326.605469 514.96875 326.605469 509.65625 C 326.605469 504.300781 322.273438 500.003906 316.957031 500.003906 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 259.054688 500.003906 C 253.742188 500.003906 249.40625 504.300781 249.40625 509.65625 L 249.40625 509.957031 C 249.40625 515.273438 253.742188 519.457031 259.054688 519.457031 C 264.371094 519.457031 268.707031 514.96875 268.707031 509.65625 C 268.707031 504.300781 264.371094 500.003906 259.054688 500.003906 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 201.15625 500.003906 C 195.839844 500.003906 191.507812 504.300781 191.507812 509.65625 L 191.507812 509.957031 C 191.507812 515.273438 195.839844 519.457031 201.15625 519.457031 C 206.472656 519.457031 210.804688 514.96875 210.804688 509.65625 C 210.804688 504.300781 206.472656 500.003906 201.15625 500.003906 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 548.554688 500.003906 C 543.242188 500.003906 538.90625 504.300781 538.90625 509.65625 L 538.90625 509.957031 C 538.90625 515.273438 543.242188 519.457031 548.554688 519.457031 C 553.871094 519.457031 558.207031 514.96875 558.207031 509.65625 C 558.207031 504.300781 553.871094 500.003906 548.554688 500.003906 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 490.65625 500.003906 C 485.339844 500.003906 481.007812 504.300781 481.007812 509.65625 L 481.007812 509.957031 C 481.007812 515.273438 485.339844 519.457031 490.65625 519.457031 C 495.972656 519.457031 500.304688 514.96875 500.304688 509.65625 C 500.304688 504.300781 495.972656 500.003906 490.65625 500.003906 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 432.757812 500.003906 C 427.441406 500.003906 423.105469 504.300781 423.105469 509.65625 L 423.105469 509.957031 C 423.105469 515.273438 427.441406 519.457031 432.757812 519.457031 C 438.070312 519.457031 442.40625 514.96875 442.40625 509.65625 C 442.40625 504.300781 438.070312 500.003906 432.757812 500.003906 " fill-opacity="1" fill-rule="nonzero"/></svg>';
 const TOOL_ICON_SHOP = '<svg viewBox="0 0 750 750"><g><path fill="currentColor" d="M 640.710938 198.78125 C 636.40625 193.5625 629.988281 190.539062 623.210938 190.539062 L 235.9375 190.539062 L 217.296875 127.945312 C 214.433594 118.324219 205.589844 111.726562 195.542969 111.726562 L 126.253906 111.726562 C 113.71875 111.726562 103.550781 121.886719 103.550781 134.421875 C 103.550781 146.953125 113.71875 157.105469 126.253906 157.105469 L 178.613281 157.105469 L 263.445312 441.933594 C 254.25 458.785156 245.527344 482.914062 255.417969 503.125 C 264.171875 521.015625 283.960938 530.09375 314.214844 530.09375 C 314.765625 530.09375 315.3125 530.070312 315.859375 530.015625 C 317.828125 529.835938 513.371094 511.914062 580.796875 515.730469 C 590.625 516.257812 599.140625 508.738281 599.699219 498.855469 C 600.257812 488.980469 592.695312 480.519531 582.8125 479.972656 C 514.359375 476.109375 329.507812 492.792969 313.421875 494.265625 C 296.828125 494.15625 289.148438 490.507812 287.613281 487.386719 C 285.902344 483.910156 287.121094 477.335938 289.996094 469.898438 C 290.480469 469.871094 290.957031 469.867188 291.449219 469.804688 L 587.703125 433.984375 C 597.496094 432.796875 605.402344 425.425781 607.265625 415.753906 L 645.5 217.53125 C 646.777344 210.875 645.023438 204 640.710938 198.78125 Z M 476.273438 308.84375 L 383.097656 308.84375 L 383.097656 235.917969 L 476.273438 235.917969 Z M 277.582031 330.335938 L 361.59375 330.335938 L 361.59375 415.617188 L 305.011719 422.460938 Z M 383.097656 330.335938 L 476.273438 330.335938 L 476.273438 401.746094 L 383.097656 413.015625 Z M 581.660156 308.84375 L 497.777344 308.84375 L 497.777344 235.917969 L 595.726562 235.917969 Z M 361.59375 235.917969 L 361.59375 308.84375 L 271.175781 308.84375 L 249.457031 235.917969 Z M 497.777344 399.144531 L 497.777344 330.335938 L 577.511719 330.335938 L 565.824219 390.914062 Z M 497.777344 399.144531 " fill-opacity="1" fill-rule="nonzero"/></g><g><path fill="currentColor" d="M 331.726562 592.914062 C 331.726562 594.398438 331.65625 595.882812 331.507812 597.359375 C 331.363281 598.835938 331.144531 600.304688 330.855469 601.757812 C 330.566406 603.214844 330.207031 604.652344 329.773438 606.074219 C 329.34375 607.496094 328.84375 608.890625 328.277344 610.265625 C 327.707031 611.636719 327.074219 612.976562 326.371094 614.285156 C 325.671875 615.59375 324.910156 616.867188 324.085938 618.101562 C 323.257812 619.335938 322.375 620.527344 321.433594 621.675781 C 320.492188 622.824219 319.496094 623.921875 318.445312 624.972656 C 317.394531 626.019531 316.292969 627.015625 315.148438 627.957031 C 314 628.902344 312.808594 629.785156 311.570312 630.609375 C 310.335938 631.433594 309.0625 632.195312 307.753906 632.894531 C 306.445312 633.597656 305.101562 634.230469 303.730469 634.796875 C 302.359375 635.367188 300.960938 635.867188 299.539062 636.296875 C 298.117188 636.726562 296.679688 637.089844 295.222656 637.378906 C 293.765625 637.667969 292.300781 637.886719 290.820312 638.03125 C 289.34375 638.175781 287.859375 638.25 286.375 638.25 C 284.890625 638.25 283.410156 638.175781 281.929688 638.03125 C 280.453125 637.886719 278.984375 637.667969 277.527344 637.378906 C 276.070312 637.089844 274.632812 636.726562 273.210938 636.296875 C 271.789062 635.867188 270.390625 635.367188 269.019531 634.796875 C 267.648438 634.230469 266.304688 633.597656 264.996094 632.894531 C 263.6875 632.195312 262.414062 631.433594 261.179688 630.609375 C 259.945312 629.785156 258.753906 628.902344 257.605469 627.957031 C 256.457031 627.015625 255.355469 626.019531 254.304688 624.972656 C 253.257812 623.921875 252.261719 622.824219 251.316406 621.675781 C 250.375 620.527344 249.492188 619.335938 248.667969 618.101562 C 247.839844 616.867188 247.078125 615.59375 246.378906 614.285156 C 245.679688 612.976562 245.042969 611.636719 244.476562 610.265625 C 243.90625 608.890625 243.40625 607.496094 242.976562 606.074219 C 242.542969 604.652344 242.183594 603.214844 241.894531 601.757812 C 241.605469 600.304688 241.386719 598.835938 241.242188 597.359375 C 241.097656 595.882812 241.023438 594.398438 241.023438 592.914062 C 241.023438 591.429688 241.097656 589.949219 241.242188 588.472656 C 241.386719 586.992188 241.605469 585.527344 241.894531 584.070312 C 242.183594 582.613281 242.542969 581.175781 242.976562 579.753906 C 243.40625 578.335938 243.90625 576.9375 244.476562 575.566406 C 245.042969 574.195312 245.679688 572.855469 246.378906 571.542969 C 247.078125 570.234375 247.839844 568.964844 248.667969 567.730469 C 249.492188 566.496094 250.375 565.304688 251.316406 564.15625 C 252.261719 563.007812 253.257812 561.910156 254.304688 560.859375 C 255.355469 559.808594 256.457031 558.8125 257.605469 557.871094 C 258.753906 556.929688 259.945312 556.046875 261.179688 555.222656 C 262.414062 554.394531 263.6875 553.632812 264.996094 552.933594 C 266.304688 552.234375 267.648438 551.601562 269.019531 551.03125 C 270.390625 550.464844 271.789062 549.964844 273.210938 549.53125 C 274.632812 549.101562 276.070312 548.742188 277.527344 548.453125 C 278.984375 548.164062 280.453125 547.945312 281.929688 547.800781 C 283.410156 547.652344 284.890625 547.582031 286.375 547.582031 C 287.859375 547.582031 289.34375 547.652344 290.820312 547.800781 C 292.300781 547.945312 293.765625 548.164062 295.222656 548.453125 C 296.679688 548.742188 298.121094 549.101562 299.539062 549.53125 C 300.960938 549.964844 302.359375 550.464844 303.730469 551.03125 C 305.101562 551.601562 306.445312 552.234375 307.753906 552.933594 C 309.0625 553.632812 310.335938 554.394531 311.570312 555.222656 C 312.808594 556.046875 314 556.929688 315.148438 557.871094 C 316.292969 558.8125 317.394531 559.808594 318.445312 560.859375 C 319.496094 561.910156 320.492188 563.007812 321.433594 564.15625 C 322.375 565.304688 323.257812 566.496094 324.085938 567.730469 C 324.910156 568.964844 325.671875 570.234375 326.371094 571.542969 C 327.074219 572.855469 327.707031 574.195312 328.277344 575.566406 C 328.84375 576.9375 329.34375 578.335938 329.773438 579.753906 C 330.207031 581.175781 330.566406 582.613281 330.855469 584.070312 C 331.144531 585.527344 331.363281 586.992188 331.507812 588.472656 C 331.65625 589.949219 331.726562 591.429688 331.726562 592.914062 Z M 331.726562 592.914062 " fill-opacity="1" fill-rule="nonzero"/></g><g><path fill="currentColor" d="M 589.757812 592.914062 C 589.757812 594.398438 589.6875 595.882812 589.542969 597.359375 C 589.394531 598.835938 589.179688 600.304688 588.886719 601.757812 C 588.597656 603.214844 588.238281 604.652344 587.808594 606.074219 C 587.375 607.496094 586.875 608.890625 586.308594 610.265625 C 585.738281 611.636719 585.105469 612.976562 584.40625 614.285156 C 583.703125 615.59375 582.941406 616.867188 582.117188 618.101562 C 581.292969 619.335938 580.40625 620.527344 579.464844 621.675781 C 578.523438 622.824219 577.527344 623.921875 576.476562 624.972656 C 575.425781 626.019531 574.328125 627.015625 573.179688 627.957031 C 572.03125 628.902344 570.839844 629.785156 569.605469 630.609375 C 568.367188 631.433594 567.097656 632.195312 565.785156 632.894531 C 564.476562 633.597656 563.136719 634.230469 561.761719 634.796875 C 560.390625 635.367188 558.992188 635.867188 557.574219 636.296875 C 556.152344 636.726562 554.710938 637.089844 553.253906 637.378906 C 551.796875 637.667969 550.332031 637.886719 548.851562 638.03125 C 547.375 638.175781 545.894531 638.25 544.40625 638.25 C 542.921875 638.25 541.441406 638.175781 539.960938 638.03125 C 538.484375 637.886719 537.015625 637.667969 535.558594 637.378906 C 534.101562 637.089844 532.664062 636.726562 531.242188 636.296875 C 529.820312 635.867188 528.425781 635.367188 527.050781 634.796875 C 525.679688 634.230469 524.339844 633.597656 523.027344 632.894531 C 521.71875 632.195312 520.445312 631.433594 519.210938 630.609375 C 517.976562 629.785156 516.785156 628.902344 515.636719 627.957031 C 514.488281 627.015625 513.390625 626.019531 512.339844 624.972656 C 511.289062 623.921875 510.292969 622.824219 509.347656 621.675781 C 508.40625 620.527344 507.523438 619.335938 506.699219 618.101562 C 505.875 616.867188 505.109375 615.59375 504.410156 614.285156 C 503.710938 612.976562 503.074219 611.636719 502.507812 610.265625 C 501.9375 608.890625 501.4375 607.496094 501.007812 606.074219 C 500.578125 604.652344 500.214844 603.214844 499.925781 601.757812 C 499.636719 600.304688 499.417969 598.835938 499.273438 597.359375 C 499.128906 595.882812 499.054688 594.398438 499.054688 592.914062 C 499.054688 591.429688 499.128906 589.949219 499.273438 588.472656 C 499.417969 586.992188 499.636719 585.527344 499.925781 584.070312 C 500.214844 582.613281 500.578125 581.175781 501.007812 579.753906 C 501.4375 578.335938 501.9375 576.9375 502.507812 575.566406 C 503.074219 574.195312 503.710938 572.855469 504.410156 571.542969 C 505.109375 570.234375 505.871094 568.964844 506.699219 567.730469 C 507.523438 566.496094 508.40625 565.304688 509.347656 564.15625 C 510.292969 563.007812 511.289062 561.910156 512.339844 560.859375 C 513.390625 559.808594 514.488281 558.8125 515.636719 557.871094 C 516.785156 556.929688 517.976562 556.046875 519.210938 555.222656 C 520.445312 554.394531 521.71875 553.632812 523.027344 552.933594 C 524.339844 552.234375 525.679688 551.601562 527.050781 551.03125 C 528.425781 550.464844 529.820312 549.964844 531.242188 549.53125 C 532.664062 549.101562 534.101562 548.742188 535.558594 548.453125 C 537.015625 548.164062 538.484375 547.945312 539.960938 547.800781 C 541.441406 547.652344 542.921875 547.582031 544.40625 547.582031 C 545.894531 547.582031 547.375 547.652344 548.851562 547.800781 C 550.332031 547.945312 551.796875 548.164062 553.253906 548.453125 C 554.710938 548.742188 556.152344 549.101562 557.574219 549.53125 C 558.992188 549.964844 560.390625 550.464844 561.761719 551.03125 C 563.136719 551.601562 564.476562 552.234375 565.785156 552.933594 C 567.097656 553.632812 568.367188 554.394531 569.605469 555.222656 C 570.839844 556.046875 572.03125 556.929688 573.179688 557.871094 C 574.328125 558.8125 575.425781 559.808594 576.476562 560.859375 C 577.527344 561.910156 578.523438 563.007812 579.464844 564.15625 C 580.40625 565.304688 581.292969 566.496094 582.117188 567.730469 C 582.941406 568.964844 583.703125 570.234375 584.40625 571.542969 C 585.105469 572.855469 585.738281 574.195312 586.308594 575.566406 C 586.875 576.9375 587.375 578.335938 587.808594 579.753906 C 588.238281 581.175781 588.597656 582.613281 588.886719 584.070312 C 589.179688 585.527344 589.394531 586.992188 589.542969 588.472656 C 589.6875 589.949219 589.757812 591.429688 589.757812 592.914062 Z M 589.757812 592.914062 " fill-opacity="1" fill-rule="nonzero"/></g></svg>';
-const TOOL_ICON_HARM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="5" x2="21" y2="5"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18.5" x2="21" y2="18.5"/><ellipse cx="6.2" cy="18.5" rx="2.4" ry="1.7" fill="currentColor" stroke="none"/><ellipse cx="11.2" cy="14" rx="2.4" ry="1.7" fill="currentColor" stroke="none"/><ellipse cx="16.2" cy="9.5" rx="2.4" ry="1.7" fill="currentColor" stroke="none"/><ellipse cx="20" cy="5" rx="2.4" ry="1.7" fill="currentColor" stroke="none"/></svg>';
+// [Rodada 85] Ícone trocado pelo SVG enviado pelo usuário (partitura/clave de
+// sol). As cores do próprio SVG (#546e7a) não importam: toolIconHtml() usa
+// esse SVG só como uma MÁSCARA CSS (mask-image) por trás de um gradiente com
+// a cor de destaque do app (ver .tool-tile-icon-grad) — o mesmo mecanismo já
+// usado por todos os outros ícones de ferramenta, então esse novo ícone já
+// nasce "adaptado às cores dos demais" automaticamente, sem precisar editar
+// nenhuma cor no SVG.
+const TOOL_ICON_HARM = '<svg viewBox="0 0 128 128"><g fill="#546e7a"><path d="M21.96 95.36V83.09h16.99a20.9 20.9 0 0 1-.91-4H21.96V63.5h19.25c.68-1.33 1.46-2.66 2.35-4h-21.6V44.58h35.55c.67-.54 1.31-1.06 1.89-1.5l-.52-2.5H21.96V25.66h33.83a46.8 46.8 0 0 1-.49-4H3.48v77.69h52.44c-2.81-.97-5.41-2.33-7.72-4H21.96z"/><path d="M81.65 99.36h42.87v-4H84.86c-1.09.94-2.24 1.77-3.44 2.46c.07.45.15.97.23 1.54z"/><path d="M87.95 25.66h36.57v-4H87.99c.1 1.36.08 2.7-.04 4z"/><path d="M88.21 63.5h36.32v-4H83.54c1.75 1.02 3.31 2.35 4.67 4z"/><path d="M124.52 44.58v-4H82.16c-.95 1.41-1.96 2.75-2.99 4h45.35z"/><path d="M124.52 83.09v-4h-31.4c-.08 1.46-.3 2.79-.6 4h32z"/></g><path d="M87.18 67.19c-4.49-7.14-11.23-7.45-16.23-6.99l-1.85-9.41c8.86-8.39 19.57-20.29 14.8-34.37c-4.07-12-10.39-12.14-13.55-12.14s-15.54.84-11.3 22.49l3.69 17.57C57.3 48.29 39.7 62.38 40.92 77.75c.84 11.88 13.23 21.08 26.64 20.2c1.41-.08 4.49-.3 5.64-.39c0 0 3.08 10.71-1.54 16.99c-2.84 3.86-7.59 5.05-11.72 3.61a8.17 8.17 0 0 0 4.51-7.3c-.41-10.83-15.94-10.83-16.35 0c0 7.81 5.34 12.85 16.5 12.85c4.49 0 8.84-3.26 11.09-6.21c5.94-7.78 2.32-21.37 2.32-21.37c7.78-3.17 17.01-14.91 9.17-28.94zM71.43 12.75c4.02-1.71 10.35 1.44 8.96 8.84c-1.28 6.8-7.6 13.83-13.21 19.45l-2.23-11.36c-1.54-9.49 1.44-14.79 6.48-16.93zm-5.35 48.54c-7.06 2.29-10.8 8.55-9.55 16.06c1.27 7.59 5.38 9.85 8.82 10.96c.06.02 2.44.68 2.67-.81c.12-.74-.74-1.17-1.53-1.67c-.64-.4-1.38-1.16-2.09-1.86c-3.95-3.91-3.69-11.35 3.23-14.37l4.63 23.14c-10.28 2.31-21.34-3.27-21.72-14.35c-.63-10.83 5.76-17.09 14.3-24.38l1.24 7.28zm17.31 22.04c-.8 2.58-2.54 5.53-6.37 7.71l-4.09-22.5c9.62-.35 12.2 8.86 10.46 14.79z" fill="#546e7a"/></svg>';
 const TOOL_ICON_EAR = '<svg viewBox="0 0 750 750"><g><path fill="currentColor" d="M 308.789062 94.9375 C 254.25 94.9375 211.035156 111.550781 180.382812 144.308594 C 125.988281 202.433594 131.050781 289.773438 131.289062 293.460938 C 131.628906 298.546875 135.984375 302.425781 141.097656 302.074219 C 146.175781 301.734375 150.039062 297.34375 149.714844 292.257812 C 149.667969 291.425781 145.023438 209.039062 193.941406 156.863281 C 220.953125 128.046875 259.601562 113.425781 308.773438 113.425781 C 369.773438 113.425781 414.957031 138.792969 439.472656 186.785156 C 471.070312 248.644531 461.710938 335.199219 433.542969 374.195312 C 422.121094 390.007812 410.503906 405.0625 399.253906 419.621094 C 363.332031 466.15625 329.394531 510.089844 317.78125 560.582031 C 311.066406 589.78125 288.875 615.839844 259.875 628.570312 C 233.050781 640.339844 203.921875 639.265625 179.96875 625.585938 C 160.949219 614.730469 138.210938 591.578125 137.890625 542.878906 C 137.859375 537.796875 133.726562 533.691406 128.664062 533.691406 L 128.597656 533.691406 C 123.503906 533.726562 119.386719 537.894531 119.417969 542.992188 C 119.59375 568.984375 126.484375 616.351562 170.820312 641.636719 C 186.601562 650.632812 204.179688 655.171875 222.089844 655.171875 C 237.199219 655.171875 252.550781 651.949219 267.292969 645.484375 C 302.0625 630.222656 327.664062 600.027344 335.789062 564.71875 C 346.492188 518.1875 377.722656 477.746094 413.882812 430.925781 C 425.210938 416.253906 436.941406 401.070312 448.527344 385.019531 C 480.476562 340.78125 491.066406 247.1875 455.929688 178.367188 C 436.492188 140.300781 395.1875 94.9375 308.773438 94.9375 Z M 308.789062 94.9375 " fill-opacity="1" fill-rule="nonzero"/></g><path fill="currentColor" d="M 222.089844 388.433594 C 216.164062 392.714844 210.089844 395.28125 204.210938 397.75 C 190.300781 403.621094 174.519531 410.289062 174.152344 438.640625 C 173.894531 458.074219 179.917969 475.039062 191.152344 486.421875 C 199.789062 495.195312 211.003906 500.019531 222.699219 500.019531 C 245.164062 500.019531 255.753906 484.320312 262.742188 473.949219 C 264.007812 472.070312 265.191406 470.308594 266.332031 468.785156 C 273.476562 459.242188 281.585938 448.4375 300.84375 438.175781 C 323.386719 426.164062 345.019531 391 331.71875 331.414062 C 321.304688 284.722656 280.140625 260.222656 246.351562 263.492188 C 241.269531 263.992188 237.554688 268.496094 238.050781 273.578125 C 238.546875 278.660156 243.035156 282.382812 248.128906 281.886719 C 269.917969 279.800781 304.671875 295 313.679688 335.441406 C 323.996094 381.734375 310.296875 412.199219 292.144531 421.851562 C 269.246094 434.039062 259.007812 447.699219 251.527344 457.6875 C 250.117188 459.582031 248.738281 461.617188 247.390625 463.589844 C 239.875 474.75 234.445312 481.515625 222.652344 481.515625 C 215.84375 481.515625 209.480469 478.710938 204.257812 473.417969 C 196.535156 465.578125 192.386719 453.3125 192.578125 438.863281 C 192.800781 422.605469 198.234375 420.296875 211.355469 414.765625 C 217.863281 412.023438 225.230469 408.910156 232.859375 403.410156 C 241.367188 397.285156 246.429688 389.398438 247.9375 380 C 250.242188 365.570312 244.15625 349.039062 228.804688 327.96875 C 214.882812 308.871094 211.804688 287.417969 217.78125 251.453125 C 223.582031 216.625 254.570312 181.378906 302.574219 181.378906 C 353.191406 181.378906 383.714844 223.085938 391.066406 249.367188 C 399.382812 279.0625 391.195312 311.195312 391.035156 311.804688 C 389.722656 316.746094 392.652344 321.796875 397.589844 323.109375 C 402.523438 324.425781 407.570312 321.492188 408.886719 316.550781 C 409.285156 315.042969 418.59375 279.191406 408.851562 244.378906 C 397.796875 204.871094 356.796875 162.890625 302.558594 162.890625 C 244.285156 162.890625 206.628906 205.914062 199.546875 248.421875 C 192.738281 289.355469 196.871094 315.558594 213.855469 338.871094 C 225.777344 355.242188 231.113281 368.101562 229.671875 377.097656 C 228.949219 381.589844 226.53125 385.195312 222.042969 388.417969 Z M 222.089844 388.433594 " fill-opacity="1" fill-rule="nonzero"/><path fill="currentColor" d="M 514.394531 233.910156 C 510.789062 237.515625 510.789062 243.371094 514.394531 246.976562 C 549.757812 282.367188 549.757812 339.960938 514.394531 375.367188 C 510.789062 378.976562 510.789062 384.828125 514.394531 388.433594 C 516.191406 390.246094 518.5625 391.144531 520.933594 391.144531 C 523.304688 391.144531 525.660156 390.246094 527.46875 388.433594 C 570.042969 345.832031 570.042969 276.511719 527.46875 233.910156 C 523.863281 230.300781 518.015625 230.300781 514.410156 233.910156 Z M 514.394531 233.910156 " fill-opacity="1" fill-rule="nonzero"/><g><path fill="currentColor" d="M 577.542969 183.785156 C 573.9375 180.175781 568.085938 180.175781 564.484375 183.785156 C 560.878906 187.394531 560.878906 193.246094 564.484375 196.851562 C 594.988281 227.382812 611.796875 267.984375 611.796875 311.164062 C 611.796875 354.34375 594.988281 394.945312 564.484375 425.476562 C 560.878906 429.082031 560.878906 434.9375 564.484375 438.542969 C 566.277344 440.355469 568.648438 441.253906 571.019531 441.253906 C 573.390625 441.253906 575.746094 440.355469 577.558594 438.542969 C 611.558594 404.519531 630.289062 359.285156 630.289062 311.164062 C 630.289062 263.042969 611.558594 217.8125 577.558594 183.785156 Z M 577.542969 183.785156 " fill-opacity="1" fill-rule="nonzero"/></g></svg>';
 
 // Catálogo único das ferramentas (pedido do usuário em 14/09/2026 — rodada 29:
@@ -10155,6 +10464,7 @@ function renderApp(){
         </div>
         <a class="back-link no-print" onclick="backToRepertorio()">&larr; Voltar ao repertório</a>
         <div class="viewer-header">
+          <div id="ytVideoSpacer" class="yt-video-spacer no-print"></div>
           <div class="viewer-title"><h2>${escapeHtml(titleCase(c.titulo))}</h2>
             <div class="art">${escapeHtml(titleCase(c.artista||''))}</div></div>
         </div>
@@ -10256,6 +10566,7 @@ function renderApp(){
           </div>`:''}
         </div>
         <div class="cifra-col">
+          <div id="ytVideoSpacer" class="yt-video-spacer no-print"></div>
           <div class="viewer-title"><h2>${escapeHtml(titleCase(c.titulo))}</h2>
             <div class="art">${escapeHtml(titleCase(c.artista||''))}</div></div>
           ${capo?`<div class="capo-note">Capotraste na ${capo}ª casa — tom: ${escapeHtml(tomSoante)} (com forma de ${escapeHtml(tomAtual)})</div>`:''}
