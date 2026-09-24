@@ -662,7 +662,9 @@
      `label` (margens, CAIXA ALTA, letter-spacing) — mesmo caso da rodada 42. */
   .ritmo-item{display:flex;align-items:center;gap:9px;margin:0;padding:7px 8px;border-radius:7px;font-size:13.5px;font-weight:500;text-transform:none;letter-spacing:normal;color:var(--text);cursor:pointer;transition:background .25s;}
   .ritmo-item:hover{background:var(--bg-panel-2);}
-  .ritmo-item input{width:auto;margin:0;accent-color:var(--accent);}
+  .ritmo-item input{width:auto;min-width:0;margin:0;padding:0;background:none;border:none;border-radius:0;accent-color:var(--accent);-webkit-appearance:checkbox;appearance:auto;}
+  .filtro-ritmo-dropdown{min-width:190px;}
+  .filtro-ritmo-toggle span:first-child{max-width:150px;}
   .ritmo-outro-item{border-bottom:1px solid var(--border);margin-bottom:4px;padding-bottom:9px;}
   .ritmo-outro-input{margin:0 6px 8px 31px;width:calc(100% - 40px);font-size:13px;padding:6px 8px;font-family:'Montserrat',sans-serif;}
   .ritmo-outro-input.hidden{display:none;}
@@ -683,7 +685,22 @@
   .file-drop:hover{border-color:var(--accent);color:var(--accent);}
   .file-drop.has-file{border-color:var(--accent);color:var(--text);border-style:solid;background:var(--bg-panel-2);}
   .file-drop.drag-over{border-color:var(--accent);background:var(--bg-panel-2);color:var(--accent);}
-  .pdf-embed{width:100%;height:70vh;border-radius:12px;border:none;background:#fff;color-scheme:light;overflow:hidden;display:block;}
+  .pdf-embed{width:100%;height:70vh;border-radius:12px;border:none;background:#fff;color-scheme:light;overflow:hidden;display:block;transform-origin:top center;transition:transform .15s;}
+  /* [Rodada 83] Tela cheia + zoom do PDF */
+  .pdf-embed-wrap{position:relative;}
+  .pdf-embed-wrap:fullscreen,.pdf-embed-wrap:-webkit-full-screen,.pdf-embed-wrap.pdf-fallback-fs{background:#525659;overflow:auto;padding:0;}
+  .pdf-embed-wrap:fullscreen .pdf-embed,.pdf-embed-wrap:-webkit-full-screen .pdf-embed,.pdf-embed-wrap.pdf-fallback-fs .pdf-embed{height:100vh;border-radius:0;}
+  .pdf-embed-wrap.pdf-fallback-fs{position:fixed;inset:0;z-index:99999;}
+  .pdf-fs-btn{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;z-index:5;padding:0;}
+  .pdf-fs-btn svg{width:17px;height:17px;}
+  .pdf-fs-btn:hover{background:rgba(0,0,0,.75);}
+  .pdf-embed-wrap:fullscreen .pdf-fs-btn,.pdf-embed-wrap:-webkit-full-screen .pdf-fs-btn,.pdf-embed-wrap.pdf-fallback-fs .pdf-fs-btn{display:none;}
+  .pdf-zoom-bar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:10px;background:rgba(0,0,0,.65);color:#fff;padding:8px 14px;border-radius:999px;z-index:6;}
+  .pdf-embed-wrap:fullscreen .pdf-zoom-bar,.pdf-embed-wrap:-webkit-full-screen .pdf-zoom-bar,.pdf-embed-wrap.pdf-fallback-fs .pdf-zoom-bar{display:flex;}
+  .pdf-zoom-bar button{background:rgba(255,255,255,.15);border:none;color:#fff;width:26px;height:26px;border-radius:50%;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+  .pdf-zoom-bar button:hover{background:rgba(255,255,255,.3);}
+  .pdf-zoom-val{font-size:13px;font-weight:600;min-width:40px;text-align:center;}
+  .pdf-fs-exit{width:auto;border-radius:999px;padding:0 12px!important;height:26px;font-size:12px;font-weight:600;gap:4px;margin-left:6px;white-space:nowrap;}
   .yt-fallback-btn{display:block;text-align:center;font-size:12px;font-weight:600;color:var(--text);background:var(--pill-bg);border-radius:999px;padding:8px 14px;margin-top:8px;text-decoration:none;transition:color .25s,background .25s;}
   .yt-fallback-btn:hover{color:#fff;background:var(--accent);}
   .yt-preview-box{margin-top:10px;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;}
@@ -2172,7 +2189,7 @@ let state = {
   cifraIndex:[], detailCache:{},
   cifraSelId:null, semis:0, diagOrient:'v', diagMirror:false, fontScale:1, scrolling:false, scrollSpeed:1.5, columns:1,
   videoPanelPos:null, videoPanelHidden:false, videoPanelWidth:null,
-  filtro:{artista:'', busca:''}, searchOpen:false,
+  filtro:{artista:'', busca:'', ritmos:[]}, searchOpen:false, filtroRitmoOpen:false,
   sortMode:'alfabetica', sortDir:'desc',
   draft:null, confirmDialog:null, variantModal:null, chordPopup:null, listMoreModal:null,
   selectMode:false, selectedIds:new Set(),
@@ -6195,7 +6212,47 @@ function openSearch(){ state.searchOpen = true; render(); const el=document.getE
 function collapseSearchIfEmpty(){ if(!state.filtro.busca){ state.searchOpen = false; render(); } }
 function setSortMode(v){ state.sortMode=v; render(); }
 function setSortDir(v){ state.sortDir=v; render(); }
-function resetView(){ state.filtro={artista:'',busca:''}; state.sortMode='alfabetica'; state.sortDir='desc'; render(); }
+function resetView(){ state.filtro={artista:'',busca:'',ritmos:[]}; state.sortMode='alfabetica'; state.sortDir='desc'; render(); }
+// [Rodada 83] Filtro por ritmo(s) do Repertório — igual pro professor e pro aluno.
+// Fica junto do "Classificar por": marca um ou mais ritmos e a lista some tudo
+// que não tem nenhum deles (sem marcar nada = mostra todo mundo, como antes).
+function toggleFiltroRitmoPanel(ev){
+  if(ev) ev.stopPropagation();
+  const panel = document.getElementById('filtroRitmoPanel');
+  if(!panel) return;
+  const willOpen = !panel.classList.contains('open');
+  state.filtroRitmoOpen = willOpen;
+  panel.classList.toggle('open', willOpen);
+  if(willOpen){
+    const closeHandler = (e)=>{
+      if(!e.target.closest('.filtro-ritmo-dropdown')){ panel.classList.remove('open'); state.filtroRitmoOpen=false; document.removeEventListener('click', closeHandler); }
+    };
+    setTimeout(()=>document.addEventListener('click', closeHandler), 0);
+  }
+}
+function toggleFiltroRitmo(r){
+  const lista = state.filtro.ritmos||[];
+  state.filtro.ritmos = lista.includes(r) ? lista.filter(x=>x!==r) : lista.concat([r]);
+  render();
+}
+function limparFiltroRitmo(ev){ if(ev) ev.stopPropagation(); state.filtro.ritmos=[]; render(); }
+function filtroRitmoResumo(){
+  const sel = state.filtro.ritmos||[];
+  return sel.length ? sel.join(', ') : 'Todos os ritmos';
+}
+function filtroRitmoDropdownHtml(){
+  const sel = state.filtro.ritmos||[];
+  return `<div class="filtro-ritmo-dropdown ritmo-dropdown">
+    <button type="button" class="ritmo-toggle filtro-ritmo-toggle" onclick="toggleFiltroRitmoPanel(event)">
+      <span>${escapeHtml(filtroRitmoResumo())}</span>
+      <span class="chev">▾</span>
+    </button>
+    <div class="ritmo-panel filtro-ritmo-panel ${state.filtroRitmoOpen?'open':''}" id="filtroRitmoPanel">
+      ${sel.length?`<button type="button" class="btn-ghost btn-small filtro-ritmo-limpar" onclick="limparFiltroRitmo(event)">Limpar filtro</button>`:''}
+      ${getRitmos().map(r=>{ const checked=sel.includes(r); return `<label class="ritmo-item"><input type="checkbox" class="filtro-ritmo-chk" value="${escapeHtml(r)}" ${checked?'checked':''} onchange="toggleFiltroRitmo('${escapeHtml(r).replace(/'/g,"\\'")}')" onclick="event.stopPropagation()"><span>${escapeHtml(r)}</span></label>`; }).join('')}
+    </div>
+  </div>`;
+}
 function setSolosFiltro(campo, val){ state.solosFiltro[campo]=val; render(); }
 function setSolosSortMode(v){ state.solosSortMode=v; render(); }
 function setSolosSortDir(v){ state.solosSortDir=v; render(); }
@@ -7078,6 +7135,7 @@ function professorRepertorioTabHtml(){
   const selecting = state.selectMode==='cifra';
   const filtradas = state.cifraIndex.filter(c=>
     (!f.artista||c.artista===f.artista) &&
+    (!f.ritmos || !f.ritmos.length || (c.ritmos&&c.ritmos.some(r=>f.ritmos.includes(r)))) &&
     (!f.busca || (c.titulo+c.artista).toLowerCase().includes(f.busca.toLowerCase())));
   const groups = buildDisplayGroups(filtradas, state.sortMode, state.sortDir);
   return `
@@ -7105,6 +7163,10 @@ function professorRepertorioTabHtml(){
           <option value="desc" ${state.sortDir==='desc'?'selected':''}>Mais recentes primeiro</option>
           <option value="asc" ${state.sortDir==='asc'?'selected':''}>Mais antigas primeiro</option>
         </select>`:''}
+      </div>
+      <div class="sort-group">
+        <span class="tlabel">Ritmo</span>
+        ${filtroRitmoDropdownHtml()}
       </div>
       <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${state.cifraIndex.length}</span>
     </div>
@@ -8727,6 +8789,9 @@ const ICON_CHECK_CIRCLE_BIG = '<svg viewBox="0 0 24 24" fill="none" stroke="curr
 const ICON_ERASER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 20H21"/><path d="m14.5 3.5 6 6a1.5 1.5 0 0 1 0 2.1l-8.4 8.4H6.9l-3.4-3.4a1.5 1.5 0 0 1 0-2.1l9.9-9.9a1.5 1.5 0 0 1 2.1 0z"/><path d="m8 9 7 7"/></svg>';
 const ICON_SAVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>';
 const ICON_UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.2-9.3L3 7"/></svg>';
+// [Rodada 83] Tela cheia + zoom nos visualizadores de PDF (cifra, solo, material).
+const ICON_FULLSCREEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+const ICON_CLOSE_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px;"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>';
 const ICON_SPEAKER_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><line x1="16" y1="9.5" x2="21" y2="14.5"/><line x1="21" y1="9.5" x2="16" y2="14.5"/></svg>';
 const ICON_CHEV_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>';
 const ICON_CHEV_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
@@ -8896,6 +8961,66 @@ function diagramsRowHtml(chordNames, orient, mirror, overrides, capo){
     </div>`;
   }).join('') + '</div>';
 }
+
+// [Rodada 83] PDF (cifra/solo/material) ganhou tela cheia + zoom. Só existe um
+// visualizador de PDF na tela por vez (telas separadas), então os ids são fixos
+// (pdfEmbedWrap/pdfEmbedFrame) em vez de um por item.
+let pdfZoomLevel = 1;
+let pdfFullscreenFallback = false;
+function pdfEmbedHtml(src){
+  return `<div class="pdf-embed-wrap" id="pdfEmbedWrap">
+    <iframe class="pdf-embed" id="pdfEmbedFrame" src="${src}"></iframe>
+    <button type="button" class="pdf-fs-btn no-print" title="Ver em tela cheia" onclick="abrirPdfTelaCheia()">${ICON_FULLSCREEN}</button>
+    <div class="pdf-zoom-bar no-print">
+      <button type="button" onclick="pdfZoomBy(-0.25)" title="Diminuir zoom">−</button>
+      <span class="pdf-zoom-val" id="pdfZoomVal">100%</span>
+      <button type="button" onclick="pdfZoomBy(0.25)" title="Aumentar zoom">+</button>
+      <button type="button" class="pdf-fs-exit" onclick="sairPdfTelaCheia()">${ICON_CLOSE_SM} Sair da tela cheia</button>
+    </div>
+  </div>`;
+}
+function abrirPdfTelaCheia(){
+  const wrap = document.getElementById('pdfEmbedWrap');
+  if(!wrap) return;
+  const req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+  if(req && document.fullscreenEnabled!==false){
+    try{
+      const p = req.call(wrap);
+      if(p && p.catch) p.catch(()=>ativarPdfFullscreenFallback(wrap));
+    }catch(e){ ativarPdfFullscreenFallback(wrap); }
+  } else {
+    ativarPdfFullscreenFallback(wrap);
+  }
+}
+function ativarPdfFullscreenFallback(wrap){
+  pdfFullscreenFallback = true;
+  wrap.classList.add('pdf-fallback-fs');
+  document.body.style.overflow = 'hidden';
+}
+function sairPdfTelaCheia(){
+  if(pdfFullscreenFallback){
+    const wrap = document.getElementById('pdfEmbedWrap');
+    if(wrap) wrap.classList.remove('pdf-fallback-fs');
+    document.body.style.overflow = '';
+    pdfFullscreenFallback = false;
+    pdfZoomLevel = 1; aplicarPdfZoom();
+    return;
+  }
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if((document.fullscreenElement || document.webkitFullscreenElement) && exit) exit.call(document);
+}
+function pdfZoomBy(delta){
+  pdfZoomLevel = Math.max(0.5, Math.min(3, Math.round((pdfZoomLevel+delta)*100)/100));
+  aplicarPdfZoom();
+}
+function aplicarPdfZoom(){
+  const frame = document.getElementById('pdfEmbedFrame');
+  if(frame) frame.style.transform = pdfZoomLevel===1 ? '' : `scale(${pdfZoomLevel})`;
+  const val = document.getElementById('pdfZoomVal');
+  if(val) val.textContent = Math.round(pdfZoomLevel*100)+'%';
+}
+document.addEventListener('fullscreenchange', ()=>{ if(!document.fullscreenElement){ pdfZoomLevel=1; aplicarPdfZoom(); } });
+document.addEventListener('webkitfullscreenchange', ()=>{ if(!document.webkitFullscreenElement){ pdfZoomLevel=1; aplicarPdfZoom(); } });
 
 // ---------- main render ----------
 function captureFocus(){
@@ -9496,6 +9621,7 @@ function renderApp(){
     const meusVisiveis = state.cifraIndex.filter(c=> podeVerNaAreaDoAluno(c.destinatarios));
     const filtradas = meusVisiveis.filter(c=>
       (!f.artista||c.artista===f.artista) &&
+      (!f.ritmos || !f.ritmos.length || (c.ritmos&&c.ritmos.some(r=>f.ritmos.includes(r)))) &&
       (!f.busca || (c.titulo+c.artista).toLowerCase().includes(f.busca.toLowerCase())));
     const groups = buildDisplayGroups(filtradas, state.sortMode, state.sortDir);
     app.innerHTML = `
@@ -9528,6 +9654,10 @@ function renderApp(){
             <option value="desc" ${state.sortDir==='desc'?'selected':''}>Mais recentes primeiro</option>
             <option value="asc" ${state.sortDir==='asc'?'selected':''}>Mais antigas primeiro</option>
           </select>`:''}
+        </div>
+        <div class="sort-group">
+          <span class="tlabel">Ritmo</span>
+          ${filtroRitmoDropdownHtml()}
         </div>
         <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${state.professorMode?state.cifraIndex.length:meusVisiveis.length}</span>
       </div>
@@ -9850,7 +9980,7 @@ function renderApp(){
         <button class="btn-ghost btn-small" onclick="downloadMaterial('${m.id}')"><span class="rail-icon" style="display:inline-flex;vertical-align:-3px;">${DOWNLOAD_SVG}</span> Baixar</button>
       </div>
       ${m.pdfData && m.pdfData.indexOf('data:application/pdf')===0
-        ? `<iframe class="pdf-embed" src="${m.pdfData}"></iframe>`
+        ? pdfEmbedHtml(m.pdfData)
         : `<div class="hint">Não foi possível exibir este PDF aqui. ${m.pdfData?`(Dado salvo, mas em formato inesperado — início: "${escapeHtml(String(m.pdfData).slice(0,30))}", tamanho: ${String(m.pdfData).length} caracteres.)`:'(Nenhum dado de arquivo encontrado para este material.)'} Use o botão "Baixar" acima para abrir o arquivo, ou reenvie este material.</div>`}
     `;
     return;
@@ -9886,7 +10016,7 @@ function renderApp(){
         </div>
       </div>`:''}
       ${s.fonte==='pdf' && s.pdfData
-        ? `<iframe class="pdf-embed" src="${s.pdfData}"></iframe>`
+        ? pdfEmbedHtml(s.pdfData)
         : `<pre class="tab-display" id="tabDisplay"></pre>`}
     `;
     return;
@@ -10038,7 +10168,7 @@ function renderApp(){
           <button class="btn-ghost btn-small" onclick="openEditCifra('${c.id}')"><span class="rail-icon" style="display:inline-flex;vertical-align:-3px;">${EDIT_SVG}</span> Editar cifra</button>
         </div>
         ${mobileSongToolbarHtml(c, null)}
-        <iframe class="pdf-embed" src="${c.pdfData}"></iframe>
+        ${pdfEmbedHtml(c.pdfData)}
         ${draftModalHtml()}
       `;
       return;
