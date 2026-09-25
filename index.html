@@ -2798,6 +2798,17 @@ async function saveSoloDraft(){
   if(d.isNew && !state.professorMode && state.session && state.session.email && !destinatarios.includes(state.session.email)){
     destinatarios = destinatarios.concat([state.session.email]);
   }
+  // Bug real encontrado em QA de 24/09/2026 (mesmo caso de cifras): um solo novo
+  // criado pelo PROFESSOR dentro do perfil de um aluno específico (entrar como
+  // aluno → Solos → Novo solo) nascia com destinatarios:[] e ficava invisível
+  // pra esse aluno, sem nenhum jeito de corrigir depois (não existe "Enviar para
+  // alunos" nessa tela). Corrigido: nesse contexto o solo já nasce enviado para
+  // o aluno cujo perfil está aberto.
+  let autoEnviadaParaAlunoDoPerfil = false;
+  if(d.isNew && state.professorMode && state.professorMode.email && !destinatarios.includes(state.professorMode.email)){
+    destinatarios = destinatarios.concat([state.professorMode.email]);
+    autoEnviadaParaAlunoDoPerfil = true;
+  }
   // Regra pedida pelo usuário em 24/09/2026: mesmo tratamento de cifras — um solo
   // que o próprio ALUNO cria por conta própria não aparece no banco geral do
   // professor (professorSolosTabHtml() exclui esses itens), só no perfil daquele
@@ -2812,13 +2823,19 @@ async function saveSoloDraft(){
   render();
   await saveSoloDetail(id, full);
   await saveSolosIndex();
-  // Solo novo não notifica ninguém — nasce privado. A notificação sai quando o
-  // professor efetivamente o envia para alunos específicos (ver saveSendModal).
-  // Correção de 20/09/2026 (rodada 39): o aviso não deixava claro que o item
-  // nasce privado. Reforça a regra pro professor não achar que já foi pro aluno.
-  showToast(state.professorMode
-    ? '"'+titulo+'" salvo no seu banco de solos. Use "Enviar para alunos" quando quiser liberar.'
-    : '"'+titulo+'" salvo.');
+  // Solo criado no banco geral do professor não notifica ninguém — nasce privado.
+  // A notificação sai quando o professor efetivamente o envia para alunos
+  // específicos (ver saveSendModal). Correção de 20/09/2026 (rodada 39): o aviso
+  // não deixava claro que o item nasce privado. Reforça a regra pro professor não
+  // achar que já foi pro aluno. Mas (24/09/2026) um solo criado já DENTRO do
+  // perfil de um aluno específico já nasce enviado pra ele (autoEnviadaParaAlunoDoPerfil),
+  // então notifica na hora e o aviso reflete isso, igual cifras/tarefas.
+  if(autoEnviadaParaAlunoDoPerfil){ await pushNotification('solo', id, titulo, [state.professorMode.email]); }
+  showToast(autoEnviadaParaAlunoDoPerfil
+    ? '"'+titulo+'" enviado para '+(state.professorMode.nome||'o aluno')+'.'
+    : state.professorMode
+      ? '"'+titulo+'" salvo no seu banco de solos. Use "Enviar para alunos" quando quiser liberar.'
+      : '"'+titulo+'" salvo.');
 }
 async function deleteSolo(id, ev){
   if(ev) ev.stopPropagation();
@@ -8922,6 +8939,19 @@ async function submitDraft(ev){
     if(d.isNew && !state.professorMode && state.session && state.session.email && !destinatarios.includes(state.session.email)){
       destinatarios = destinatarios.concat([state.session.email]);
     }
+    // Bug real encontrado em QA de 24/09/2026: quando o PROFESSOR cria uma cifra
+    // nova estando "dentro" do perfil de um aluno específico (entrar como aluno →
+    // Repertório → Nova cifra), a cifra nascia com destinatarios:[] — igual ao
+    // padrão do banco geral do professor — e ficava invisível pra esse aluno (e
+    // pro próprio professor na tela dele, já que o filtro daquela tela também é
+    // por destinatarios). Diferente do banco geral, aqui não existe botão "Enviar
+    // para alunos" pra corrigir depois. Corrigido: nesse contexto a cifra já nasce
+    // enviada para o aluno cujo perfil está aberto, igual já acontecia com tarefas.
+    let autoEnviadaParaAlunoDoPerfil = false;
+    if(d.isNew && state.professorMode && state.professorMode.email && !destinatarios.includes(state.professorMode.email)){
+      destinatarios = destinatarios.concat([state.professorMode.email]);
+      autoEnviadaParaAlunoDoPerfil = true;
+    }
     // Regra pedida pelo usuário em 24/09/2026: uma cifra que o próprio ALUNO cria
     // por conta própria (sem professorMode) nunca aparece no banco geral do
     // professor (nem pra outros alunos — isso já era garantido por destinatarios).
@@ -8960,8 +8990,12 @@ async function submitDraft(ev){
     const ok = await saveDetail(id, full);
     if(ok){ await saveIndex(); logDebug('Persistida com sucesso'); showToast('"'+titulo+'" salva no repertório.'); }
     else { logDebug('Falha ao persistir (memória apenas)'); showToast('"'+titulo+'" foi adicionada, mas não foi possível salvar de forma permanente (armazenamento indisponível). Pode se perder ao recarregar.', true); }
-    // Cifra nova não notifica ninguém — ela nasce privada. A notificação sai quando
-    // o professor efetivamente a envia para alunos específicos (ver saveSendModal).
+    // Cifra criada no banco geral do professor não notifica ninguém — ela nasce
+    // privada. A notificação sai quando o professor efetivamente a envia para
+    // alunos específicos (ver saveSendModal). Mas uma cifra criada já DENTRO do
+    // perfil de um aluno específico (autoEnviadaParaAlunoDoPerfil, ver acima) já
+    // nasce enviada pra ele, então notifica na hora, igual tarefas.
+    if(autoEnviadaParaAlunoDoPerfil){ await pushNotification('cifra', id, titulo, [state.professorMode.email]); }
   }catch(err){
     console.error(err);
     logDebug('ERRO: '+(err&&err.message?err.message:err));
@@ -9968,7 +10002,7 @@ function renderApp(){
           <span class="tlabel">Ritmo</span>
           ${filtroRitmoDropdownHtml()}
         </div>
-        <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${state.professorMode?state.cifraIndex.length:meusVisiveis.length}</span>
+        <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${state.professorMode && !state.professorMode.email?state.cifraIndex.length:meusVisiveis.length}</span>
       </div>
       ${filtradas.length===0?`<div class="empty"><span class="big">${ICON_NOTE}</span>${meusVisiveis.length===0?(state.professorMode?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Seu professor ainda não enviou nenhuma música para você.'):'Nenhuma música encontrada com esse filtro.'}</div>`:
       groups.map(group=>`
