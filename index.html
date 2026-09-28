@@ -715,22 +715,42 @@
   .file-drop:hover{border-color:var(--accent);color:var(--accent);}
   .file-drop.has-file{border-color:var(--accent);color:var(--text);border-style:solid;background:var(--bg-panel-2);}
   .file-drop.drag-over{border-color:var(--accent);background:var(--bg-panel-2);color:var(--accent);}
-  .pdf-embed{width:100%;height:70vh;border-radius:12px;border:none;background:#fff;color-scheme:light;overflow:hidden;display:block;transform-origin:top center;transition:transform .15s;}
-  /* [Rodada 83] Tela cheia + zoom do PDF */
-  .pdf-embed-wrap{position:relative;}
-  .pdf-embed-wrap:fullscreen,.pdf-embed-wrap:-webkit-full-screen,.pdf-embed-wrap.pdf-fallback-fs{background:#525659;overflow:auto;padding:0;}
-  .pdf-embed-wrap:fullscreen .pdf-embed,.pdf-embed-wrap:-webkit-full-screen .pdf-embed,.pdf-embed-wrap.pdf-fallback-fs .pdf-embed{height:100vh;border-radius:0;}
-  .pdf-embed-wrap.pdf-fallback-fs{position:fixed;inset:0;z-index:99999;}
-  .pdf-fs-btn{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;z-index:5;padding:0;}
-  .pdf-fs-btn svg{width:17px;height:17px;}
-  .pdf-fs-btn:hover{background:rgba(0,0,0,.75);}
-  .pdf-embed-wrap:fullscreen .pdf-fs-btn,.pdf-embed-wrap:-webkit-full-screen .pdf-fs-btn,.pdf-embed-wrap.pdf-fallback-fs .pdf-fs-btn{display:none;}
-  .pdf-zoom-bar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:10px;background:rgba(0,0,0,.65);color:#fff;padding:8px 14px;border-radius:999px;z-index:6;}
-  .pdf-embed-wrap:fullscreen .pdf-zoom-bar,.pdf-embed-wrap:-webkit-full-screen .pdf-zoom-bar,.pdf-embed-wrap.pdf-fallback-fs .pdf-zoom-bar{display:flex;}
-  .pdf-zoom-bar button{background:rgba(255,255,255,.15);border:none;color:#fff;width:26px;height:26px;border-radius:50%;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
-  .pdf-zoom-bar button:hover{background:rgba(255,255,255,.3);}
-  .pdf-zoom-val{font-size:13px;font-weight:600;min-width:40px;text-align:center;}
-  .pdf-fs-exit{width:auto;border-radius:999px;padding:0 12px!important;height:26px;font-size:12px;font-weight:600;gap:4px;margin-left:6px;white-space:nowrap;}
+  /* [Rodada 88] Bateria: botão da contagem prévia */
+  .drum-count-btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 13px 0 10px;border-radius:999px;border:1px solid var(--border);background:var(--pill-bg);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .drum-count-sw{width:26px;height:15px;border-radius:999px;background:color-mix(in srgb,var(--muted) 45%,transparent);position:relative;transition:background .2s;flex:0 0 auto;}
+  .drum-count-sw::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:transform .2s;}
+  .drum-count-btn.on .drum-count-sw{background:var(--accent);}
+  .drum-count-btn.on .drum-count-sw::after{transform:translateX(11px);}
+  .drum-count-badge{font-size:13px;font-weight:700;color:var(--accent);min-width:0;}
+  .drum-count-badge.on{min-width:110px;}
+  /* [Rodada 88] Leitor de PDF próprio (pdf.js em canvas) — substitui o iframe */
+  .pdf-viewer{position:relative;background:var(--bg-panel);border-radius:14px;overflow:hidden;}
+  .pdf-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 10px 8px 14px;background:var(--bg-panel);border-bottom:1px solid var(--border);}
+  .pdf-info{font-size:12.5px;color:var(--muted);}
+  .pdf-bar-acoes{display:flex;align-items:center;gap:6px;}
+  .pdf-bt{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:32px;height:32px;padding:0 10px;border-radius:9px;border:1px solid var(--border);background:var(--pill-bg);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;line-height:1;}
+  .pdf-bt:hover{border-color:color-mix(in srgb,var(--accent) 60%,transparent);}
+  .pdf-bt svg{width:15px;height:15px;flex:0 0 auto;}
+  .pdf-bt-sair{display:none;background:var(--accent);border-color:var(--accent);color:#fff;}
+  .pdf-zoom-val{font-size:12.5px;font-weight:600;min-width:42px;text-align:center;color:var(--text);}
+  .pdf-scroll{background:var(--bg-panel-2);padding:14px;overflow-x:auto;}
+  .pdf-pages{display:flex;flex-direction:column;align-items:center;gap:14px;margin:0 auto;max-width:none;}
+  .pdf-page{width:100%;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.28);border-radius:3px;overflow:hidden;}
+  .pdf-page canvas{display:block;width:100%;height:100%;}
+  .pdf-status{padding:40px 16px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.5;}
+  .pdf-viewer.pdf-is-fs{border-radius:0;display:flex;flex-direction:column;width:100vw;height:100vh;height:100dvh;background:var(--bg-panel-2);}
+  .pdf-viewer.pdf-is-fs .pdf-bar{flex:0 0 auto;padding-top:calc(8px + env(safe-area-inset-top));}
+  .pdf-viewer.pdf-is-fs .pdf-scroll{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;}
+  .pdf-viewer.pdf-is-fs .pdf-bt-fs{display:none;}
+  .pdf-viewer.pdf-is-fs .pdf-bt-sair{display:inline-flex;}
+  .pdf-viewer.pdf-fallback-fs{position:fixed;inset:0;z-index:99999;}
+  @media(max-width:640px){
+    .pdf-scroll{padding:8px;}
+    .pdf-pages{gap:8px;}
+    .pdf-fs-txt{display:none;}
+    .pdf-bar{padding:6px 8px 6px 12px;}
+  }
+  @media print{ .pdf-viewer{background:none;} .pdf-scroll{background:none;padding:0;} .pdf-page{box-shadow:none;} }
   .yt-fallback-btn{display:block;text-align:center;font-size:12px;font-weight:600;color:var(--text);background:var(--pill-bg);border-radius:999px;padding:8px 14px;margin-top:8px;text-decoration:none;transition:color .25s,background .25s;}
   .yt-fallback-btn:hover{color:#fff;background:var(--accent);}
   .yt-preview-box{margin-top:10px;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;}
@@ -1359,6 +1379,132 @@
     .tsel-opt.sel{background:var(--pill-bg);color:var(--accent);font-weight:600;}
     .tsel-opt.disabled{opacity:.4;pointer-events:none;}
   }
+/* ==== TAB EDITOR V2 CSS (inicio) ==== */
+  /* ==== TAB EDITOR V2 (rodada 87) ==== */
+  .te-wrap{position:relative;margin:4px 0 18px;}
+  .te-toolbar{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+  .te-tb-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .te-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;min-width:32px;padding:0 11px;border-radius:9px;border:1px solid var(--border);background:var(--pill-bg);color:var(--text);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;line-height:1;transition:border-color .15s,background .15s;}
+  .te-btn:hover:not(:disabled){border-color:color-mix(in srgb,var(--accent) 60%,transparent);}
+  .te-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .te-btn:disabled{opacity:.38;cursor:default;}
+  .te-btn svg{width:15px;height:15px;flex:0 0 auto;}
+  .te-icon-btn{padding:0;width:32px;}
+  .te-dur{padding:0;width:34px;}
+  .te-dur svg{width:16px;height:21px;}
+  .te-dur .te-ico{fill:currentColor;}
+  .te-dot{font-size:20px;line-height:0;position:relative;top:-1px;}
+  .te-play{font-weight:600;}
+  .te-seg{display:inline-flex;background:var(--pill-bg);border-radius:10px;padding:3px;gap:2px;border:1px solid var(--border);}
+  .te-seg button{border:none;background:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;}
+  .te-seg button.on{background:var(--accent);color:#fff;}
+  .te-sep{width:1px;height:22px;background:var(--border);margin:0 3px;}
+  .te-field{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .te-field select,.te-field input{height:32px;padding:0 8px;border-radius:9px;background:var(--pill-bg);color:var(--text);border:1px solid var(--border);font:inherit;font-size:12.5px;width:auto;min-width:0;margin:0;}
+  .te-bpm input{width:54px;text-align:center;-moz-appearance:textfield;}
+  .te-bpm input::-webkit-outer-spin-button,.te-bpm input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .te-hint{font-size:11.5px;color:var(--muted);}
+  .te-navrow{display:none;}
+  .te-status{font-size:12px;color:var(--muted);margin:0 0 8px;min-height:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .te-status .te-aviso{color:var(--accent);font-weight:600;}
+  .te-status .te-warn{color:var(--danger);font-weight:600;}
+  .te-convbox{font-size:12.5px;line-height:1.45;background:color-mix(in srgb,var(--accent) 14%,var(--bg-panel));border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:10px;padding:9px 12px;margin-bottom:10px;}
+  .te-sheet{--te-paper:var(--bg-panel);--te-ink:var(--text);--te-line:color-mix(in srgb,var(--text) 32%,transparent);background:var(--te-paper);border-radius:14px;padding:8px 0;outline:none;overflow:hidden;touch-action:pan-y;cursor:text;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
+  .te-sheet:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 45%,transparent);}
+  .te-sheet-view{cursor:pointer;}
+  .te-svg{display:block;overflow:visible;}
+  .te-svg text{font-family:'Montserrat',system-ui,sans-serif;}
+  .te-svg .te-line{stroke:var(--te-line);stroke-width:1;}
+  .te-svg .te-ledger{stroke:var(--te-ink);stroke-width:1.05;opacity:.85;}
+  .te-svg .te-bar{stroke:var(--te-ink);stroke-width:1.1;opacity:.7;}
+  .te-svg line.te-over{stroke:var(--danger);opacity:1;}
+  .te-svg .te-ink{fill:var(--te-ink);}
+  .te-svg .te-stroke{stroke:var(--te-ink);stroke-width:1.2;fill:none;}
+  .te-svg .te-arc{stroke:var(--te-ink);stroke-width:1.1;fill:none;}
+  .te-svg .te-dash{stroke-dasharray:3 2.5;}
+  .te-svg .te-mask{fill:var(--te-paper);}
+  .te-svg .te-num{fill:var(--te-ink);font-weight:600;text-anchor:middle;}
+  .te-svg .te-tiednum{opacity:.5;}
+  .te-svg .te-clef{fill:var(--te-ink);font-size:10.5px;font-weight:700;text-anchor:middle;opacity:.85;}
+  .te-svg .te-ts{fill:var(--te-ink);font-size:17px;font-weight:700;text-anchor:middle;}
+  .te-svg .te-snome{fill:var(--muted);font-size:9px;text-anchor:end;}
+  .te-svg .te-mnum{fill:var(--muted);font-size:9.5px;}
+  .te-svg .te-mnum.te-over{fill:var(--danger);font-weight:700;}
+  .te-svg .te-hp{fill:var(--te-ink);font-size:8.5px;font-weight:700;text-anchor:middle;}
+  .te-svg .te-bendtxt{fill:var(--te-ink);font-size:9px;font-weight:600;text-anchor:middle;}
+  .te-svg .te-tectxt{fill:var(--te-ink);font-size:9.5px;font-weight:600;text-anchor:middle;}
+  .te-svg .te-left{text-anchor:start;}
+  .te-svg .te-ghostbeat{opacity:.25;}
+  .te-svg .te-xhead{stroke-width:1.5;}
+  .te-svg .te-curcol{fill:color-mix(in srgb,var(--accent) 13%,transparent);}
+  .te-svg .te-curcol-not{fill:color-mix(in srgb,var(--accent) 7%,transparent);}
+  .te-svg .te-curcell{fill:none;stroke:var(--accent);stroke-width:1.7;}
+  .te-svg .te-selr{fill:color-mix(in srgb,var(--accent) 22%,transparent);}
+  .te-svg .te-playr{fill:color-mix(in srgb,var(--accent) 26%,transparent);}
+  .te-svg .te-startmk{fill:var(--accent);}
+  .te-pop{position:absolute;z-index:40;width:min(372px,calc(100% - 8px));background:var(--bg-panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 38px rgba(0,0,0,.38);padding:10px 12px 12px;}
+  .te-pop-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:2px;}
+  .te-pop-x{border:none;background:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px;}
+  .te-pop-x:hover{color:var(--text);background:var(--pill-bg);}
+  .te-pop-sec{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:10px 0 5px;font-weight:600;}
+  .te-chips{display:flex;flex-wrap:wrap;gap:5px;}
+  .te-chips-sub{margin-top:5px;align-items:center;}
+  .te-mini{font-size:11.5px;color:var(--muted);margin-right:2px;}
+  .te-chip{height:28px;padding:0 9px;border-radius:8px;border:1px solid var(--border);background:var(--pill-bg);color:var(--text);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+  .te-chip:hover{border-color:color-mix(in srgb,var(--accent) 60%,transparent);}
+  .te-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .te-chip kbd,.te-pop-sec kbd{font:inherit;font-size:10px;opacity:.6;border:1px solid currentColor;border-radius:4px;padding:0 3px;line-height:1.3;}
+  .te-pop-foot{margin-top:12px;display:flex;justify-content:flex-end;}
+  .te-pop-foot .te-chip{color:var(--danger);}
+  .te-fb-wrap{margin-top:14px;}
+  .te-fb-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .te-fb-title{font-size:12.5px;color:var(--muted);}
+  .te-fb{overflow-x:auto;background:var(--bg-panel);border-radius:14px;padding:12px 10px 6px;-webkit-overflow-scrolling:touch;}
+  .te-fbsvg{display:block;}
+  .te-fbsvg text{font-family:'Montserrat',system-ui,sans-serif;}
+  .te-fbdot{fill:var(--pill-bg);}
+  .te-fbnut{stroke:var(--text);stroke-width:5;}
+  .te-fbfret{stroke:var(--border);stroke-width:2;}
+  .te-fbstr{stroke:var(--muted);}
+  .te-fbnum{fill:var(--muted);font-size:10px;text-anchor:middle;}
+  .te-fbcell{cursor:pointer;}
+  .te-fbcell rect{fill:transparent;}
+  .te-fbcell:hover rect{fill:color-mix(in srgb,var(--accent) 20%,transparent);}
+  .te-fbcell circle{fill:var(--accent);}
+  .te-fbcell.on text{fill:#fff;font-size:10.5px;font-weight:700;text-anchor:middle;}
+  .te-fbcell .te-fbname{fill:var(--muted);font-size:9px;text-anchor:middle;font-weight:500;}
+  .te-fb-toggle{display:none !important;}
+  .te-help{margin-top:12px;font-size:12.5px;color:var(--muted);}
+  .te-help summary{cursor:pointer;font-weight:600;color:var(--text);opacity:.8;}
+  .te-help-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 18px;margin-top:8px;line-height:1.45;}
+  .te-help b{color:var(--text);font-weight:600;}
+  @media (hover:none){ .te-help{display:none;} .te-navrow{display:flex;} }
+  @media(max-width:640px){
+    .te-tb-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px;}
+    .te-tb-row > *{flex:0 0 auto;}
+    .te-fb-wrap{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--bg);margin:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -10px 20px -10px rgba(0,0,0,.55);border-top:1px solid var(--border);}
+    .te-fb-wrap.te-oculto .te-fb{display:none;}
+    .te-fb-toggle{display:inline-flex !important;}
+    body.te-editing #whatsappBtn{display:none !important;}
+    .te-fb-head{margin-bottom:5px;}
+    .te-fb-title{display:none;}
+    .te-fb{padding:8px 6px 2px;border-radius:10px;}
+    .te-tb-row::-webkit-scrollbar{display:none;}
+    .te-btn .te-lbl{display:none;}
+    .te-btn.te-play{padding:0 12px;}
+    .te-btn.te-play .te-lbl{display:inline;}
+    .te-hint{white-space:nowrap;}
+    .te-navrow{display:flex;}
+    .te-sheet{border-radius:10px;}
+    .te-pop{left:4px !important;right:4px;width:auto;}
+  }
+  @media print{
+    .te-sheet{--te-paper:#fff;--te-ink:#000;--te-line:#999;background:#fff !important;}
+    .te-svg .te-playr,.te-svg .te-startmk,.te-svg .te-curcol,.te-svg .te-curcell{display:none;}
+    .te-toolbar,.te-fb-wrap,.te-status,.te-help,#tePop{display:none !important;}
+  }
+
+  /* ==== TAB EDITOR V2 CSS (fim) ==== */
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2304,6 +2450,7 @@ async function loadData(){
   try{ const r = await storageGet('theme'); if(r && r.value==='light'){ state.theme='light'; document.body.classList.add('light'); } }catch(e){}
   // [Rodada 74] volume de cada peça da bateria, guardado no aparelho
   try{ const r = await storageGet('drumVolumes'); if(r && r.value) state.drumVolumes = JSON.parse(r.value)||{}; }catch(e){}
+  try{ const r = await storageGet('drumContagem'); if(r && r.value) state.drumContagem = r.value==='1'; }catch(e){}
   try{ const r = await storageGet('drumPans'); if(r && r.value) state.drumPans = JSON.parse(r.value)||{}; }catch(e){}
   try{ const r = await storageGet('drumBpms'); if(r && r.value) state.drumBpms = JSON.parse(r.value)||{}; }catch(e){}
   // Repertório/solos/materiais/notificações/tarefas/perfil começam vazios — só dá
@@ -2710,7 +2857,8 @@ async function deleteMaterialRemote(id){
   try{ const { error } = await sb.from('materiais').delete().eq('id', id); if(error) throw error; if(state._materialKnownIds) state._materialKnownIds.delete(id); }catch(e){ console.error('Erro ao excluir material', e); }
 }
 function openNewSolo(){
-  state.soloDraft = {id:null, isNew:true, titulo:'', artista:'', tab:DEFAULT_TAB_SKELETON, fonte:'tab', pdfData:null, pdfName:'', pdfLoading:false};
+  state.soloDraft = {id:null, isNew:true, titulo:'', artista:'', tab:DEFAULT_TAB_SKELETON, tabV2:null, fonte:'tab', pdfData:null, pdfName:'', pdfLoading:false};
+  if(SOLO_EDITOR_V2) teOpenDraft(state.soloDraft); // [Rodada 87] editor novo
   state.view = 'solo-editor';
   render();
 }
@@ -2718,7 +2866,8 @@ async function openEditSolo(id, ev){
   if(ev) ev.stopPropagation();
   const d = await loadSoloDetail(id);
   if(!d) return;
-  state.soloDraft = {id, isNew:false, titulo:d.titulo, artista:d.artista, tab:d.tab||DEFAULT_TAB_SKELETON, criadoEm:d.criadoEm, fonte: d.fonte||'tab', pdfData: d.pdfData||null, pdfName: d.pdfName||'', pdfLoading:false};
+  state.soloDraft = {id, isNew:false, titulo:d.titulo, artista:d.artista, tab:d.tab||DEFAULT_TAB_SKELETON, tabV2: d.tabV2||null, criadoEm:d.criadoEm, fonte: d.fonte||'tab', pdfData: d.pdfData||null, pdfName: d.pdfName||'', pdfLoading:false};
+  if(SOLO_EDITOR_V2) teOpenDraft(state.soloDraft); // [Rodada 87] converte solo antigo (texto) se preciso
   state.view = 'solo-editor';
   render();
 }
@@ -2766,7 +2915,15 @@ async function processSoloPdfFile(file){
     render();
   }
 }
-function closeSoloEditor(){ state.soloDraft = null; state.view = 'solos'; render(); }
+async function closeSoloEditor(){
+  // [Rodada 87] o editor novo guarda muito trabalho — confirma antes de jogar fora
+  if(SOLO_EDITOR_V2 && TE.doc && TE.dirty){
+    const ok = await customConfirm('Sair sem salvar? As alterações na tablatura serão perdidas.');
+    if(!ok) return;
+  }
+  if(typeof teAudioStop==='function') teAudioStop();
+  state.soloDraft = null; state.view = 'solos'; render();
+}
 function backToSolos(){ state.view = 'solos'; render(); }
 async function openSoloViewer(id){
   const d = await loadSoloDetail(id);
@@ -2783,7 +2940,13 @@ async function saveSoloDraft(){
   const fonte = d.fonte || 'tab';
   if(fonte==='pdf' && d.pdfLoading){ showToast('Aguarde o PDF terminar de carregar e tente salvar novamente.', true); return; }
   if(fonte==='pdf' && !d.pdfData){ showToast('Envie um arquivo PDF ou escolha "Tablatura" como fonte.', true); return; }
-  const tab = fonte==='tab' ? document.getElementById('solo_tab').value : '';
+  // [Rodada 87] Editor novo: salva o modelo estruturado (tabV2) e também a versão
+  // em texto em `tab`, pra nada que lê o formato antigo quebrar.
+  let tab = '', tabV2 = null;
+  if(fonte==='tab'){
+    if(SOLO_EDITOR_V2 && TE.doc){ tabV2 = teTrimTrailing(TE.doc); tab = teToAscii(tabV2); }
+    else { const ta = document.getElementById('solo_tab'); tab = ta ? ta.value : (d.tab||''); }
+  }
   const id = d.isNew ? uid() : d.id;
   const criadoEm = d.isNew ? Date.now() : (d.criadoEm||Date.now());
   const existingMeta = state.solosIndex.find(s=>s.id===id) || {};
@@ -2814,11 +2977,12 @@ async function saveSoloDraft(){
   // professor (professorSolosTabHtml() exclui esses itens), só no perfil daquele
   // aluno específico. `criadoPorAluno` é fixado na criação e preservado nas edições.
   const criadoPorAluno = d.isNew ? !state.professorMode : !!(existingFull.criadoPorAluno || existingMeta.criadoPorAluno);
-  const full = Object.assign({}, existingFull, {id, titulo, artista, tab, criadoEm, fonte, pdfData: fonte==='pdf'?d.pdfData:null, pdfName: fonte==='pdf'?d.pdfName:'', destinatarios, criadoPorAluno});
+  const full = Object.assign({}, existingFull, {id, titulo, artista, tab, tabV2, criadoEm, fonte, pdfData: fonte==='pdf'?d.pdfData:null, pdfName: fonte==='pdf'?d.pdfName:'', destinatarios, criadoPorAluno});
   const meta = Object.assign({}, existingMeta, {id, titulo, artista, criadoEm, destinatarios, criadoPorAluno});
   if(d.isNew){ state.solosIndex.push(meta); } else { const idx=state.solosIndex.findIndex(s=>s.id===id); if(idx>=0) state.solosIndex[idx]=meta; else state.solosIndex.push(meta); }
   state.solosDetailCache[id] = full;
   state.soloDraft = null;
+  if(SOLO_EDITOR_V2){ TE.dirty = false; teAudioStop(); if(TEV.soloId===id) TEV.doc = null; }
   state.view = 'solos';
   render();
   await saveSoloDetail(id, full);
@@ -3144,6 +3308,1772 @@ function handleTabEditorKeydown(ev){
     return;
   }
 }
+
+// ==== TAB EDITOR V2 (inicio) ====
+// Contornos de glifos da fonte Bravura (c) Steinberg Media Technologies GmbH,
+// SIL Open Font License 1.1 — só os símbolos usados, convertidos para SVG.
+const TE_GLYPHS = {"gClef8vb":{"d":"M1.504 -1.66C1.496 -1.708 1.504 -1.712 1.528 -1.736C1.96 -2.14 2.288 -2.648 2.288 -3.26C2.288 -3.608 2.192 -3.952 2.028 -4.192C1.968 -4.28 1.864 -4.392 1.82 -4.392C1.764 -4.392 1.64 -4.288 1.56 -4.2C1.264 -3.872 1.168 -3.372 1.168 -2.956C1.168 -2.724 1.196 -2.464 1.224 -2.3C1.232 -2.252 1.236 -2.244 1.188 -2.204C0.612 -1.728 0 -1.156 0 -0.348C0 0.348 0.476 1.008 1.456 1.008C1.548 1.008 1.652 1 1.732 0.984C1.776 0.976 1.784 0.972 1.792 1.02C1.84 1.288 1.9 1.636 1.9 1.824C1.9 2.416 1.5 2.488 1.264 2.488C1.048 2.488 0.944 2.424 0.944 2.372C0.944 2.344 0.98 2.332 1.072 2.304C1.196 2.268 1.34 2.16 1.34 1.928C1.34 1.708 1.2 1.52 0.956 1.52C0.688 1.52 0.528 1.732 0.528 1.98C0.528 2.224 0.664 2.58 1.176 2.628C1.104 2.672 1.064 2.744 1.064 2.836C1.064 2.896 1.08 2.944 1.112 2.984C1.132 3.012 1.14 3.02 1.092 3.04C0.964 3.092 0.912 3.18 0.912 3.276C0.912 3.408 1.008 3.512 1.224 3.512C1.42 3.512 1.588 3.412 1.588 3.228C1.588 3.156 1.572 3.104 1.524 3.052C1.496 3.02 1.488 3.012 1.536 2.988C1.644 2.932 1.684 2.848 1.684 2.776C1.684 2.696 1.644 2.628 1.56 2.592C1.808 2.516 2.076 2.316 2.076 1.832C2.076 1.604 2.004 1.224 1.96 0.976C1.952 0.928 1.956 0.932 2.012 0.908C2.416 0.748 2.684 0.408 2.684 -0.044C2.684 -0.556 2.308 -1.008 1.72 -1.008C1.616 -1.008 1.616 -1.008 1.604 -1.08ZM1.88 -3.772C2.012 -3.772 2.12 -3.664 2.12 -3.444C2.12 -3 1.74 -2.64 1.424 -2.364C1.396 -2.34 1.38 -2.344 1.372 -2.396C1.356 -2.5 1.348 -2.636 1.348 -2.764C1.348 -3.388 1.636 -3.772 1.88 -3.772ZM1.444 -1.048C1.456 -0.972 1.456 -0.976 1.384 -0.952C1.032 -0.832 0.804 -0.516 0.804 -0.176C0.804 0.184 0.992 0.44 1.264 0.532C1.296 0.544 1.344 0.556 1.372 0.556C1.404 0.556 1.42 0.536 1.42 0.512C1.42 0.484 1.388 0.472 1.36 0.46C1.192 0.388 1.072 0.216 1.072 0.032C1.072 -0.196 1.228 -0.368 1.472 -0.436C1.536 -0.452 1.544 -0.448 1.552 -0.404L1.752 0.788C1.76 0.832 1.756 0.832 1.696 0.844C1.632 0.856 1.552 0.864 1.472 0.864C0.772 0.864 0.32 0.476 0.32 -0.08C0.32 -0.316 0.36 -0.632 0.692 -1.008C0.932 -1.276 1.116 -1.424 1.304 -1.576C1.344 -1.608 1.352 -1.604 1.36 -1.56ZM1.72 -0.412C1.712 -0.46 1.716 -0.472 1.764 -0.468C2.088 -0.44 2.356 -0.168 2.356 0.184C2.356 0.436 2.204 0.64 1.98 0.752C1.932 0.776 1.924 0.776 1.916 0.728ZM1.404 2.628C1.5 2.628 1.532 2.692 1.532 2.756C1.532 2.824 1.504 2.892 1.436 2.94C1.42 2.952 1.408 2.952 1.376 2.932C1.284 2.86 1.252 2.824 1.252 2.768C1.252 2.68 1.316 2.628 1.404 2.628ZM1.18 3.092C1.2 3.08 1.212 3.084 1.24 3.104C1.368 3.204 1.4 3.232 1.4 3.292C1.4 3.396 1.324 3.452 1.228 3.452C1.108 3.452 1.068 3.372 1.068 3.3C1.068 3.236 1.096 3.144 1.18 3.092Z","w":2.656},"noteheadWhole":{"d":"M0.864 -0.5C0.332 -0.5 0 -0.28 0 -0.008C0 0.26 0.228 0.5 0.824 0.5C1.48 0.5 1.688 0.272 1.688 -0.008C1.688 -0.292 1.236 -0.5 0.864 -0.5ZM0.444 -0.252C0.488 -0.392 0.636 -0.412 0.76 -0.412C1.036 -0.412 1.256 -0.116 1.256 0.124C1.256 0.248 1.204 0.36 1.072 0.392C1.032 0.404 0.988 0.408 0.948 0.408C0.804 0.408 0.656 0.312 0.572 0.2C0.492 0.108 0.432 -0.028 0.432 -0.156C0.432 -0.188 0.436 -0.22 0.444 -0.252Z","w":1.688},"noteheadHalf":{"d":"M0.388 0.5C1.048 0.5 1.18 -0.036 1.18 -0.168C1.18 -0.372 1.016 -0.5 0.784 -0.5C0.188 -0.5 0 -0.04 0 0.168C0 0.38 0.168 0.5 0.388 0.5ZM0.3 0.348C0.216 0.348 0.168 0.304 0.14 0.256C0.128 0.232 0.116 0.204 0.116 0.176C0.116 -0.02 0.696 -0.336 0.884 -0.336C0.96 -0.336 1.004 -0.3 1.032 -0.252C1.044 -0.228 1.056 -0.204 1.056 -0.176C1.056 -0.004 0.492 0.348 0.3 0.348Z","w":1.18},"noteheadBlack":{"d":"M0.388 0.5C0.744 0.5 1.18 0.172 1.18 -0.168C1.18 -0.372 1.02 -0.5 0.792 -0.5C0.352 -0.5 0 -0.176 0 0.168C0 0.376 0.172 0.5 0.388 0.5Z","w":1.18},"restWhole":{"d":"M1.128 0.436V0.068C1.128 0.008 1.08 -0.036 1.024 -0.036H0.104C0.044 -0.036 0 0.008 0 0.068V0.436C0 0.492 0.044 0.54 0.104 0.54H1.024C1.08 0.54 1.128 0.492 1.128 0.436Z","w":1.132},"restHalf":{"d":"M1.128 -0.096V-0.464C1.128 -0.524 1.08 -0.568 1.024 -0.568H0.104C0.044 -0.568 0 -0.524 0 -0.464V-0.096C0 -0.04 0.044 0.008 0.104 0.008H1.024C1.08 0.008 1.128 -0.04 1.128 -0.096Z","w":1.132},"restQuarter":{"d":"M0.312 0.152C0.376 0.232 0.432 0.308 0.484 0.392C0.492 0.408 0.508 0.44 0.508 0.448C0.508 0.452 0.508 0.46 0.504 0.464C0.496 0.48 0.48 0.484 0.46 0.484C0.444 0.484 0.412 0.476 0.396 0.472C0.392 0.472 0.384 0.472 0.38 0.472L0.348 0.46C0.14 0.46 0.004 0.648 0.004 0.844C0.004 1.044 0.176 1.24 0.468 1.464C0.5 1.488 0.54 1.5 0.572 1.5C0.6 1.5 0.628 1.492 0.632 1.476C0.636 1.464 0.64 1.456 0.64 1.448C0.64 1.412 0.608 1.38 0.576 1.352C0.524 1.352 0.48 1.244 0.472 1.208C0.46 1.176 0.456 1.14 0.456 1.104C0.456 0.94 0.54 0.812 0.708 0.812C0.824 0.812 0.956 0.856 1.024 0.88L1.028 0.884C1.044 0.888 1.052 0.888 1.06 0.888C1.072 0.888 1.08 0.884 1.08 0.872C1.08 0.824 0.976 0.692 0.932 0.644C0.78 0.46 0.656 0.312 0.656 0.088C0.656 0.084 0.656 0.08 0.656 0.076L0.66 0.048C0.66 0.044 0.66 0.04 0.66 0.036C0.676 -0.196 0.82 -0.388 0.924 -0.552C0.936 -0.572 0.94 -0.592 0.94 -0.612C0.94 -0.652 0.924 -0.688 0.924 -0.688C0.924 -0.688 0.332 -1.392 0.264 -1.46C0.244 -1.48 0.216 -1.492 0.192 -1.492C0.152 -1.492 0.112 -1.464 0.112 -1.408C0.112 -1.388 0.116 -1.368 0.128 -1.344C0.144 -1.3 0.372 -1.096 0.372 -0.808C0.372 -0.66 0.312 -0.488 0.132 -0.3C0.092 -0.26 0.076 -0.216 0.076 -0.184C0.076 -0.128 0.116 -0.088 0.116 -0.088Z","w":1.08},"rest8th":{"d":"M0.536 -0.428C0.536 -0.576 0.416 -0.696 0.268 -0.696C0.12 -0.696 0 -0.576 0 -0.428C0 -0.344 0.048 -0.272 0.108 -0.224C0.172 -0.18 0.248 -0.156 0.324 -0.156C0.38 -0.156 0.436 -0.168 0.48 -0.184C0.536 -0.2 0.572 -0.216 0.624 -0.244C0.632 -0.248 0.64 -0.248 0.644 -0.248C0.66 -0.248 0.664 -0.232 0.664 -0.212C0.664 -0.2 0.664 -0.184 0.66 -0.168C0.648 -0.108 0.36 0.688 0.288 0.952C0.288 1 0.38 1.004 0.404 1.004C0.448 1.004 0.504 0.996 0.544 0.964C0.556 0.956 0.948 -0.448 0.948 -0.448C0.964 -0.52 0.984 -0.584 0.988 -0.604C0.988 -0.644 0.948 -0.664 0.94 -0.668C0.932 -0.668 0.92 -0.668 0.896 -0.652C0.868 -0.628 0.668 -0.388 0.536 -0.388Z","w":1.0},"rest16th":{"d":"M0.832 -0.444C0.832 -0.596 0.712 -0.716 0.56 -0.716C0.412 -0.716 0.288 -0.596 0.288 -0.444C0.288 -0.28 0.456 -0.172 0.608 -0.172C0.716 -0.172 0.828 -0.208 0.92 -0.26C0.932 -0.264 0.94 -0.268 0.948 -0.268C0.96 -0.268 0.968 -0.26 0.968 -0.24C0.968 -0.176 0.764 0.42 0.736 0.48C0.704 0.556 0.596 0.604 0.54 0.604C0.544 0.588 0.544 0.576 0.544 0.564C0.544 0.412 0.42 0.292 0.272 0.292C0.12 0.292 0 0.412 0 0.564C0 0.728 0.168 0.836 0.32 0.836C0.424 0.836 0.528 0.8 0.62 0.752C0.628 0.752 0.636 0.76 0.636 0.776L0.632 0.78C0.632 0.784 0.632 0.784 0.632 0.784L0.252 1.916C0.252 1.916 0.252 1.92 0.252 1.92L0.248 1.924C0.248 1.96 0.284 2 0.372 2C0.488 2 0.508 1.952 0.524 1.908L0.988 0.384C1.092 0.044 1.168 -0.224 1.168 -0.224C1.168 -0.224 1.268 -0.576 1.276 -0.628C1.276 -0.636 1.28 -0.64 1.28 -0.644C1.28 -0.668 1.248 -0.684 1.24 -0.688C1.22 -0.688 1.208 -0.68 1.196 -0.672C1.168 -0.648 0.968 -0.408 0.832 -0.404Z","w":1.28},"rest32nd":{"d":"M1.412 -1.676C1.392 -1.676 1.38 -1.668 1.368 -1.66C1.34 -1.64 1.14 -1.396 1.004 -1.396V-1.432C1.004 -1.584 0.884 -1.704 0.732 -1.704C0.584 -1.704 0.46 -1.584 0.46 -1.432C0.46 -1.352 0.508 -1.28 0.572 -1.232C0.604 -1.204 0.644 -1.188 0.684 -1.176C0.716 -1.168 0.748 -1.16 0.788 -1.16C0.892 -1.16 1 -1.2 1.092 -1.248C1.096 -1.252 1.104 -1.252 1.108 -1.252C1.136 -1.252 1.152 -1.212 1.152 -1.184L1.148 -1.176C1.148 -1.176 1.148 -1.172 1.148 -1.172L0.992 -0.532C0.972 -0.468 0.84 -0.388 0.776 -0.388C0.78 -0.4 0.78 -0.412 0.78 -0.424C0.78 -0.576 0.656 -0.696 0.508 -0.696C0.356 -0.696 0.236 -0.576 0.236 -0.424C0.236 -0.344 0.284 -0.272 0.348 -0.224C0.38 -0.196 0.416 -0.18 0.456 -0.168C0.488 -0.16 0.524 -0.152 0.564 -0.152C0.668 -0.152 0.772 -0.192 0.864 -0.24C0.868 -0.244 0.872 -0.244 0.876 -0.244C0.896 -0.244 0.904 -0.212 0.904 -0.192L0.744 0.464C0.724 0.548 0.6 0.6 0.54 0.604C0.544 0.588 0.544 0.576 0.544 0.564C0.544 0.412 0.424 0.292 0.272 0.292C0.124 0.292 0 0.412 0 0.564C0 0.728 0.168 0.836 0.32 0.836C0.428 0.836 0.54 0.8 0.632 0.748C0.636 0.744 0.64 0.744 0.644 0.744C0.656 0.744 0.668 0.756 0.668 0.768C0.668 0.784 0.392 1.884 0.384 1.912C0.38 1.92 0.38 1.928 0.38 1.936C0.38 1.968 0.404 2 0.488 2C0.616 2 0.628 1.96 0.644 1.916C0.656 1.868 1.344 -1.212 1.344 -1.212C1.344 -1.212 1.44 -1.568 1.448 -1.616C1.448 -1.624 1.452 -1.628 1.452 -1.632C1.452 -1.668 1.42 -1.676 1.412 -1.676Z","w":1.452},"flag8thUp":{"d":"M0.952 3.16C0.952 3.16 1.056 2.78 1.056 2.468C1.056 1.968 0.848 1.496 0.596 1.096C0.392 0.78 0.224 0.436 0.16 0.052C0.148 -0.012 0.116 -0.036 0.076 -0.036C0.032 -0.036 0 -0.024 0 0.024V0.98C0.264 1.028 0.644 1.572 0.788 1.912C0.848 2.048 0.884 2.276 0.884 2.512C0.884 2.692 0.856 2.88 0.788 3.06C0.78 3.084 0.776 3.104 0.776 3.12C0.776 3.184 0.816 3.22 0.84 3.236C0.864 3.252 0.932 3.228 0.952 3.16Z","w":1.056},"flag8thDown":{"d":"M0.96 -3.04C1.016 -2.872 1.044 -2.672 1.044 -2.492C1.044 -2.256 0.944 -1.92 0.884 -1.784C0.736 -1.448 0.536 -1.124 0 -0.944V-0.004C0 0.036 0.032 0.056 0.064 0.056C0.1 0.056 0.152 0.032 0.16 -0.032C0.228 -0.412 0.524 -0.76 0.728 -1.076C0.98 -1.472 1.224 -1.948 1.224 -2.448C1.224 -2.76 1.144 -3.044 1.112 -3.172C1.1 -3.216 1.076 -3.232 1.048 -3.232C0.988 -3.232 0.92 -3.156 0.96 -3.04Z","w":1.224},"flag16thUp":{"d":"M1.088 3.184C1.104 3.164 1.116 2.936 1.116 2.744V2.656C1.116 2.488 1.072 2.324 1 2.176C1 2.164 0.996 2.156 0.996 2.14C0.996 2.132 0.996 2.124 1 2.112C1.012 2.088 1.1 1.848 1.1 1.604C1.1 1.552 1.096 1.508 1.088 1.46C1.048 1.188 0.944 1.076 0.656 0.764C0.44 0.532 0.216 0.468 0.148 0.044C0.14 0 0.092 -0.008 0.068 -0.008C0.044 -0.008 0 0.004 0 0.032V1.584H0.02C0.268 1.592 0.552 1.6 0.828 2.16C0.92 2.352 0.956 2.548 0.956 2.756C0.956 2.872 0.944 2.992 0.924 3.112C0.92 3.128 0.92 3.136 0.92 3.148C0.92 3.2 0.952 3.252 1.008 3.252C1.036 3.252 1.064 3.236 1.088 3.184ZM0.836 1.836C0.772 1.736 0.704 1.656 0.62 1.56C0.432 1.344 0.248 1.248 0.164 0.92C0.16 0.916 0.16 0.912 0.16 0.908C0.16 0.892 0.184 0.868 0.216 0.868H0.248C0.492 0.868 0.708 1.092 0.84 1.288C0.912 1.392 0.948 1.516 0.948 1.644C0.948 1.672 0.948 1.696 0.944 1.724C0.936 1.756 0.936 1.796 0.916 1.828C0.912 1.84 0.884 1.852 0.864 1.852C0.852 1.852 0.844 1.848 0.836 1.836Z","w":1.116},"flag16thDown":{"d":"M0.96 -3.144C1.02 -2.808 1.02 -2.444 0.868 -2.132C0.592 -1.572 0.268 -1.56 0.02 -1.552H0V-0.004C0 0.016 0.028 0.036 0.068 0.036C0.096 0.036 0.14 0.028 0.148 -0.016C0.244 -0.632 1.032 -0.804 1.128 -1.432C1.136 -1.476 1.14 -1.524 1.14 -1.576C1.14 -1.82 1.052 -2.06 1.04 -2.084C1.036 -2.092 1.036 -2.1 1.036 -2.112C1.036 -2.128 1.04 -2.136 1.04 -2.148C1.184 -2.448 1.188 -2.84 1.124 -3.16C1.104 -3.252 1.076 -3.248 1.028 -3.248C0.98 -3.244 0.948 -3.212 0.96 -3.144ZM0.904 -1.824C0.924 -1.824 0.952 -1.812 0.956 -1.796C0.976 -1.768 0.976 -1.728 0.984 -1.696C0.988 -1.668 0.988 -1.64 0.988 -1.616C0.988 -1.484 0.952 -1.364 0.88 -1.26C0.748 -1.064 0.492 -0.84 0.248 -0.84H0.216C0.184 -0.84 0.16 -0.86 0.16 -0.88C0.16 -0.884 0.16 -0.888 0.164 -0.892C0.248 -1.22 0.472 -1.312 0.66 -1.532C0.744 -1.624 0.812 -1.704 0.876 -1.808C0.884 -1.82 0.892 -1.824 0.904 -1.824Z","w":1.168},"flag32ndUp":{"d":"M1.04 2.692C1.032 2.536 0.996 2.384 0.936 2.24C0.932 2.232 0.932 2.224 0.932 2.212C0.932 2.204 0.932 2.196 0.936 2.188C0.944 2.16 1.028 1.94 1.028 1.712C1.028 1.584 1 1.456 0.944 1.34C0.98 1.236 1.024 1.072 1.024 0.916C1.024 0.876 1.024 0.84 1.016 0.804C0.972 0.56 0.88 0.452 0.612 0.16C0.412 -0.056 0.196 -0.12 0.128 -0.52C0.124 -0.556 0.096 -0.596 0.056 -0.596C0.032 -0.596 0 -0.576 0 -0.548V1.692H0.02C0.252 1.7 0.516 1.708 0.772 2.228C0.86 2.404 0.896 2.584 0.896 2.776C0.896 2.888 0.884 3 0.864 3.116C0.864 3.128 0.86 3.136 0.86 3.144C0.86 3.192 0.884 3.228 0.912 3.24C0.92 3.244 0.928 3.248 0.936 3.248C0.96 3.248 0.988 3.228 1.016 3.184C1.028 3.16 1.044 2.976 1.044 2.804C1.044 2.764 1.04 2.728 1.04 2.692ZM0.832 0.724C0.876 0.804 0.892 0.864 0.892 0.916C0.892 0.948 0.884 0.972 0.88 1C0.872 1.04 0.852 1.108 0.832 1.176C0.776 1.104 0.704 1.028 0.612 0.928C0.416 0.712 0.22 0.644 0.156 0.256C0.376 0.256 0.612 0.352 0.832 0.724ZM0.876 1.824C0.868 1.856 0.868 1.888 0.856 1.916C0.852 1.928 0.832 1.94 0.812 1.94C0.8 1.94 0.788 1.936 0.784 1.924C0.724 1.836 0.668 1.768 0.6 1.688L0.58 1.668C0.408 1.464 0.244 1.376 0.156 1.084C0.148 1.056 0.168 1.02 0.204 1.02C0.524 1.02 0.884 1.404 0.884 1.728C0.884 1.76 0.88 1.792 0.876 1.824Z","w":1.048},"flag32ndDown":{"d":"M1.092 -2.704C1.092 -2.784 1.064 -3.248 0.924 -3.248C0.916 -3.248 0.908 -3.248 0.9 -3.244C0.872 -3.232 0.844 -3.192 0.844 -3.14C0.844 -3.132 0.848 -3.124 0.848 -3.112C0.88 -2.932 0.928 -2.808 0.928 -2.672C0.928 -2.56 0.896 -2.444 0.804 -2.28C0.5 -1.736 0.244 -1.728 0 -1.72V0.636C0 0.672 0.024 0.688 0.056 0.688C0.096 0.688 0.128 0.644 0.132 0.608C0.2 0.192 0.428 0.128 0.636 -0.1C0.916 -0.404 1.012 -0.516 1.056 -0.772C1.064 -0.808 1.064 -0.848 1.064 -0.888C1.064 -1.06 1.012 -1.236 0.976 -1.344C1.04 -1.46 1.068 -1.612 1.068 -1.748C1.068 -1.956 1.004 -2.128 0.988 -2.168C0.988 -2.172 0.988 -2.176 0.988 -2.176L0.976 -2.196C0.976 -2.212 0.98 -2.22 0.988 -2.232L1.004 -2.26C1.056 -2.36 1.076 -2.404 1.092 -2.66ZM0.156 -1.072C0.24 -1.392 0.424 -1.48 0.604 -1.692C0.684 -1.784 0.748 -1.86 0.812 -1.96C0.82 -1.972 0.832 -1.976 0.844 -1.976C0.864 -1.976 0.888 -1.964 0.892 -1.952C0.904 -1.924 0.904 -1.892 0.912 -1.86C0.916 -1.828 0.92 -1.792 0.92 -1.76C0.92 -1.432 0.552 -1.02 0.228 -1.02H0.208C0.172 -1.02 0.156 -1.052 0.156 -1.072ZM0.916 -0.972C0.92 -0.944 0.928 -0.92 0.928 -0.888C0.928 -0.836 0.912 -0.772 0.864 -0.688C0.636 -0.304 0.392 -0.2 0.164 -0.2C0.156 -0.204 0.156 -0.208 0.156 -0.212C0.224 -0.628 0.428 -0.692 0.636 -0.92C0.732 -1.024 0.804 -1.104 0.86 -1.176C0.884 -1.1 0.904 -1.016 0.916 -0.972Z","w":1.096},"accidentalFlat":{"d":"M0.048 0.68C0.06 0.696 0.072 0.7 0.084 0.7C0.096 0.7 0.108 0.692 0.108 0.692C0.228 0.624 0.324 0.516 0.424 0.448C0.78 0.2 0.904 -0.044 0.904 -0.228C0.904 -0.456 0.728 -0.6 0.544 -0.612C0.476 -0.612 0.38 -0.58 0.324 -0.544C0.3 -0.524 0.256 -0.488 0.236 -0.488C0.228 -0.488 0.224 -0.488 0.216 -0.492C0.188 -0.504 0.172 -0.532 0.172 -0.56C0.176 -0.648 0.2 -1.608 0.2 -1.688C0.2 -1.732 0.164 -1.756 0.124 -1.756C0.068 -1.756 0.004 -1.716 0 -1.644C0 -1.644 0.016 0.64 0.048 0.68ZM0.188 0.324C0.188 0.324 0.176 0.084 0.176 -0.076C0.176 -0.14 0.18 -0.188 0.184 -0.204C0.212 -0.284 0.372 -0.4 0.464 -0.4C0.58 -0.4 0.628 -0.268 0.628 -0.168C0.628 0.048 0.444 0.264 0.272 0.372C0.256 0.38 0.244 0.384 0.232 0.384C0.196 0.384 0.188 0.344 0.188 0.324Z","w":0.904},"accidentalNatural":{"d":"M0.564 -0.724C0.556 -0.724 0.552 -0.72 0.548 -0.72C0.548 -0.72 0.292 -0.628 0.188 -0.628C0.164 -0.628 0.148 -0.632 0.148 -0.648V-1.316C0.148 -1.344 0.124 -1.364 0.1 -1.364H0.048C0.02 -1.364 0 -1.344 0 -1.316V0.744C0 0.768 0.012 0.78 0.036 0.78L0.044 0.776C0.048 0.776 0.056 0.776 0.06 0.772C0.116 0.748 0.34 0.652 0.456 0.652C0.496 0.652 0.524 0.664 0.524 0.696V1.292C0.524 1.32 0.544 1.34 0.572 1.34H0.624C0.648 1.34 0.672 1.32 0.672 1.292V-0.716C0.672 -0.736 0.656 -0.748 0.64 -0.748C0.636 -0.748 0.628 -0.748 0.624 -0.744ZM0.148 -0.156C0.148 -0.212 0.392 -0.316 0.488 -0.316C0.512 -0.316 0.524 -0.312 0.524 -0.296V0.116C0.524 0.188 0.296 0.28 0.196 0.28C0.168 0.28 0.148 0.272 0.148 0.256Z","w":0.672},"accidentalSharp":{"d":"M0.948 -0.472C0.976 -0.484 0.996 -0.516 0.996 -0.54V-0.824C0.996 -0.844 0.984 -0.856 0.968 -0.856C0.96 -0.856 0.956 -0.856 0.948 -0.852C0.948 -0.852 0.868 -0.82 0.848 -0.816C0.82 -0.816 0.792 -0.836 0.792 -0.868V-1.356C0.792 -1.38 0.768 -1.4 0.736 -1.4C0.696 -1.4 0.672 -1.38 0.672 -1.356V-0.836C0.668 -0.796 0.656 -0.744 0.62 -0.72C0.572 -0.692 0.436 -0.636 0.368 -0.62C0.332 -0.62 0.32 -0.668 0.32 -0.7V-1.18C0.32 -1.204 0.292 -1.224 0.264 -1.224C0.224 -1.224 0.2 -1.204 0.2 -1.18V-0.64C0.2 -0.584 0.176 -0.544 0.152 -0.532C0.128 -0.52 0.048 -0.488 0.048 -0.488C0.02 -0.48 0 -0.448 0 -0.424V-0.14C0 -0.116 0.012 -0.104 0.036 -0.104L0.044 -0.108C0.048 -0.108 0.108 -0.132 0.14 -0.148L0.144 -0.152C0.176 -0.152 0.2 -0.112 0.2 -0.08V0.316C0.2 0.36 0.18 0.396 0.156 0.408C0.132 0.416 0.048 0.452 0.048 0.452C0.02 0.46 0 0.492 0 0.516V0.8C0 0.824 0.012 0.836 0.036 0.836L0.044 0.832C0.048 0.832 0.104 0.808 0.14 0.796C0.144 0.792 0.148 0.792 0.152 0.792C0.18 0.792 0.2 0.836 0.2 0.856V1.348C0.2 1.372 0.224 1.392 0.252 1.392C0.292 1.392 0.32 1.372 0.32 1.348V0.792C0.32 0.74 0.34 0.712 0.36 0.704L0.604 0.604C0.604 0.604 0.608 0.604 0.608 0.604L0.616 0.6C0.652 0.6 0.672 0.648 0.672 0.672V1.172C0.672 1.196 0.696 1.216 0.724 1.216C0.768 1.216 0.792 1.196 0.792 1.172V0.604C0.792 0.572 0.808 0.524 0.836 0.512C0.864 0.5 0.948 0.468 0.948 0.468C0.976 0.456 0.996 0.424 0.996 0.4V0.116C0.996 0.096 0.984 0.084 0.968 0.084C0.96 0.084 0.956 0.084 0.948 0.088L0.844 0.128C0.82 0.128 0.792 0.104 0.792 0.056V-0.316C0.792 -0.344 0.812 -0.42 0.844 -0.432ZM0.672 0.18C0.648 0.26 0.46 0.34 0.368 0.34C0.344 0.34 0.324 0.332 0.32 0.32C0.312 0.304 0.308 0.216 0.308 0.12C0.308 -0.004 0.312 -0.144 0.32 -0.176C0.328 -0.244 0.512 -0.328 0.612 -0.328C0.64 -0.328 0.664 -0.32 0.672 -0.304C0.68 -0.284 0.688 -0.184 0.688 -0.076C0.688 0.032 0.68 0.144 0.672 0.18Z","w":0.996},"augmentationDot":{"d":"M0.4 0C0.4 -0.112 0.312 -0.2 0.2 -0.2C0.088 -0.2 0 -0.112 0 0C0 0.112 0.088 0.2 0.2 0.2C0.312 0.2 0.4 0.112 0.4 0Z","w":0.4},"tuplet3":{"d":"M0.488 -0.828C0.436 -0.828 0.408 -0.804 0.408 -0.768C0.408 -0.732 0.436 -0.708 0.488 -0.708H0.528C0.676 -0.708 0.748 -0.62 0.748 -0.492C0.748 -0.316 0.624 -0.072 0.38 -0.072C0.3 -0.072 0.236 -0.104 0.236 -0.144C0.236 -0.168 0.256 -0.176 0.288 -0.192C0.332 -0.212 0.388 -0.26 0.388 -0.364C0.388 -0.46 0.32 -0.508 0.236 -0.508C0.124 -0.508 0.04 -0.408 0.04 -0.276C0.04 -0.116 0.168 0.032 0.452 0.032C0.792 0.032 1.072 -0.172 1.072 -0.488C1.072 -0.588 1.02 -0.684 0.916 -0.736C0.888 -0.748 0.872 -0.752 0.872 -0.772C0.872 -0.784 0.888 -0.792 0.92 -0.808C1.088 -0.876 1.224 -1.004 1.224 -1.164C1.224 -1.372 1.024 -1.5 0.78 -1.5C0.528 -1.5 0.32 -1.368 0.312 -1.152C0.308 -1.048 0.372 -0.98 0.464 -0.98C0.564 -0.98 0.644 -1.06 0.644 -1.168C0.644 -1.212 0.628 -1.244 0.608 -1.268C0.58 -1.292 0.56 -1.308 0.56 -1.32C0.56 -1.348 0.608 -1.376 0.692 -1.376C0.848 -1.376 0.9 -1.28 0.9 -1.192C0.9 -0.98 0.764 -0.828 0.532 -0.828Z","w":1.184},"timeSig0":{"d":"M1.8 0C1.8 -0.556 1.416 -1.004 0.94 -1.004C0.464 -1.004 0.08 -0.556 0.08 0C0.08 0.552 0.464 1 0.94 1C1.416 1 1.8 0.552 1.8 0ZM0.94 -0.88C1.104 -0.88 1.24 -0.5 1.24 -0.028C1.24 0.44 1.104 0.82 0.94 0.82C0.772 0.82 0.64 0.44 0.64 -0.028C0.64 -0.5 0.772 -0.88 0.94 -0.88Z","w":1.88},"timeSig1":{"d":"M0.096 -0.052C0.096 -0.052 0.08 -0.028 0.08 0C0.08 0.02 0.092 0.044 0.124 0.056C0.14 0.06 0.156 0.064 0.16 0.064C0.2 0.064 0.216 0.028 0.216 0.028C0.216 0.028 0.388 -0.248 0.432 -0.324C0.448 -0.352 0.464 -0.364 0.472 -0.364C0.488 -0.364 0.496 -0.332 0.496 -0.308V0.724C0.496 0.816 0.404 0.876 0.32 0.876C0.292 0.876 0.252 0.888 0.252 0.936C0.252 0.98 0.288 1 0.34 1H1.192C1.256 1 1.256 0.936 1.256 0.936C1.256 0.936 1.256 0.876 1.196 0.876C1.14 0.876 1.068 0.804 1.068 0.736V-0.912C1.068 -0.976 1.044 -1 0.988 -1.004C0.932 -1.004 0.832 -0.988 0.78 -0.988C0.704 -0.988 0.632 -0.992 0.572 -1C0.564 -1 0.556 -1.004 0.552 -1.004C0.512 -1.004 0.496 -0.964 0.48 -0.928Z","w":1.336},"timeSig2":{"d":"M1.684 0.364C1.684 0.316 1.664 0.308 1.636 0.308C1.604 0.308 1.592 0.324 1.584 0.352L1.58 0.356C1.54 0.456 1.508 0.532 1.424 0.532C1.404 0.532 1.384 0.528 1.356 0.52C1.304 0.5 1.276 0.496 1.236 0.476C1.156 0.444 0.968 0.38 0.804 0.38C0.752 0.38 0.7 0.388 0.656 0.404C0.744 0.26 1.084 0.14 1.172 0.116C1.452 0.04 1.704 -0.076 1.704 -0.408C1.704 -0.832 1.288 -1.016 0.916 -1.016C0.636 -1.016 0.388 -0.992 0.192 -0.764C0.124 -0.68 0.08 -0.58 0.08 -0.472C0.08 -0.416 0.092 -0.36 0.116 -0.3C0.176 -0.176 0.3 -0.08 0.444 -0.08C0.688 -0.08 0.724 -0.332 0.724 -0.432C0.724 -0.672 0.448 -0.684 0.448 -0.764C0.456 -0.82 0.528 -0.916 0.764 -0.916C1.12 -0.916 1.124 -0.648 1.124 -0.532C1.124 -0.168 0.824 0.108 0.536 0.284C0.316 0.424 0.16 0.62 0.092 0.88L0.088 0.892C0.088 0.944 0.132 1.028 0.192 1.028C0.28 1.028 0.328 0.784 0.564 0.784C0.724 0.784 0.784 1 1.14 1C1.312 1 1.62 0.984 1.684 0.364Z","w":1.784},"timeSig3":{"d":"M0.852 -0.992C0.848 -0.992 0.844 -0.992 0.836 -0.992L0.808 -0.996C0.804 -0.996 0.796 -0.996 0.792 -0.996C0.448 -0.996 0.104 -0.768 0.104 -0.556C0.104 -0.424 0.18 -0.248 0.428 -0.232H0.448C0.624 -0.232 0.712 -0.36 0.712 -0.492V-0.524C0.7 -0.672 0.6 -0.68 0.58 -0.688C0.56 -0.696 0.5 -0.688 0.5 -0.744V-0.76C0.508 -0.828 0.632 -0.86 0.668 -0.86C1.008 -0.86 1.04 -0.648 1.04 -0.552V-0.524C1.04 -0.228 0.804 -0.112 0.552 -0.1C0.512 -0.096 0.456 -0.076 0.456 -0.032C0.456 0.016 0.524 0.016 0.556 0.016C1.016 0.016 1.052 0.328 1.052 0.38C1.052 0.804 0.836 0.852 0.748 0.852C0.732 0.852 0.716 0.848 0.712 0.848C0.68 0.844 0.604 0.844 0.6 0.784V0.764C0.6 0.676 0.688 0.616 0.692 0.5C0.692 0.332 0.576 0.212 0.404 0.212C0.388 0.212 0.376 0.212 0.36 0.216C0.292 0.228 0.216 0.268 0.168 0.32C0.1 0.38 0.08 0.476 0.08 0.564C0.088 0.876 0.372 0.996 0.764 1.004H0.8C1.196 1.004 1.604 0.8 1.604 0.448V0.42C1.596 0.304 1.568 0.228 1.492 0.14C1.468 0.108 1.436 0.08 1.396 0.056L1.312 0.008L1.18 -0.028C1.16 -0.032 1.148 -0.032 1.14 -0.048C1.136 -0.056 1.136 -0.06 1.136 -0.068C1.136 -0.084 1.14 -0.1 1.152 -0.104C1.196 -0.116 1.24 -0.12 1.276 -0.14C1.436 -0.216 1.52 -0.32 1.52 -0.504C1.52 -0.872 1.02 -0.98 0.852 -0.992Z","w":1.684},"timeSig4":{"d":"M1.448 0.296V-0.56C1.448 -0.592 1.444 -0.628 1.4 -0.628C1.364 -0.628 1.344 -0.62 1.32 -0.592L0.94 -0.132C0.924 -0.112 0.904 -0.088 0.904 -0.04V0.296H0.364C0.684 0.024 1.324 -0.884 1.336 -0.932L1.34 -0.944C1.34 -0.98 1.312 -1.004 1.28 -1.004C1.244 -1.004 1.08 -0.996 1.008 -0.996C0.936 -0.996 0.756 -1.004 0.724 -1.004C0.688 -1.004 0.632 -0.992 0.632 -0.928C0.632 -0.432 0.24 0.124 0.12 0.292L0.096 0.324C0.096 0.324 0.096 0.328 0.096 0.328L0.092 0.332C0.084 0.352 0.08 0.368 0.08 0.38C0.08 0.42 0.112 0.448 0.16 0.448H0.904V0.7C0.904 0.808 0.816 0.84 0.744 0.84C0.68 0.84 0.652 0.876 0.652 0.916C0.652 0.956 0.668 1 0.728 1H1.58C1.62 1 1.66 0.972 1.66 0.916C1.66 0.86 1.612 0.836 1.572 0.836C1.532 0.836 1.448 0.812 1.448 0.684V0.448H1.74C1.78 0.448 1.8 0.42 1.8 0.372C1.8 0.324 1.784 0.296 1.74 0.296Z","w":1.88},"timeSig5":{"d":"M0.304 -0.236C0.304 -0.236 0.32 -0.46 0.324 -0.496C0.328 -0.528 0.348 -0.548 0.384 -0.548H0.4C0.44 -0.54 0.628 -0.512 0.792 -0.512C1.348 -0.512 1.368 -0.832 1.368 -0.896C1.368 -0.948 1.356 -0.98 1.312 -0.98C1.26 -0.98 0.948 -0.944 0.82 -0.944C0.692 -0.944 0.348 -0.976 0.28 -0.984C0.208 -0.984 0.188 -0.948 0.184 -0.916L0.14 -0.028V-0.02C0.14 0.032 0.18 0.04 0.22 0.04C0.26 0.04 0.264 0.004 0.308 -0.04C0.348 -0.08 0.444 -0.172 0.58 -0.172C0.716 -0.172 0.992 -0.096 0.992 0.348C0.992 0.788 0.756 0.844 0.652 0.844C0.62 0.844 0.588 0.844 0.56 0.832C0.54 0.82 0.516 0.804 0.512 0.776C0.512 0.748 0.54 0.732 0.56 0.72C0.652 0.664 0.712 0.564 0.712 0.452C0.712 0.276 0.572 0.14 0.4 0.14C0.184 0.14 0.096 0.296 0.084 0.436C0.08 0.46 0.08 0.484 0.08 0.508C0.08 0.84 0.296 1.004 0.788 1.004C1.268 1.004 1.532 0.708 1.532 0.348C1.532 -0.016 1.236 -0.312 0.872 -0.312C0.64 -0.312 0.468 -0.272 0.34 -0.196C0.332 -0.192 0.324 -0.192 0.32 -0.192C0.304 -0.192 0.304 -0.208 0.304 -0.22Z","w":1.612},"timeSig6":{"d":"M1.22 -0.332C1.388 -0.332 1.54 -0.464 1.54 -0.636C1.54 -0.652 1.54 -0.664 1.536 -0.68C1.496 -0.936 1.184 -1.004 0.968 -1.004C0.664 -1 0.38 -0.852 0.236 -0.58C0.148 -0.412 0.08 -0.2 0.08 -0.012V0.004C0.084 0.188 0.116 0.396 0.204 0.556C0.368 0.852 0.564 0.996 0.9 0.996C1.08 0.996 1.28 0.968 1.424 0.852C1.564 0.74 1.656 0.56 1.656 0.38C1.656 0.068 1.36 -0.2 1.052 -0.2C0.924 -0.2 0.792 -0.152 0.688 -0.06C0.68 -0.052 0.672 -0.052 0.664 -0.052C0.64 -0.052 0.628 -0.084 0.628 -0.148C0.64 -0.888 0.876 -0.908 0.96 -0.908C1.04 -0.908 1.092 -0.888 1.092 -0.848C1.092 -0.792 1.016 -0.744 0.992 -0.696C0.972 -0.66 0.964 -0.62 0.964 -0.58C0.964 -0.52 0.984 -0.46 1.024 -0.416C1.052 -0.364 1.168 -0.332 1.22 -0.332ZM0.888 -0.008C1.016 -0.008 1.124 0.192 1.124 0.44C1.124 0.688 1.016 0.888 0.888 0.888C0.76 0.888 0.656 0.688 0.656 0.44C0.656 0.192 0.76 -0.008 0.888 -0.008Z","w":1.736},"timeSig7":{"d":"M1.684 -0.816C1.684 -0.924 1.684 -0.976 1.616 -0.976C1.612 -0.976 1.548 -0.96 1.532 -0.932C1.504 -0.884 1.448 -0.656 1.348 -0.656C1.248 -0.656 1.06 -0.996 0.728 -0.996C0.496 -0.996 0.436 -0.904 0.38 -0.852C0.324 -0.8 0.3 -0.784 0.272 -0.78C0.24 -0.78 0.188 -0.836 0.168 -0.876C0.16 -0.892 0.14 -0.904 0.12 -0.904C0.1 -0.904 0.08 -0.892 0.08 -0.856V-0.196C0.08 -0.196 0.084 -0.132 0.124 -0.132C0.156 -0.132 0.168 -0.168 0.184 -0.212C0.224 -0.312 0.276 -0.544 0.456 -0.544C0.616 -0.544 0.808 -0.244 1.04 -0.244C1.152 -0.244 1.208 -0.304 1.24 -0.328C1.252 -0.336 1.268 -0.344 1.276 -0.344C1.292 -0.344 1.3 -0.332 1.304 -0.308C1.304 -0.196 0.996 0.028 0.756 0.312C0.604 0.488 0.48 0.72 0.48 0.876C0.48 0.96 0.48 1 0.556 1C0.628 1 0.716 0.964 0.816 0.964C0.916 0.964 1.104 1 1.144 1C1.184 1 1.208 0.968 1.208 0.852C1.208 0.184 1.684 -0.388 1.684 -0.8Z","w":1.764},"timeSig8":{"d":"M1.336 -0.144C1.48 -0.236 1.576 -0.368 1.576 -0.568C1.576 -0.976 0.988 -1.036 0.88 -1.036C0.416 -1.036 0.1 -0.824 0.1 -0.488C0.1 -0.212 0.256 -0.064 0.448 0.044C0.24 0.144 0.08 0.276 0.08 0.528C0.08 0.876 0.44 1.036 0.836 1.036C1.236 1.036 1.664 0.864 1.664 0.324C1.664 0.084 1.524 -0.048 1.336 -0.144ZM1.128 -0.236C0.808 -0.348 0.468 -0.416 0.468 -0.668C0.468 -0.836 0.696 -0.92 0.872 -0.92C1 -0.92 1.34 -0.856 1.34 -0.576C1.34 -0.416 1.26 -0.312 1.128 -0.236ZM0.82 0.904C0.552 0.904 0.308 0.768 0.308 0.508C0.308 0.348 0.448 0.2 0.624 0.132C0.916 0.26 1.212 0.344 1.212 0.608C1.212 0.768 1.088 0.904 0.82 0.904Z","w":1.744},"timeSig9":{"d":"M0.516 0.324C0.348 0.324 0.196 0.456 0.196 0.628C0.196 0.644 0.196 0.656 0.2 0.672C0.24 0.928 0.552 0.996 0.768 0.996C1.072 0.992 1.356 0.844 1.5 0.572C1.588 0.404 1.656 0.192 1.656 0.004V-0.012C1.652 -0.196 1.62 -0.404 1.532 -0.564C1.368 -0.86 1.172 -1.004 0.836 -1.004C0.656 -1.004 0.456 -0.976 0.312 -0.86C0.172 -0.748 0.08 -0.568 0.08 -0.388C0.08 -0.076 0.376 0.192 0.684 0.192C0.812 0.192 0.944 0.144 1.048 0.052C1.056 0.044 1.064 0.044 1.072 0.044C1.096 0.044 1.108 0.076 1.108 0.14C1.096 0.88 0.86 0.9 0.776 0.9C0.696 0.9 0.644 0.88 0.644 0.84C0.644 0.784 0.72 0.736 0.744 0.688C0.764 0.652 0.772 0.612 0.772 0.572C0.772 0.512 0.752 0.452 0.712 0.408C0.684 0.356 0.568 0.324 0.516 0.324ZM0.848 0C0.72 0 0.612 -0.2 0.612 -0.448C0.612 -0.696 0.72 -0.896 0.848 -0.896C0.976 -0.896 1.08 -0.696 1.08 -0.448C1.08 -0.2 0.976 0 0.848 0Z","w":1.736}};
+// ==== TAB EDITOR V2 — núcleo (modelo, comandos, desfazer, texto) ====
+// [Rodada 87 — 25/09/2026] Editor de solos novo, no estilo Guitar Pro /
+// Songsterr, a pedido do usuário ("quero algo bem completo, tipo um Guitar
+// Pro"). O editor antigo (textarea com texto puro) continua inteiro no arquivo
+// e volta a ser usado se SOLO_EDITOR_V2 for false — ver seção da rodada 87
+// no CLAUDE.md.
+//
+// Modelo (guardado em solos.dados.tabV2; solos.dados.tab continua recebendo
+// uma versão em texto, para compatibilidade e busca):
+//   doc = { v:2, modo:'livre'|'partitura', bpm, compasso:{n,d}, afinacao:idx,
+//           mostrarPartitura:bool, beats:[Beat] }
+//   Beat = { dur:1|2|4|8|16|32, dot:bool, tup:0|3, bar:bool (barra manual, só
+//            no modo livre — fica DEPOIS desta batida), notes:[Note] }
+//     batida sem notas = pausa (partitura) / espaço (modo livre)
+//   Note = { s:1..6 (1 = mizinha), f:0..24, lig, slide, bend:{t,v}, vib, pm,
+//            ring, dead, ghost, harm:'N'|'A', tap, acc, tie }
+const SOLO_EDITOR_V2 = true;
+const TE_TPQ = 960; // ticks por semínima
+const TE_TUNINGS = [
+  {nome:'Padrão (E A D G B E)', midi:[64,59,55,50,45,40]},
+  {nome:'Meio tom abaixo (Eb)', midi:[63,58,54,49,44,39]},
+  {nome:'Um tom abaixo (D)', midi:[62,57,53,48,43,38]},
+  {nome:'Drop D (D A D G B E)', midi:[64,59,55,50,45,38]},
+  {nome:'Drop C# (C# G# C# F# A# D#)', midi:[63,58,54,49,44,37]},
+  {nome:'Drop C (C G C F A D)', midi:[62,57,53,48,43,36]},
+  {nome:'DADGAD', midi:[62,57,55,50,45,38]},
+  {nome:'Open G (D G D G B D)', midi:[62,59,55,50,43,38]},
+];
+const TE_NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const TE_DURS = [1,2,4,8,16,32];
+const TE_DUR_NOMES = {1:'Semibreve',2:'Mínima',4:'Semínima',8:'Colcheia',16:'Semicolcheia',32:'Fusa'};
+const TE_BEND_VALORES = [{v:0.25,rot:'¼'},{v:0.5,rot:'½'},{v:1,rot:'inteiro'},{v:1.5,rot:'1½'},{v:2,rot:'2'}];
+const TE_BEND_TIPOS = [
+  {t:'bend', rot:'Bend'},
+  {t:'bend-volta', rot:'Bend e volta'},
+  {t:'pre', rot:'Pré-bend'},
+  {t:'pre-volta', rot:'Pré-bend e volta'},
+];
+const TE_SLIDES = [
+  {t:'para', rot:'Até a próxima nota'},
+  {t:'entra-baixo', rot:'Entrada por baixo'},
+  {t:'entra-cima', rot:'Entrada por cima'},
+  {t:'sai-baixo', rot:'Saída para baixo'},
+  {t:'sai-cima', rot:'Saída para cima'},
+];
+// Técnicas liga/desliga (as de bend/slide/harmônico têm menu próprio).
+const TE_TOGGLES = [
+  {k:'lig',   rot:'Ligado (H/P)', atalho:'H', dica:'Hammer-on / pull-off até a próxima nota da mesma corda'},
+  {k:'vib',   rot:'Vibrato',      atalho:'V'},
+  {k:'pm',    rot:'Palm mute',    atalho:'M'},
+  {k:'ring',  rot:'Let ring',     atalho:'L', dica:'Deixar soar'},
+  {k:'dead',  rot:'Abafada (x)',  atalho:'X'},
+  {k:'ghost', rot:'Fantasma ( )', atalho:'G'},
+  {k:'tap',   rot:'Tapping'},
+  {k:'acc',   rot:'Acento',       atalho:'A'},
+  {k:'tie',   rot:'Prolongar',    atalho:'I', dica:'Ligadura de prolongamento: continua a nota anterior da mesma corda, sem tocar de novo'},
+];
+
+function teNewBeat(dur){ return {dur: dur||8, dot:false, tup:0, bar:false, notes:[]}; }
+function teNewDoc(){
+  return {v:2, modo:'livre', bpm:90, compasso:{n:4,d:4}, afinacao:0, mostrarPartitura:true, beats:[teNewBeat(8)]};
+}
+function teClone(o){ return JSON.parse(JSON.stringify(o)); }
+function teTuning(doc){ return (TE_TUNINGS[doc && doc.afinacao] || TE_TUNINGS[0]).midi; }
+function teStringNames(doc){ return teTuning(doc).map(m=>TE_NOTE_NAMES[m%12]).map((n,i)=> i===0 ? n.toLowerCase() : n); }
+function teMidi(doc, note){ return teTuning(doc)[note.s-1] + note.f; }
+function teTicks(beat){
+  let t = TE_TPQ*4/beat.dur;
+  if(beat.dot) t *= 1.5;
+  if(beat.tup===3) t = t*2/3;
+  return Math.round(t);
+}
+function teMeasureTicks(doc){ return Math.round(TE_TPQ*4/doc.compasso.d*doc.compasso.n); }
+function teIsEmpty(beat){ return !beat.notes || beat.notes.length===0; }
+function teNoteAt(beat, s){ return beat && beat.notes ? beat.notes.find(n=>n.s===s) : null; }
+
+// Divide as batidas em compassos. Partitura: automático pela fórmula de
+// compasso (compasso "estourado" fica marcado como over). Modo livre: só onde
+// o professor pôs uma barra (bar:true). Devolve [{a,b (exclusivo),ticks,over}].
+function teMeasures(doc){
+  const beats = doc.beats, out = [];
+  if(!beats.length) return out;
+  if(doc.modo==='partitura'){
+    const L = teMeasureTicks(doc);
+    let a = 0, acc = 0;
+    for(let i=0;i<beats.length;i++){
+      acc += teTicks(beats[i]);
+      if(acc >= L){ out.push({a, b:i+1, ticks:acc, over: acc > L}); a = i+1; acc = 0; }
+    }
+    if(a < beats.length) out.push({a, b:beats.length, ticks:acc, over:false, incompleto:true});
+  } else {
+    let a = 0;
+    for(let i=0;i<beats.length;i++){
+      if(beats[i].bar && i < beats.length-1){ out.push({a, b:i+1}); a = i+1; }
+    }
+    out.push({a, b:beats.length});
+  }
+  return out;
+}
+
+// ---- Estado do editor (um só por vez na tela) ----
+const TE = {
+  doc: null, cur:{b:0, s:1}, sel:null, undo:[], redo:[], clip:null,
+  pend:null, pop:null, curDur:8, dirty:false, lido:false,
+  fbAcorde:false, fbNomes:false, modoTela:'editor', aviso:'',
+  play:{on:false, idx:-1},
+};
+
+function teEnsureTrailing(doc){
+  if(!doc.beats.length || !teIsEmpty(doc.beats[doc.beats.length-1])) doc.beats.push(teNewBeat(TE.curDur||8));
+}
+function teTrimTrailing(doc){
+  const d = teClone(doc);
+  while(d.beats.length>1 && teIsEmpty(d.beats[d.beats.length-1]) && !d.beats[d.beats.length-1].bar) d.beats.pop();
+  return d;
+}
+function teSnapshot(){
+  TE.undo.push(JSON.stringify({doc:TE.doc, cur:TE.cur}));
+  if(TE.undo.length>200) TE.undo.shift();
+  TE.redo = [];
+  TE.dirty = true;
+}
+function teUndo(){
+  if(!TE.undo.length) return;
+  TE.redo.push(JSON.stringify({doc:TE.doc, cur:TE.cur}));
+  const s = JSON.parse(TE.undo.pop()); TE.doc = s.doc; TE.cur = s.cur; TE.sel = null; TE.pop = null;
+  teSyncDraft(); teRefresh();
+}
+function teRedo(){
+  if(!TE.redo.length) return;
+  TE.undo.push(JSON.stringify({doc:TE.doc, cur:TE.cur}));
+  const s = JSON.parse(TE.redo.pop()); TE.doc = s.doc; TE.cur = s.cur; TE.sel = null; TE.pop = null;
+  teSyncDraft(); teRefresh();
+}
+function teSyncDraft(){ if(typeof state!=='undefined' && state.soloDraft) state.soloDraft.tabV2 = TE.doc; }
+function teClampCur(){
+  const n = TE.doc.beats.length;
+  if(TE.cur.b < 0) TE.cur.b = 0;
+  if(TE.cur.b > n-1) TE.cur.b = n-1;
+  if(TE.cur.s < 1) TE.cur.s = 1;
+  if(TE.cur.s > 6) TE.cur.s = 6;
+}
+function teCurBeat(){ return TE.doc.beats[TE.cur.b]; }
+function teCurNote(){ return teNoteAt(teCurBeat(), TE.cur.s); }
+// Intervalo de batidas afetado por um comando: a seleção, ou só a do cursor.
+function teRange(){
+  if(TE.sel){ return [Math.min(TE.sel.a, TE.sel.b), Math.max(TE.sel.a, TE.sel.b)]; }
+  return [TE.cur.b, TE.cur.b];
+}
+
+// ---- Comandos de edição ----
+function teSetFret(s, f, opts){
+  opts = opts||{};
+  const b = TE.cur.b;
+  const beat = TE.doc.beats[b];
+  if(f<0 || f>24) return;
+  if(!opts.semSnapshot) teSnapshot();
+  let n = teNoteAt(beat, s);
+  if(n){ n.f = f; }
+  else { n = {s, f}; beat.notes.push(n); beat.notes.sort((x,y)=>x.s-y.s); }
+  teEnsureTrailing(TE.doc);
+  teSyncDraft();
+}
+function teTypeDigit(d){
+  const now = Date.now();
+  const p = TE.pend;
+  if(p && p.b===TE.cur.b && p.s===TE.cur.s && now-p.t < 900 && p.v>=1 && p.v<=2 && p.v*10+d <= 24){
+    teSetFret(TE.cur.s, p.v*10+d, {semSnapshot:true});
+    TE.pend = null;
+  } else {
+    teSetFret(TE.cur.s, d);
+    TE.pend = {b:TE.cur.b, s:TE.cur.s, v:d, t:now};
+  }
+  tePlayNotePreview(TE.cur.s, teCurNote() ? teCurNote().f : d);
+  teRefresh();
+}
+function teDeleteAtCursor(backwards){
+  const [a,z] = teRange();
+  teSnapshot();
+  if(TE.sel){
+    TE.doc.beats.splice(a, z-a+1);
+    if(!TE.doc.beats.length) TE.doc.beats.push(teNewBeat(TE.curDur));
+    TE.cur.b = a; TE.sel = null;
+  } else {
+    const beat = teCurBeat();
+    const n = teCurNote();
+    if(n){ beat.notes = beat.notes.filter(x=>x!==n); }
+    else if(TE.doc.beats.length>1){
+      TE.doc.beats.splice(TE.cur.b, 1);
+      if(backwards) TE.cur.b -= 1;
+    }
+  }
+  teEnsureTrailing(TE.doc); teClampCur(); TE.pop = null; TE.pend = null;
+  teSyncDraft(); teRefresh();
+}
+function teInsertBeat(){
+  teSnapshot();
+  TE.doc.beats.splice(TE.cur.b, 0, teNewBeat(TE.curDur));
+  TE.sel = null; TE.pop = null;
+  teSyncDraft(); teRefresh();
+}
+function teMove(db, ds, extend){
+  TE.pend = null; TE.pop = null;
+  if(extend){
+    if(!TE.sel) TE.sel = {a:TE.cur.b, b:TE.cur.b};
+  } else if(db) TE.sel = null;
+  if(db>0 && TE.cur.b===TE.doc.beats.length-1 && !teIsEmpty(teCurBeat())){ teEnsureTrailing(TE.doc); }
+  TE.cur.b += db; TE.cur.s += ds; teClampCur();
+  if(extend && TE.sel) TE.sel.b = TE.cur.b;
+  teRefresh(true);
+}
+function teGoto(b, s){ TE.cur = {b, s}; teClampCur(); TE.sel = null; TE.pend = null; teRefresh(true); }
+function teSetDur(d){
+  TE.curDur = d;
+  const [a,z] = teRange();
+  teSnapshot();
+  for(let i=a;i<=z;i++) TE.doc.beats[i].dur = d;
+  teSyncDraft(); teRefresh();
+}
+function teStepDur(dir){
+  const b = teCurBeat(); let i = TE_DURS.indexOf(b.dur);
+  i = Math.max(0, Math.min(TE_DURS.length-1, i+dir));
+  teSetDur(TE_DURS[i]);
+}
+function teToggleBeatFlag(k){
+  const [a,z] = teRange();
+  teSnapshot();
+  const novo = !TE.doc.beats[a][k];
+  for(let i=a;i<=z;i++){
+    if(k==='tup') TE.doc.beats[i].tup = novo ? 3 : 0;
+    else TE.doc.beats[i][k] = novo;
+  }
+  teSyncDraft(); teRefresh();
+}
+function teMakeRest(){
+  const [a,z] = teRange();
+  teSnapshot();
+  for(let i=a;i<=z;i++) TE.doc.beats[i].notes = [];
+  TE.pop = null; teSyncDraft(); teRefresh();
+}
+function teToggleBar(){
+  // Barra manual (modo livre). No fim da peça não faz sentido — ali já tem barra final.
+  teSnapshot();
+  const beat = teCurBeat();
+  beat.bar = !beat.bar;
+  if(beat.bar && TE.cur.b===TE.doc.beats.length-1){ TE.doc.beats.push(teNewBeat(TE.curDur)); TE.cur.b += 1; }
+  teSyncDraft(); teRefresh();
+}
+// Notas alvo de uma técnica: a da seleção (todas as notas nas batidas
+// selecionadas) ou a nota da corda do cursor.
+function teTargetNotes(){
+  if(TE.sel){
+    const [a,z] = teRange(); const out = [];
+    for(let i=a;i<=z;i++) TE.doc.beats[i].notes.forEach(n=>out.push(n));
+    return out;
+  }
+  const n = teCurNote();
+  return n ? [n] : [];
+}
+function teToggleTec(k){
+  const alvo = teTargetNotes();
+  if(!alvo.length){ teAvisar('Coloque o cursor em cima de uma nota para aplicar a técnica.'); return; }
+  teSnapshot();
+  const liga = !alvo[0][k];
+  alvo.forEach(n=>{
+    if(liga) n[k] = true; else delete n[k];
+    if(k==='dead' && liga){ delete n.ghost; delete n.harm; delete n.bend; }
+    if(k==='ghost' && liga) delete n.dead;
+  });
+  teSyncDraft(); teRefresh();
+}
+function teSetSlide(t){
+  const alvo = teTargetNotes(); if(!alvo.length){ teAvisar('Coloque o cursor em cima de uma nota.'); return; }
+  teSnapshot();
+  const desliga = alvo[0].slide===t;
+  alvo.forEach(n=>{ if(desliga || !t) delete n.slide; else n.slide = t; });
+  teSyncDraft(); teRefresh();
+}
+function teSetBend(t, v){
+  const alvo = teTargetNotes(); if(!alvo.length){ teAvisar('Coloque o cursor em cima de uma nota.'); return; }
+  teSnapshot();
+  alvo.forEach(n=>{
+    if(!t) { delete n.bend; return; }
+    const atual = n.bend || {t:'bend', v:1};
+    n.bend = {t: t||atual.t, v: v||atual.v};
+    delete n.dead;
+  });
+  teSyncDraft(); teRefresh();
+}
+function teSetHarm(h){
+  const alvo = teTargetNotes(); if(!alvo.length){ teAvisar('Coloque o cursor em cima de uma nota.'); return; }
+  teSnapshot();
+  const desliga = alvo[0].harm===h;
+  alvo.forEach(n=>{ if(desliga || !h) delete n.harm; else { n.harm = h; delete n.dead; } });
+  teSyncDraft(); teRefresh();
+}
+function teCopy(cut){
+  const [a,z] = teRange();
+  TE.clip = teClone(TE.doc.beats.slice(a, z+1));
+  if(cut){ teDeleteAtCursor(false); }
+  teAvisar(TE.clip.length===1 ? '1 tempo copiado.' : TE.clip.length+' tempos copiados.');
+}
+function tePaste(){
+  if(!TE.clip || !TE.clip.length){ teAvisar('Nada copiado ainda. Selecione com Shift + setas e copie.'); return; }
+  teSnapshot();
+  const at = TE.cur.b;
+  // Colar em cima da batida vazia do fim: substitui ela em vez de empurrar.
+  const cola = teClone(TE.clip);
+  if(teIsEmpty(teCurBeat()) && at===TE.doc.beats.length-1) TE.doc.beats.splice(at, 1, ...cola);
+  else TE.doc.beats.splice(at, 0, ...cola);
+  TE.cur.b = at + cola.length; TE.sel = null;
+  teEnsureTrailing(TE.doc); teClampCur();
+  teSyncDraft(); teRefresh();
+}
+function teSelectAll(){ TE.sel = {a:0, b:TE.doc.beats.length-1}; teRefresh(); }
+function teSetModo(m){
+  if(TE.doc.modo===m) return;
+  teSnapshot(); TE.doc.modo = m; TE.pop = null;
+  teSyncDraft(); teRefresh();
+}
+function teSetCompasso(v){
+  const [n,d] = String(v).split('/').map(Number);
+  if(!n || !d) return;
+  teSnapshot(); TE.doc.compasso = {n,d}; teSyncDraft(); teRefresh();
+}
+function teSetBpm(v){
+  v = Math.round(Number(v)); if(!v) return;
+  v = Math.max(30, Math.min(300, v));
+  if(v===TE.doc.bpm) return;
+  teSnapshot(); TE.doc.bpm = v; teSyncDraft(); teRefresh();
+}
+function teSetAfinacao(i){ teSnapshot(); TE.doc.afinacao = Number(i)||0; teSyncDraft(); teRefresh(); }
+function teToggleNotacao(){ TE.doc.mostrarPartitura = !TE.doc.mostrarPartitura; TE.dirty = true; teSyncDraft(); teRefresh(); }
+
+// ---- Texto (compatibilidade com o formato antigo) ----
+// Exporta a tablatura em texto puro ("e|--5h7--|"), que continua indo em
+// solos.dados.tab — assim nada que lê o formato antigo quebra.
+function teToAscii(doc){
+  doc = teTrimTrailing(doc);
+  const nomes = teStringNames(doc);
+  const linhas = nomes.map(n=>n+'|');
+  const medidas = teMeasures(doc);
+  const fimDeCompasso = new Set(medidas.map(m=>m.b-1));
+  doc.beats.forEach((beat, bi)=>{
+    const tokens = [1,2,3,4,5,6].map(s=>{
+      const n = teNoteAt(beat, s); if(!n) return '';
+      let t = n.dead ? 'x' : String(n.f);
+      if(n.ghost) t = '('+t+')';
+      if(n.harm==='N') t = '<'+t+'>';
+      if(n.bend) t += 'b' + (n.bend.t.indexOf('volta')>=0 ? 'r' : '');
+      if(n.vib) t += '~';
+      if(n.lig || n.slide==='para'){
+        const prox = teNextOnString(doc, bi, s);
+        const sobe = prox ? prox.n.f >= n.f : true;
+        t += n.lig ? (sobe?'h':'p') : (sobe?'/':'\\');
+      }
+      return t;
+    });
+    const w = Math.max(1, ...tokens.map(t=>t.length)) + 1;
+    tokens.forEach((t,i)=>{ linhas[i] += '-' + t + '-'.repeat(w - t.length - 1); });
+    if(fimDeCompasso.has(bi) && bi < doc.beats.length-1) linhas.forEach((l,i)=>{ linhas[i] = l + '-|'; });
+  });
+  return linhas.map(l=>l+'-|').join('\n');
+}
+function teNextOnString(doc, bi, s){
+  for(let j=bi+1;j<doc.beats.length && j<=bi+8;j++){
+    const n = teNoteAt(doc.beats[j], s);
+    if(n) return {j, n};
+  }
+  return null;
+}
+// Importa a tablatura em texto dos solos antigos para o modelo novo (modo
+// livre, que é o que mais se parece com o texto: sem ritmo).
+function teFromAscii(text){
+  const doc = teNewDoc(); doc.beats = [];
+  const linhas = String(text||'').split('\n').map(l=>l.replace(/\r/g,''));
+  const grupos = []; let atual = [];
+  linhas.forEach(l=>{
+    const m = l.match(/^\s*([A-Za-z#b]{1,2})\s*\|(.*)$/);
+    if(m){ atual.push(m[2]); if(atual.length===6){ grupos.push(atual); atual=[]; } }
+    else if(atual.length){ atual = []; }
+  });
+  grupos.forEach((g, gi)=>{
+    const L = Math.max(...g.map(x=>x.length));
+    const rows = g.map(x=>x.padEnd(L,'-'));
+    let c = 0;
+    while(c < L){
+      if(rows.every(r=>r[c]==='|')){
+        if(doc.beats.length) doc.beats[doc.beats.length-1].bar = true;
+        c++; continue;
+      }
+      const notas = [];
+      let fimColuna = c+1;
+      rows.forEach((r, si)=>{
+        const ch = r[c];
+        const ant = c>0 ? r[c-1] : '-';
+        if(/[0-9]/.test(ch) && !/[0-9]/.test(ant)){
+          let k = c, num = '';
+          while(k<L && /[0-9]/.test(r[k])){ num += r[k]; k++; }
+          const n = {s: si+1, f: Math.min(24, parseInt(num,10))};
+          if(ant==='(') n.ghost = true;
+          if(ant==='<') n.harm = 'N';
+          let tec = '';
+          while(k<L && /[hpbr\/\\~)>]/.test(r[k])){ tec += r[k]; k++; }
+          if(tec.indexOf('h')>=0 || tec.indexOf('p')>=0) n.lig = true;
+          if(tec.indexOf('/')>=0 || tec.indexOf('\\')>=0) n.slide = 'para';
+          if(tec.indexOf('b')>=0) n.bend = {t: tec.indexOf('r')>=0 ? 'bend-volta' : 'bend', v:1};
+          if(tec.indexOf('~')>=0) n.vib = true;
+          notas.push(n);
+          fimColuna = Math.max(fimColuna, c+1);
+        } else if((ch==='x' || ch==='X') && ant!=='x'){
+          notas.push({s: si+1, f:0, dead:true});
+        }
+      });
+      if(notas.length){ const b = teNewBeat(8); b.notes = notas; doc.beats.push(b); }
+      c = fimColuna;
+    }
+    if(gi < grupos.length-1 && doc.beats.length) doc.beats[doc.beats.length-1].bar = true;
+  });
+  if(doc.beats.length) doc.beats[doc.beats.length-1].bar = false;
+  const temNota = doc.beats.some(b=>b.notes.length);
+  if(!temNota) doc.beats = [];
+  doc.beats.push(teNewBeat(8));
+  return {doc, temNota};
+}
+// Normaliza um doc vindo do banco (campos faltando, versões futuras).
+function teNormalize(doc){
+  const d = Object.assign(teNewDoc(), teClone(doc||{}));
+  if(!Array.isArray(d.beats) || !d.beats.length) d.beats = [teNewBeat(8)];
+  d.beats = d.beats.map(b=>Object.assign(teNewBeat(8), b, {notes: Array.isArray(b.notes)? b.notes.filter(n=>n && n.s>=1 && n.s<=6) : []}));
+  if(!d.compasso || !d.compasso.n) d.compasso = {n:4,d:4};
+  if(d.modo!=='partitura') d.modo = 'livre';
+  return d;
+}
+
+// ==== TAB EDITOR V2 — layout e desenho (SVG) ====
+// Símbolos musicais: fonte Bravura (Steinberg, SIL Open Font License 1.1),
+// só os contornos dos glifos usados, convertidos para caminhos SVG em
+// unidades de "espaço de pauta" (TE_GLYPHS, gerado a partir da fonte).
+function teMetrics(width){
+  const small = width < 640;
+  return {
+    small, S: small ? 6.4 : 7.4, T: small ? 12 : 13, fs: small ? 11 : 12,
+    padX: small ? 13 : 14, k: small ? 0.84 : 1, freeW: small ? 25 : 30,
+  };
+}
+function teF(n){ return (Math.round(n*10)/10).toString(); }
+function teG(name, x, y, S, cls){
+  const g = TE_GLYPHS[name]; if(!g) return '';
+  return `<path class="${cls||'te-ink'}" d="${g.d}" transform="translate(${teF(x)} ${teF(y)}) scale(${S})"/>`;
+}
+// Grafia com sustenidos: nota escrita (guitarra soa uma oitava abaixo do
+// que está escrito — por isso a clave de sol com o "8" embaixo).
+const TE_LETTER = [0,0,1,1,2,3,3,4,4,5,5,6];
+const TE_SHARP  = [0,1,0,1,0,0,1,0,1,0,1,0];
+function teSpell(midi){
+  const w = midi + 12;
+  const pc = ((w%12)+12)%12, oct = Math.floor(w/12) - 1;
+  return {step: oct*7 + TE_LETTER[pc], acc: TE_SHARP[pc]};
+}
+function teFretLabel(n){
+  let t = n.dead ? 'x' : String(n.f);
+  if(n.harm==='N') t = '<'+t+'>';
+  if(n.ghost || n.tie) t = '('+t+')';
+  return t;
+}
+function teBeatBaseW(doc, beat, M){
+  if(doc.modo!=='partitura') return M.freeW;
+  const base = {1:64,2:52,4:40,8:31,16:27,32:25}[beat.dur] || 31;
+  let w = base * (beat.dot ? 1.15 : 1) * M.k;
+  return w;
+}
+
+function teLayout(doc, width, opts){
+  opts = opts||{};
+  const M = teMetrics(width);
+  const part = doc.modo==='partitura';
+  const showNot = !!doc.mostrarPartitura;
+  const tuning = teTuning(doc);
+  const beats = doc.beats;
+  const measures = teMeasures(doc);
+  const S = M.S, T = M.T;
+  // largura de cada batida (mínimo que cabe o número da casa e o sustenido)
+  const bw = beats.map(b=>{
+    let w = teBeatBaseW(doc, b, M);
+    const maxLab = Math.max(0, ...b.notes.map(n=>teFretLabel(n).length));
+    w = Math.max(w, maxLab*M.fs*0.62 + 14);
+    if(showNot && b.notes.some(n=>teSpell(tuning[n.s-1]+n.f).acc)) w = Math.max(w, 30*M.k + 6);
+    if(b.notes.some(n=>n.bend)) w = Math.max(w, 30);
+    return w;
+  });
+  const avail = width - M.padX*2;
+  const clefW = showNot ? 3.8*S + 10 : 28;
+  const tsW = (part) ? 2.6*S + 8 : 0;
+  const mpadL = 8*M.k, mpadR = 4*M.k;
+  const lines = [];
+  const novaLinha = (first)=>({first, prefix: clefW + (first ? tsW : 0), cursor: clefW + (first ? tsW : 0), segs:[]});
+  let L = novaLinha(true);
+  measures.forEach((m, mi)=>{
+    let soma = 0; for(let i=m.a;i<m.b;i++) soma += bw[i];
+    const mw = mpadL + soma + mpadR;
+    if(L.cursor + mw <= avail){ L.segs.push({mi, a:m.a, b:m.b, opens:true, closes:true}); L.cursor += mw; return; }
+    if(L.segs.length && L.prefix + mw <= avail){
+      lines.push(L); L = novaLinha(false);
+      L.segs.push({mi, a:m.a, b:m.b, opens:true, closes:true}); L.cursor += mw; return;
+    }
+    // Compasso maior que uma linha (comum no modo livre): parte entre batidas.
+    let a = m.a, opens = true;
+    while(a < m.b){
+      let w = opens ? mpadL : 0, b = a;
+      while(b < m.b && L.cursor + w + bw[b] + (b+1===m.b ? mpadR : 0) <= avail){ w += bw[b]; b++; }
+      if(b===a){
+        if(L.segs.length){ lines.push(L); L = novaLinha(false); continue; }
+        w += bw[a]; b = a+1;
+      }
+      const closes = b===m.b; if(closes) w += mpadR;
+      L.segs.push({mi, a, b, opens, closes}); L.cursor += w;
+      a = b; opens = false;
+      if(a < m.b){ lines.push(L); L = novaLinha(false); }
+    }
+  });
+  lines.push(L);
+
+  // Posição horizontal (com justificação das linhas cheias, como no Songsterr)
+  const pos = new Array(beats.length);
+  lines.forEach((ln, li)=>{
+    let somaBeats = 0, pads = 0;
+    ln.segs.forEach(sg=>{ for(let i=sg.a;i<sg.b;i++) somaBeats += bw[i]; pads += (sg.opens?mpadL:0) + (sg.closes?mpadR:0); });
+    const ultima = li===lines.length-1;
+    const livre = avail - ln.prefix - pads;
+    const f = (!ultima || (ln.cursor > avail*0.72)) && somaBeats>0 ? Math.max(1, livre/somaBeats) : 1;
+    let x = M.padX + ln.prefix;
+    ln.bars = []; ln.mnums = [];
+    ln.segs.forEach(sg=>{
+      if(sg.opens){ ln.mnums.push({x, mi:sg.mi}); x += mpadL; }
+      for(let i=sg.a;i<sg.b;i++){
+        const w = bw[i]*f;
+        const hasAcc = showNot && beats[i].notes.some(n=>teSpell(tuning[n.s-1]+n.f).acc);
+        const cx = part ? x + Math.min(w/2, (hasAcc ? 17 : 13)*M.k) : x + w/2;
+        pos[i] = {line:li, x0:x, w, cx};
+        x += w;
+      }
+      if(sg.closes){ x += mpadR; ln.bars.push({x, mi:sg.mi, over: measures[sg.mi].over}); }
+    });
+    ln.xEnd = x;
+  });
+
+  // Alturas: cada linha reserva só o espaço que usa (ledger lines, bends...)
+  let y = 4;
+  lines.forEach((ln, li)=>{
+    let minStep = 30, maxStep = 38;
+    let hasBend=false, hasVib=false, hasPM=false, hasRing=false, hasTxt=false, hasLig=false;
+    ln.segs.forEach(sg=>{ for(let i=sg.a;i<sg.b;i++) beats[i].notes.forEach(n=>{
+      const sp = teSpell(tuning[n.s-1]+n.f);
+      minStep = Math.min(minStep, sp.step); maxStep = Math.max(maxStep, sp.step);
+      if(n.bend) hasBend = true; if(n.vib) hasVib = true; if(n.pm) hasPM = true; if(n.ring) hasRing = true;
+      if(n.tap || n.acc || n.harm==='A') hasTxt = true;
+      if(n.lig && n.s===1) hasLig = true;
+    }); });
+    ln.y0 = y;
+    let yy = y + (part ? 14 : 8);
+    if(showNot){
+      const stemRoom = part ? 3.6*S : 1*S;
+      const above = Math.max(1.5*S, (maxStep-38)*S/2 + stemRoom);
+      const below = Math.max(1.5*S, (30-minStep)*S/2 + stemRoom);
+      ln.notTop = yy + above;
+      ln.notBottom = ln.notTop + 4*S;
+      yy = ln.notBottom + below + 8;
+    }
+    ln.lanes = {};
+    if(hasTxt){ ln.lanes.txt = yy; yy += 13; }
+    if(hasPM){ ln.lanes.pm = yy; yy += 13; }
+    if(hasRing){ ln.lanes.ring = yy; yy += 13; }
+    if(hasBend){ ln.lanes.bend = yy; yy += 24; }
+    if(hasVib){ ln.lanes.vib = yy; yy += 10; }
+    if(hasLig && !hasBend) yy += 8;
+    ln.tabTop = yy + 8;
+    ln.tabBottom = ln.tabTop + 5*T;
+    ln.rhythm = part && !showNot;
+    ln.y1 = ln.tabBottom + (ln.rhythm ? 36 : 16);
+    y = ln.y1 + (M.small ? 10 : 16);
+  });
+  return {M, lines, pos, measures, width, height: y, part, showNot, bw};
+}
+
+// ---- desenho ----
+function teRenderSvg(doc, lay, opts){
+  opts = opts||{};
+  const {M, lines, pos, part, showNot} = lay;
+  const S = M.S, T = M.T, fs = M.fs;
+  const beats = doc.beats;
+  const tuning = teTuning(doc);
+  const nomes = teStringNames(doc);
+  const out = [];
+  const ultimoIdx = beats.length-1;
+  const trailing = opts.editable && teIsEmpty(beats[ultimoIdx]);
+  const ys = (ln, s)=> ln.tabTop + (s-1)*T;
+  const yStep = (ln, st)=> ln.notTop + (38-st)*S/2;
+
+  // Seleção / cursor / reprodução ficam atrás de tudo.
+  if(opts.playRect) out.push(`<rect class="te-playr te-playr-live" x="0" y="0" width="0" height="0" rx="3"/>`);
+  if(opts.startIdx!=null && opts.startIdx>0 && pos[opts.startIdx]){
+    const p = pos[opts.startIdx], ln = lines[p.line];
+    const topo = showNot ? ln.notTop - 1.5*S : ln.tabTop - 10;
+    out.push(`<rect class="te-startmk" x="${teF(p.x0)}" y="${teF(topo)}" width="2.5" height="${teF(ln.tabBottom + 8 - topo)}" rx="1"/>`);
+  }
+  lines.forEach((ln, li)=>{
+    const colTop = showNot ? ln.notTop - 1.5*S : ln.tabTop - 10;
+    const colBot = ln.tabBottom + 8;
+    if(opts.sel){
+      const a = Math.min(opts.sel.a, opts.sel.b), z = Math.max(opts.sel.a, opts.sel.b);
+      for(let i=a;i<=z;i++){ const p = pos[i]; if(p && p.line===li) out.push(`<rect class="te-selr" x="${teF(p.x0)}" y="${teF(colTop)}" width="${teF(p.w)}" height="${teF(colBot-colTop)}"/>`); }
+    }
+    if(opts.playIdx!=null && opts.playIdx>=0){
+      const p = pos[opts.playIdx];
+      if(p && p.line===li) out.push(`<rect class="te-playr" x="${teF(p.x0)}" y="${teF(colTop)}" width="${teF(p.w)}" height="${teF(colBot-colTop)}" rx="3"/>`);
+    }
+    if(opts.cursor){
+      const p = pos[opts.cursor.b];
+      if(p && p.line===li){
+        const cw = Math.max(20, Math.min(p.w-2, 28));
+        out.push(`<rect class="te-curcol" x="${teF(p.cx-cw/2)}" y="${teF(ln.tabTop-9)}" width="${teF(cw)}" height="${teF(5*T+18)}" rx="4"/>`);
+        out.push(`<rect class="te-curcell" x="${teF(p.cx-cw/2)}" y="${teF(ys(ln,opts.cursor.s)-T/2)}" width="${teF(cw)}" height="${teF(T)}" rx="3"/>`);
+        if(showNot) out.push(`<rect class="te-curcol te-curcol-not" x="${teF(p.cx-cw/2)}" y="${teF(ln.notTop-S)}" width="${teF(cw)}" height="${teF(6*S)}" rx="4"/>`);
+      }
+    }
+  });
+
+  lines.forEach((ln, li)=>{
+    const x0 = M.padX, x1 = ln.xEnd;
+    // --- números de compasso
+    if(part) ln.mnums.forEach(mn=>{
+      const topo = showNot ? ln.notTop - 2.2*S : ln.tabTop - 12 - (ln.lanes.bend!=null?24:0);
+      out.push(`<text class="te-mnum${lay.measures[mn.mi].over?' te-over':''}" x="${teF(mn.x+2)}" y="${teF(Math.min(topo, ln.y0+12))}">${mn.mi+1}</text>`);
+    });
+    // --- pentagrama
+    if(showNot){
+      for(let k=0;k<5;k++){ const yy = ln.notTop + k*S; out.push(`<line class="te-line" x1="${x0}" y1="${teF(yy)}" x2="${teF(x1)}" y2="${teF(yy)}"/>`); }
+      out.push(teG('gClef8vb', x0+4, ln.notTop+3*S, S));
+      if(ln.first && part){
+        const tx = x0 + 3.8*S + 6;
+        const dig = (v, yc)=>{ const s = String(v); let xx = tx + (s.length===1?0.3*S:0); for(const ch of s){ out.push(teG('timeSig'+ch, xx, yc, S)); xx += TE_GLYPHS['timeSig'+ch].w*S; } };
+        dig(doc.compasso.n, ln.notTop+S); dig(doc.compasso.d, ln.notTop+3*S);
+      }
+      out.push(`<line class="te-bar" x1="${x0}" y1="${teF(ln.notTop)}" x2="${x0}" y2="${teF(ln.notBottom)}"/>`);
+    }
+    // --- tablatura
+    for(let s=1;s<=6;s++){ const yy = ys(ln,s); out.push(`<line class="te-line" x1="${x0}" y1="${teF(yy)}" x2="${teF(x1)}" y2="${teF(yy)}"/>`); }
+    out.push(`<line class="te-bar" x1="${x0}" y1="${teF(ln.tabTop)}" x2="${x0}" y2="${teF(ln.tabBottom)}"/>`);
+    {
+      const tx = x0 + (showNot ? 1.9*S+4 : 13);
+      ['T','A','B'].forEach((ch,k)=> out.push(`<text class="te-clef" x="${teF(tx)}" y="${teF(ln.tabTop + T*0.8 + k*T*1.55)}">${ch}</text>`));
+      if(part && !showNot && ln.first){
+        const xs = x0 + 28 + 1.3*S + 4;
+        out.push(`<text class="te-ts" x="${teF(xs)}" y="${teF(ln.tabTop+2.1*T)}">${doc.compasso.n}</text><text class="te-ts" x="${teF(xs)}" y="${teF(ln.tabTop+4.3*T)}">${doc.compasso.d}</text>`);
+      }
+    }
+    if(ln.first) nomes.forEach((nm,k)=> out.push(`<text class="te-snome" x="${teF(x0-2)}" y="${teF(ys(ln,k+1)+3.5)}">${nm}</text>`));
+    // --- barras de compasso
+    ln.bars.forEach(bar=>{
+      const fim = bar.mi===lay.measures.length-1 && !opts.editable;
+      const cls = 'te-bar'+(bar.over?' te-over':'');
+      if(showNot) out.push(`<line class="${cls}" x1="${teF(bar.x)}" y1="${teF(ln.notTop)}" x2="${teF(bar.x)}" y2="${teF(ln.notBottom)}"/>`);
+      out.push(`<line class="${cls}" x1="${teF(bar.x)}" y1="${teF(ln.tabTop)}" x2="${teF(bar.x)}" y2="${teF(ln.tabBottom)}"/>`);
+      if(fim){
+        if(showNot) out.push(`<rect class="te-ink" x="${teF(bar.x+2)}" y="${teF(ln.notTop)}" width="3" height="${teF(4*S)}"/>`);
+        out.push(`<rect class="te-ink" x="${teF(bar.x+2)}" y="${teF(ln.tabTop)}" width="3" height="${teF(5*T)}"/>`);
+      }
+    });
+  });
+
+  // --- notação (pentagrama)
+  if(showNot) out.push(teRenderNotation(doc, lay, opts, yStep));
+  // --- ritmo embaixo da tablatura (partitura sem pentagrama)
+  if(part && !showNot) out.push(teRenderTabRhythm(doc, lay, opts));
+  // --- números e técnicas na tablatura
+  out.push(teRenderTabNotes(doc, lay, opts, ys, trailing));
+
+  const h = Math.ceil(lay.height);
+  return `<svg class="te-svg" xmlns="http://www.w3.org/2000/svg" width="${lay.width}" height="${h}" viewBox="0 0 ${lay.width} ${h}">${out.join('')}</svg>`;
+}
+
+function teRenderTabNotes(doc, lay, opts, ys, trailing){
+  const {M, lines, pos} = lay; const T = M.T, fs = M.fs;
+  const beats = doc.beats; const out = [];
+  beats.forEach((beat, bi)=>{
+    const p = pos[bi]; if(!p) return;
+    const ln = lines[p.line];
+    beat.notes.forEach(n=>{
+      const y = ys(ln, n.s);
+      const lab = teFretLabel(n);
+      const tw = lab.length*fs*0.6 + 4;
+      out.push(`<rect class="te-mask" x="${teF(p.cx-tw/2)}" y="${teF(y-fs*0.62)}" width="${teF(tw)}" height="${teF(fs*1.2)}"/>`);
+      out.push(`<text class="te-num${n.tie?' te-tiednum':''}${n.ghost?' te-ghostnum':''}" font-size="${fs}" x="${teF(p.cx)}" y="${teF(y+fs*0.36)}">${escapeTe(lab)}</text>`);
+      const prox = (n.lig || n.slide==='para') ? teNextOnString(doc, bi, n.s) : null;
+      const px = prox && pos[prox.j] && pos[prox.j].line===p.line ? pos[prox.j].cx : null;
+      const tx = tw/2 + 1;
+      if(n.lig){
+        const xa = p.cx + tx - 1, xb = px!=null ? px - tx + 1 : Math.min(ln.xEnd, p.cx + 22);
+        const yA = y - T*0.45, ctl = y - T*1.15;
+        out.push(`<path class="te-arc" d="M${teF(xa)} ${teF(yA)} Q${teF((xa+xb)/2)} ${teF(ctl)} ${teF(xb)} ${teF(yA)}"/>`);
+        if(prox){ const lt = prox.n.f >= n.f ? 'H' : 'P'; out.push(`<text class="te-hp" x="${teF((xa+xb)/2)}" y="${teF(ctl-1.5)}">${lt}</text>`); }
+      }
+      if(n.slide){
+        const d = 4;
+        if(n.slide==='para'){
+          const sobe = prox ? prox.n.f >= n.f : true;
+          const xa = p.cx + tx, xb = px!=null ? px - tx : Math.min(ln.xEnd, p.cx + 22);
+          out.push(`<line class="te-stroke" x1="${teF(xa)}" y1="${teF(y+(sobe?d:-d))}" x2="${teF(xb)}" y2="${teF(y+(sobe?-d:d))}"/>`);
+        } else if(n.slide==='entra-baixo') out.push(`<line class="te-stroke" x1="${teF(p.cx-tx-12)}" y1="${teF(y+d)}" x2="${teF(p.cx-tx-1)}" y2="${teF(y-d)}"/>`);
+        else if(n.slide==='entra-cima') out.push(`<line class="te-stroke" x1="${teF(p.cx-tx-12)}" y1="${teF(y-d)}" x2="${teF(p.cx-tx-1)}" y2="${teF(y+d)}"/>`);
+        else if(n.slide==='sai-baixo') out.push(`<line class="te-stroke" x1="${teF(p.cx+tx+1)}" y1="${teF(y-d)}" x2="${teF(p.cx+tx+12)}" y2="${teF(y+d)}"/>`);
+        else if(n.slide==='sai-cima') out.push(`<line class="te-stroke" x1="${teF(p.cx+tx+1)}" y1="${teF(y+d)}" x2="${teF(p.cx+tx+12)}" y2="${teF(y-d)}"/>`);
+      }
+      if(n.bend && ln.lanes.bend!=null){
+        const yb = ln.lanes.bend + 10;
+        const rot = (TE_BEND_VALORES.find(v=>v.v===n.bend.v)||{rot:'full'}).rot.replace('inteiro','full');
+        const t = n.bend.t;
+        const seta = (x, yy, cima)=> cima ? `<path class="te-ink" d="M${teF(x-3)} ${teF(yy+5)} L${teF(x+3)} ${teF(yy+5)} L${teF(x)} ${teF(yy)} Z"/>` : `<path class="te-ink" d="M${teF(x-3)} ${teF(yy-5)} L${teF(x+3)} ${teF(yy-5)} L${teF(x)} ${teF(yy)} Z"/>`;
+        if(t==='bend' || t==='bend-volta'){
+          const xa = p.cx + tx, xt = p.cx + tx + 8;
+          out.push(`<path class="te-arc" d="M${teF(xa)} ${teF(y-2)} Q${teF(xt)} ${teF(y-2)} ${teF(xt)} ${teF(yb+4)}"/>`);
+          out.push(seta(xt, yb, true));
+          out.push(`<text class="te-bendtxt" x="${teF(xt)}" y="${teF(yb-2)}">${rot}</text>`);
+          if(t==='bend-volta'){
+            const xc = xt + 9;
+            out.push(`<path class="te-arc te-dash" d="M${teF(xt)} ${teF(yb+2)} Q${teF(xc)} ${teF(yb+2)} ${teF(xc)} ${teF(y-7)}"/>`);
+            out.push(seta(xc, y-3, false));
+          }
+        } else {
+          const xa = p.cx;
+          out.push(`<line class="te-stroke" x1="${teF(xa)}" y1="${teF(y-fs*0.7)}" x2="${teF(xa)}" y2="${teF(yb+4)}"/>`);
+          out.push(seta(xa, yb, true));
+          out.push(`<text class="te-bendtxt" x="${teF(xa)}" y="${teF(yb-2)}">${rot}</text>`);
+          if(t==='pre-volta'){
+            const xc = xa + 11;
+            out.push(`<path class="te-arc te-dash" d="M${teF(xa)} ${teF(yb+2)} Q${teF(xc)} ${teF(yb+2)} ${teF(xc)} ${teF(y-7)}"/>`);
+            out.push(seta(xc, y-3, false));
+          }
+        }
+      }
+    });
+    // vibrato (linha ondulada por cima da tablatura)
+    if(beat.notes.some(n=>n.vib) && ln.lanes.vib!=null){
+      const ya = ln.lanes.vib + 5;
+      const xa = p.cx - 4, xb = Math.max(xa + 12, p.x0 + p.w - 3);
+      let d = `M${teF(xa)} ${teF(ya)}`; let up = true;
+      for(let x=xa; x+4<=xb+0.1; x+=4){ d += ` q2 ${up?-3:3} 4 0`; up = !up; }
+      out.push(`<path class="te-arc" d="${d}"/>`);
+    }
+    // textos (tapping, harmônico artificial, acento)
+    if(ln.lanes.txt!=null){
+      const tx = [];
+      if(beat.notes.some(n=>n.tap)) tx.push('T');
+      if(beat.notes.some(n=>n.harm==='A')) tx.push('A.H.');
+      if(beat.notes.some(n=>n.acc)) tx.push('>');
+      if(tx.length) out.push(`<text class="te-tectxt" x="${teF(p.cx)}" y="${teF(ln.lanes.txt+9)}">${escapeTe(tx.join(' '))}</text>`);
+    }
+  });
+  // P.M. e let ring: um rótulo + linha tracejada por trecho seguido.
+  [['pm','P.M.'],['ring','let ring']].forEach(([k, rot])=>{
+    let ini = -1;
+    for(let i=0;i<=beats.length;i++){
+      const tem = i<beats.length && beats[i].notes.some(n=>n[k]);
+      const mesmaLinha = ini>=0 && i<beats.length && pos[i] && pos[ini] && pos[i].line===pos[ini].line;
+      if(tem && ini<0) ini = i;
+      else if(ini>=0 && (!tem || !mesmaLinha)){
+        const p0 = pos[ini], p1 = pos[i-1]; const ln = lines[p0.line];
+        if(ln.lanes[k]!=null){
+          const yy = ln.lanes[k] + 9;
+          out.push(`<text class="te-tectxt te-left" x="${teF(p0.cx-8)}" y="${teF(yy)}">${rot}</text>`);
+          const xa = p0.cx - 8 + rot.length*5.4 + 4, xb = p1.x0 + p1.w - 4;
+          if(xb > xa + 4){ out.push(`<line class="te-stroke te-dash" x1="${teF(xa)}" y1="${teF(yy-3)}" x2="${teF(xb)}" y2="${teF(yy-3)}"/><line class="te-stroke" x1="${teF(xb)}" y1="${teF(yy-3)}" x2="${teF(xb)}" y2="${teF(yy+1)}"/>`); }
+        }
+        ini = tem ? i : -1;
+      }
+    }
+  });
+  return out.join('');
+}
+function escapeTe(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Posição (em ticks) de cada batida dentro do compasso — para agrupar colcheias
+// por tempo (feixes) e decidir onde entra o "3" das tercinas.
+function teBeatTicksInMeasure(doc, lay){
+  const r = new Array(doc.beats.length);
+  lay.measures.forEach((m, mi)=>{ let acc = 0; for(let i=m.a;i<m.b;i++){ r[i] = {mi, t:acc}; acc += teTicks(doc.beats[i]); } });
+  return r;
+}
+function teBeamGroups(doc, lay){
+  // Grupos de colcheias (ou menores) dentro do mesmo tempo, sem pausa no meio
+  // e sem atravessar quebra de linha.
+  const {pos} = lay; const beats = doc.beats; const tim = teBeatTicksInMeasure(doc, lay);
+  const unit = (doc.compasso.d===8 && doc.compasso.n%3===0) ? TE_TPQ*1.5 : TE_TPQ;
+  const grupos = []; let g = null;
+  for(let i=0;i<beats.length;i++){
+    const b = beats[i]; const ok = b.dur>=8 && b.notes.length && pos[i];
+    const key = ok ? tim[i].mi+':'+Math.floor(tim[i].t/unit)+':'+pos[i].line : null;
+    if(ok && g && g.key===key){ g.idx.push(i); }
+    else { if(g && g.idx.length>1) grupos.push(g.idx); g = ok ? {key, idx:[i]} : null; }
+  }
+  if(g && g.idx.length>1) grupos.push(g.idx);
+  return grupos;
+}
+function teLevels(dur){ return dur>=32 ? 3 : dur>=16 ? 2 : dur>=8 ? 1 : 0; }
+
+function teRenderNotation(doc, lay, opts, yStep){
+  const {M, lines, pos, part} = lay; const S = M.S;
+  const beats = doc.beats; const tuning = teTuning(doc); const out = [];
+  const trailing = opts.editable ? beats.length-1 : -1;
+  const hx = 1.18*S; // largura da cabeça de nota
+  // cabeças, acidentes, linhas suplementares, pontos
+  const info = new Array(beats.length);
+  let accState = {}; let mAtual = -1;
+  const tim = teBeatTicksInMeasure(doc, lay);
+  beats.forEach((beat, bi)=>{
+    const p = pos[bi]; if(!p) return;
+    const ln = lines[p.line];
+    if(!part || (tim[bi] && tim[bi].mi!==mAtual)){ accState = {}; mAtual = tim[bi] ? tim[bi].mi : -1; }
+    const cls = bi===trailing ? 'te-ink te-ghostbeat' : 'te-ink';
+    if(!beat.notes.length){
+      if(!part) return;
+      const mid = ln.notTop + 2*S;
+      const nome = {1:'restWhole',2:'restHalf',4:'restQuarter',8:'rest8th',16:'rest16th',32:'rest32nd'}[beat.dur];
+      const yy = beat.dur===1 ? ln.notTop + S : mid;
+      out.push(teG(nome, p.cx - TE_GLYPHS[nome].w*S/2, yy, S, cls));
+      if(beat.dot) out.push(teG('augmentationDot', p.cx + TE_GLYPHS[nome].w*S/2 + 0.3*S, mid - S/2, S, cls));
+      return;
+    }
+    const notas = beat.notes.map(n=>({n, sp: teSpell(tuning[n.s-1]+n.f)})).sort((a,b)=>a.sp.step-b.sp.step);
+    const hl = p.cx - hx/2;
+    notas.forEach(({n, sp})=>{
+      const y = yStep(ln, sp.step);
+      // linhas suplementares
+      for(let st=28; st>=sp.step; st-=2) out.push(`<line class="te-ledger" x1="${teF(hl-0.4*S)}" y1="${teF(yStep(ln,st))}" x2="${teF(hl+hx+0.4*S)}" y2="${teF(yStep(ln,st))}"/>`);
+      for(let st=40; st<=sp.step; st+=2) out.push(`<line class="te-ledger" x1="${teF(hl-0.4*S)}" y1="${teF(yStep(ln,st))}" x2="${teF(hl+hx+0.4*S)}" y2="${teF(yStep(ln,st))}"/>`);
+      // acidente (vale até o fim do compasso)
+      const antes = accState[sp.step];
+      if(!n.tie && (antes===undefined ? sp.acc===1 : antes!==sp.acc)){
+        const g = sp.acc ? 'accidentalSharp' : 'accidentalNatural';
+        out.push(teG(g, hl - TE_GLYPHS[g].w*S - 0.25*S, y, S, cls));
+      }
+      accState[sp.step] = sp.acc;
+      const head = !part ? 'noteheadBlack' : beat.dur===1 ? 'noteheadWhole' : beat.dur===2 ? 'noteheadHalf' : 'noteheadBlack';
+      if(n.dead){
+        out.push(`<path class="te-stroke te-xhead" d="M${teF(hl)} ${teF(y-S*0.45)} L${teF(hl+hx)} ${teF(y+S*0.45)} M${teF(hl)} ${teF(y+S*0.45)} L${teF(hl+hx)} ${teF(y-S*0.45)}"/>`);
+      } else out.push(teG(head, hl, y, S, cls));
+      if(part && beat.dot){ const dy = (sp.step%2===0) ? -S/2 : 0; out.push(teG('augmentationDot', hl+hx+0.35*S, y+dy, S, cls)); }
+      if(n.tie){
+        const prev = teNextOnStringBack(doc, bi, n.s);
+        if(prev!==null && pos[prev] && pos[prev].line===p.line){
+          const xa = pos[prev].cx + hx/2, xb = p.cx - hx/2;
+          out.push(`<path class="te-arc" d="M${teF(xa)} ${teF(y+S*0.7)} Q${teF((xa+xb)/2)} ${teF(y+S*1.8)} ${teF(xb)} ${teF(y+S*0.7)}"/>`);
+        }
+      }
+    });
+    const lo = notas[0].sp.step, hi = notas[notas.length-1].sp.step;
+    info[bi] = {hl, yLo: yStep(ln, lo), yHi: yStep(ln, hi), lo, hi, cls};
+  });
+  if(!part) return out.join('');
+
+  // hastes, bandeirolas e feixes
+  const grupos = teBeamGroups(doc, lay);
+  const emGrupo = new Set(); grupos.forEach(g=>g.forEach(i=>emGrupo.add(i)));
+  const dirDe = (idxs)=>{
+    let lo = 99, hi = -99; idxs.forEach(i=>{ lo = Math.min(lo, info[i].lo); hi = Math.max(hi, info[i].hi); });
+    return (hi - 34) > (34 - lo) ? 'down' : 'up';
+  };
+  const stemX = (i, dir)=> dir==='up' ? info[i].hl + hx - 0.06*S : info[i].hl + 0.06*S;
+  const sw = 0.12*S;
+  beats.forEach((beat, bi)=>{
+    if(!info[bi] || emGrupo.has(bi) || beat.dur<2) return;
+    const dir = dirDe([bi]); const I = info[bi]; const x = stemX(bi, dir);
+    const len = 3.5*S;
+    if(dir==='up'){
+      const yEnd = Math.min(I.yHi - len, pos[bi] ? lines[pos[bi].line].notTop + 2*S : I.yHi - len);
+      out.push(`<rect class="${I.cls}" x="${teF(x-sw/2)}" y="${teF(yEnd)}" width="${teF(sw)}" height="${teF(I.yLo - 0.17*S - yEnd)}"/>`);
+      if(beat.dur>=8){ const f = {8:'flag8thUp',16:'flag16thUp',32:'flag32ndUp'}[beat.dur]; out.push(teG(f, x - sw/2, yEnd, S, I.cls)); }
+    } else {
+      const yEnd = Math.max(I.yLo + len, lines[pos[bi].line].notTop + 2*S);
+      out.push(`<rect class="${I.cls}" x="${teF(x-sw/2)}" y="${teF(I.yHi + 0.17*S)}" width="${teF(sw)}" height="${teF(yEnd - I.yHi - 0.17*S)}"/>`);
+      if(beat.dur>=8){ const f = {8:'flag8thDown',16:'flag16thDown',32:'flag32ndDown'}[beat.dur]; out.push(teG(f, x - sw/2, yEnd, S, I.cls)); }
+    }
+  });
+  grupos.forEach(g=>{
+    const dir = dirDe(g);
+    const xs = g.map(i=>stemX(i, dir));
+    const base = g.map(i=> dir==='up' ? info[i].yHi - 3.5*S : info[i].yLo + 3.5*S);
+    const x1 = xs[0], x2 = xs[xs.length-1];
+    let d = base[base.length-1] - base[0];
+    d = Math.max(-S, Math.min(S, d));
+    const slope = x2>x1 ? d/(x2-x1) : 0;
+    let y1 = base[0];
+    // garante haste mínima de 2,8 espaços em todas as notas do grupo
+    g.forEach((i,k)=>{
+      const yb = y1 + slope*(xs[k]-x1);
+      if(dir==='up'){ const lim = info[i].yHi - 2.8*S; if(yb > lim) y1 -= (yb - lim); }
+      else { const lim = info[i].yLo + 2.8*S; if(yb < lim) y1 += (lim - yb); }
+    });
+    const yAt = (x)=> y1 + slope*(x-x1);
+    g.forEach((i,k)=>{
+      const I = info[i]; const x = xs[k]; const yb = yAt(x);
+      if(dir==='up') out.push(`<rect class="${I.cls}" x="${teF(x-sw/2)}" y="${teF(yb)}" width="${teF(sw)}" height="${teF(I.yLo - 0.17*S - yb)}"/>`);
+      else out.push(`<rect class="${I.cls}" x="${teF(x-sw/2)}" y="${teF(I.yHi + 0.17*S)}" width="${teF(sw)}" height="${teF(yb - I.yHi - 0.17*S)}"/>`);
+    });
+    const bt = 0.5*S, esp = 0.75*S;
+    const feixe = (xa, xb, lvl)=>{
+      const off = (lvl-1)*esp*(dir==='up'?1:-1);
+      const ya = yAt(xa)+off, yb2 = yAt(xb)+off;
+      const t = dir==='up' ? bt : -bt;
+      return `<path class="te-ink" d="M${teF(xa)} ${teF(ya)} L${teF(xb)} ${teF(yb2)} L${teF(xb)} ${teF(yb2+t)} L${teF(xa)} ${teF(ya+t)} Z"/>`;
+    };
+    out.push(feixe(x1 - sw/2, x2 + sw/2, 1));
+    for(let lvl=2; lvl<=3; lvl++){
+      g.forEach((i,k)=>{
+        if(teLevels(beats[i].dur) < lvl) return;
+        const temProx = k<g.length-1 && teLevels(beats[g[k+1]].dur) >= lvl;
+        const temAnt = k>0 && teLevels(beats[g[k-1]].dur) >= lvl;
+        if(temProx) out.push(feixe(xs[k]-sw/2, xs[k+1]+sw/2, lvl));
+        else if(!temAnt){
+          const toLeft = k===g.length-1;
+          const xa = toLeft ? xs[k] - 1.1*S : xs[k];
+          out.push(feixe(xa, xa + 1.1*S, lvl));
+        }
+      });
+    }
+    // tercina
+    if(g.every(i=>beats[i].tup===3)){
+      const xm = (x1+x2)/2; const ym = yAt(xm) + (dir==='up' ? -1.6*S : 2.6*S);
+      out.push(teG('tuplet3', xm - 0.6*S, ym, S));
+    }
+  });
+  // tercinas fora de feixe (ex.: semínimas em tercina): "3" em cima
+  let ini = -1;
+  for(let i=0;i<=beats.length;i++){
+    const t = i<beats.length && beats[i].tup===3 && !emGrupo.has(i) && pos[i];
+    if(t && ini<0) ini = i;
+    if((!t || (i-ini)===3) && ini>=0){
+      const a = ini, z = i-1; const ln = lines[pos[a].line];
+      if(pos[z] && pos[z].line===pos[a].line){
+        const xa = pos[a].cx, xb = pos[z].cx; const yy = ln.notTop - 2*S;
+        out.push(`<path class="te-stroke" d="M${teF(xa-4)} ${teF(yy+4)} L${teF(xa-4)} ${teF(yy)} L${teF(xb+4)} ${teF(yy)} L${teF(xb+4)} ${teF(yy+4)}"/>`);
+        out.push(`<rect class="te-mask" x="${teF((xa+xb)/2-5)}" y="${teF(yy-6)}" width="10" height="10"/>`);
+        out.push(teG('tuplet3', (xa+xb)/2 - 0.6*S, yy + 0.8*S, S));
+      }
+      ini = t ? i : -1;
+    }
+  }
+  return out.join('');
+}
+function teNextOnStringBack(doc, bi, s){
+  for(let j=bi-1;j>=0 && j>=bi-8;j--){ if(teNoteAt(doc.beats[j], s)) return j; }
+  return null;
+}
+
+// Ritmo desenhado embaixo da tablatura (quando o pentagrama está escondido).
+function teRenderTabRhythm(doc, lay, opts){
+  const {M, lines, pos} = lay; const beats = doc.beats; const out = [];
+  const grupos = teBeamGroups(doc, lay); const emGrupo = new Set(); grupos.forEach(g=>g.forEach(i=>emGrupo.add(i)));
+  const trailing = opts.editable ? beats.length-1 : -1;
+  beats.forEach((b, i)=>{
+    const p = pos[i]; if(!p) return; const ln = lines[p.line];
+    const y0 = ln.tabBottom + 7, y1 = ln.tabBottom + 26;
+    const cls = i===trailing ? 'te-ink te-ghostbeat' : 'te-ink';
+    if(!b.notes.length){
+      const nome = {1:'restWhole',2:'restHalf',4:'restQuarter',8:'rest8th',16:'rest16th',32:'rest32nd'}[b.dur];
+      out.push(teG(nome, p.cx - TE_GLYPHS[nome].w*4.5/2, ln.tabBottom + 16, 4.5, cls));
+      return;
+    }
+    if(b.dur===1) return;
+    out.push(`<rect class="${cls}" x="${teF(p.cx-0.6)}" y="${teF(b.dur===2 ? y0+8 : y0)}" width="1.2" height="${teF(b.dur===2 ? y1-y0-8 : y1-y0)}"/>`);
+    if(b.dot) out.push(`<circle class="${cls}" cx="${teF(p.cx+4)}" cy="${teF(y1-2)}" r="1.4"/>`);
+    if(!emGrupo.has(i) && b.dur>=8){
+      for(let l=0;l<teLevels(b.dur);l++) out.push(`<path class="te-stroke" d="M${teF(p.cx)} ${teF(y1-l*4)} q4 -2 6 -7"/>`);
+    }
+  });
+  grupos.forEach(g=>{
+    const xa = pos[g[0]].cx, xb = pos[g[g.length-1]].cx; const ln = lines[pos[g[0]].line];
+    const y1 = ln.tabBottom + 26;
+    out.push(`<rect class="te-ink" x="${teF(xa-0.6)}" y="${teF(y1-2.6)}" width="${teF(xb-xa+1.2)}" height="2.6"/>`);
+    for(let lvl=2; lvl<=3; lvl++) g.forEach((i,k)=>{
+      if(teLevels(beats[i].dur) < lvl) return;
+      const yy = y1 - 2.6 - (lvl-1)*4.5;
+      const prox = k<g.length-1 && teLevels(beats[g[k+1]].dur)>=lvl;
+      const ant = k>0 && teLevels(beats[g[k-1]].dur)>=lvl;
+      if(prox) out.push(`<rect class="te-ink" x="${teF(pos[i].cx-0.6)}" y="${teF(yy)}" width="${teF(pos[g[k+1]].cx - pos[i].cx + 1.2)}" height="2.6"/>`);
+      else if(!ant){ const left = k===g.length-1; const xs = left ? pos[i].cx-7 : pos[i].cx-0.6; out.push(`<rect class="te-ink" x="${teF(xs)}" y="${teF(yy)}" width="7.6" height="2.6"/>`); }
+    });
+    if(g.every(i=>beats[i].tup===3)) out.push(`<text class="te-tectxt" x="${teF((xa+xb)/2)}" y="${teF(y1+10)}">3</text>`);
+  });
+  return out.join('');
+}
+
+// ==== TAB EDITOR V2 — reprodução (Web Audio) ====
+// Corda dedilhada por Karplus-Strong (mesma ideia do playGuitarNote do app),
+// com um buffer pré-calculado por nota (cache), tocado com AudioBufferSource
+// — assim dá pra fazer bend/slide/vibrato mexendo no playbackRate.
+const TE_AUDIO = {ctx:null, bufs:{}, noise:null, master:null, on:false, timer:null, raf:null,
+  ev:[], times:[], total:0, base:0, next:0, loop:false, range:null, onBeat:null, onStop:null, lastIdx:-1, metro:false, doc:null, voices:{}};
+function teCtx(){
+  const ctx = (typeof getToolCtx==='function') ? getToolCtx() : (TE_AUDIO.ctx || (TE_AUDIO.ctx = new (window.AudioContext||window.webkitAudioContext)()));
+  if(ctx.state==='suspended') ctx.resume();
+  if(TE_AUDIO.ctx!==ctx){ TE_AUDIO.ctx = ctx; TE_AUDIO.bufs = {}; TE_AUDIO.noise = null; }
+  return ctx;
+}
+function teFreq(midi){ return 440*Math.pow(2,(midi-69)/12); }
+function teKSBuffer(ctx, midi){
+  const key = Math.round(midi);
+  if(TE_AUDIO.bufs[key]) return TE_AUDIO.bufs[key];
+  const sr = ctx.sampleRate, freq = teFreq(key);
+  const dur = Math.max(1.3, Math.min(4.2, 4.2 - (key-40)*0.06));
+  const total = Math.floor(sr*(dur+0.05));
+  const N = Math.max(2, Math.round(sr/freq));
+  const ring = new Float32Array(N);
+  for(let i=0;i<N;i++) ring[i] = Math.random()*2-1;
+  let prev = ring[N-1];
+  for(let i=0;i<N;i++){ const c = ring[i]; ring[i] = c*0.6 + prev*0.4; prev = c; }
+  const decay = Math.pow(0.001, 1/Math.max(1, dur*freq));
+  const data = new Float32Array(total);
+  let p = 0;
+  for(let i=0;i<total;i++){
+    const c = ring[p], nx = ring[(p+1)%N];
+    data[i] = c;
+    ring[p] = decay*(0.5*c + 0.5*nx);
+    p = (p+1)%N;
+  }
+  const fade = Math.min(800, total);
+  for(let i=0;i<fade;i++) data[total-1-i] *= i/fade;
+  const buf = ctx.createBuffer(1, total, sr);
+  buf.getChannelData(0).set(data);
+  TE_AUDIO.bufs[key] = buf;
+  return buf;
+}
+function teNoiseBuffer(ctx){
+  if(TE_AUDIO.noise) return TE_AUDIO.noise;
+  const n = Math.floor(ctx.sampleRate*0.08);
+  const b = ctx.createBuffer(1, n, ctx.sampleRate); const d = b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 3);
+  TE_AUDIO.noise = b; return b;
+}
+const TE_HARM_OFFSET = {12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 3:31, 15:31, 2:34};
+// Toca uma nota solta (pré-escuta ao clicar no braço ou digitar).
+function tePlayNotePreview(s, f){
+  try{
+    const ctx = teCtx();
+    const doc = TE.doc || teNewDoc();
+    const midi = teTuning(doc)[s-1] + f;
+    const g = ctx.createGain(); g.connect(ctx.destination);
+    teVoice(ctx, g, {midi, dur:0.9, n:{s, f}}, ctx.currentTime + 0.01);
+  }catch(e){}
+}
+// Agenda uma nota. ev = {midi, dur (s), n (nota com técnicas), legato, slideTo}
+function teVoice(ctx, dest, ev, when){
+  const n = ev.n || {};
+  if(n.dead){
+    const src = ctx.createBufferSource(); src.buffer = teNoiseBuffer(ctx);
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1800 + (6-n.s)*250; bp.Q.value = 1.2;
+    const g = ctx.createGain(); g.gain.value = 0.55;
+    src.connect(bp); bp.connect(g); g.connect(dest);
+    src.start(when); src.stop(when + 0.09);
+    return {g, fim: when+0.09};
+  }
+  let midi = ev.midi;
+  if(n.harm==='N') midi += (TE_HARM_OFFSET[n.f] != null ? TE_HARM_OFFSET[n.f] : 12);
+  if(n.harm==='A') midi += 12;
+  const src = ctx.createBufferSource(); src.buffer = teKSBuffer(ctx, midi);
+  const filt = ctx.createBiquadFilter(); filt.type = 'lowpass';
+  filt.frequency.value = n.pm ? 700 : Math.min(7000, teFreq(midi)*9); filt.Q.value = 0.6;
+  const g = ctx.createGain();
+  let vol = n.ghost ? 0.3 : (n.acc ? 1.0 : 0.72);
+  if(ev.legato) vol *= 0.62;
+  if(n.harm) vol *= 0.7;
+  const atk = ev.legato ? 0.012 : 0.003;
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.linearRampToValueAtTime(vol, when + atk);
+  let fim;
+  if(n.pm){
+    g.gain.setTargetAtTime(0.0001, when + 0.02, 0.07);
+    fim = when + Math.min(ev.dur, 0.45) + 0.05;
+  } else {
+    const soa = ev.ring ? Math.max(ev.dur, 2.5) : ev.dur;
+    g.gain.setTargetAtTime(0.0001, when + soa, 0.035);
+    fim = when + soa + 0.2;
+  }
+  const pr = src.playbackRate; const cents = (c)=>Math.pow(2, c/1200);
+  pr.setValueAtTime(1, when);
+  const D = Math.max(0.08, ev.dur);
+  if(n.bend){
+    const alvo = cents(n.bend.v*200);
+    if(n.bend.t==='bend'){ pr.setValueAtTime(1, when + 0.02); pr.linearRampToValueAtTime(alvo, when + Math.min(D*0.45, 0.28)); }
+    else if(n.bend.t==='bend-volta'){ pr.setValueAtTime(1, when + 0.02); pr.linearRampToValueAtTime(alvo, when + D*0.35); pr.setValueAtTime(alvo, when + D*0.55); pr.linearRampToValueAtTime(1, when + D*0.9); }
+    else if(n.bend.t==='pre'){ pr.setValueAtTime(alvo, when); }
+    else if(n.bend.t==='pre-volta'){ pr.setValueAtTime(alvo, when); pr.setValueAtTime(alvo, when + D*0.2); pr.linearRampToValueAtTime(1, when + D*0.7); }
+  }
+  if(n.slide==='entra-baixo'){ pr.setValueAtTime(cents(-400), when); pr.linearRampToValueAtTime(1, when + 0.09); }
+  if(n.slide==='entra-cima'){ pr.setValueAtTime(cents(400), when); pr.linearRampToValueAtTime(1, when + 0.09); }
+  if(n.slide==='sai-baixo'){ pr.setValueAtTime(1, when + D*0.5); pr.linearRampToValueAtTime(cents(-700), when + D*0.95); g.gain.setTargetAtTime(0.0001, when + D*0.8, 0.04); }
+  if(n.slide==='sai-cima'){ pr.setValueAtTime(1, when + D*0.5); pr.linearRampToValueAtTime(cents(700), when + D*0.95); g.gain.setTargetAtTime(0.0001, when + D*0.8, 0.04); }
+  if(n.slide==='para' && ev.slideTo!=null){ pr.setValueAtTime(1, when + D*0.45); pr.linearRampToValueAtTime(cents((ev.slideTo-ev.midi)*100), when + D*0.95); }
+  let lfo = null;
+  if(n.vib){
+    lfo = ctx.createOscillator(); lfo.frequency.value = 5.6;
+    const lg = ctx.createGain(); lg.gain.setValueAtTime(0, when); lg.gain.linearRampToValueAtTime(0.014, when + Math.min(0.2, D*0.4));
+    lfo.connect(lg); lg.connect(pr);
+    lfo.start(when); lfo.stop(fim);
+  }
+  src.connect(filt); filt.connect(g); g.connect(dest);
+  src.start(when); src.stop(fim);
+  return {g, fim};
+}
+
+// Linha do tempo: início (s) de cada batida e as notas que soam nela.
+function teTimeline(doc, speed){
+  const beats = doc.beats;
+  const spt = 60/(doc.bpm*(speed||1))/TE_TPQ;
+  const times = []; let t = 0;
+  const durT = beats.map(b=> doc.modo==='partitura' ? teTicks(b) : TE_TPQ/2);
+  beats.forEach((b,i)=>{ times.push(t); t += durT[i]*spt; });
+  const total = t;
+  const tuning = teTuning(doc);
+  const ev = [];
+  beats.forEach((b, i)=>{
+    const notas = [];
+    b.notes.forEach(n=>{
+      if(n.tie) return;
+      // soma as batidas seguintes em que a mesma corda está "prolongada"
+      let fimI = i+1;
+      while(fimI < beats.length){ const nx = teNoteAt(beats[fimI], n.s); if(nx && nx.tie) fimI++; else break; }
+      let dur = (fimI < beats.length ? times[fimI] : total) - times[i];
+      // até a próxima nota da mesma corda (para let ring)
+      let ringDur = dur;
+      if(n.ring){ let j = fimI; while(j<beats.length && !teNoteAt(beats[j], n.s)) j++; ringDur = (j<beats.length ? times[j] : total+1.5) - times[i]; }
+      const ant = (()=>{ for(let j=i-1;j>=0 && j>=i-3;j--){ const a = teNoteAt(beats[j], n.s); if(a) return a; } return null; })();
+      const legato = !!(n.tap || (ant && (ant.lig || ant.slide==='para')));
+      const prox = (n.slide==='para') ? teNextOnString(doc, i, n.s) : null;
+      notas.push({midi: tuning[n.s-1]+n.f, dur: Math.max(0.06, dur*0.98), ring: n.ring ? ringDur : 0, n, legato, slideTo: prox ? tuning[n.s-1]+prox.n.f : null, s:n.s});
+    });
+    ev.push({i, t: times[i], notas});
+  });
+  return {ev, times, total, durT, spt};
+}
+function teAudioStop(){
+  const A = TE_AUDIO;
+  if(A.timer){ clearInterval(A.timer); A.timer = null; }
+  if(A.raf){ cancelAnimationFrame(A.raf); A.raf = null; }
+  if(A.master){ try{ const ctx = teCtx(); A.master.gain.setTargetAtTime(0, ctx.currentTime, 0.02); const m = A.master; setTimeout(()=>{ try{ m.disconnect(); }catch(e){} }, 300); }catch(e){} A.master = null; }
+  const estava = A.on; A.on = false; A.lastIdx = -1;
+  if(estava && A.onStop) A.onStop();
+}
+// Toca `doc` a partir da batida `from` (até `to`, se houver). Callbacks:
+// onBeat(i) a cada batida que começa, onStop() quando acaba/para.
+function teAudioPlay(doc, opts){
+  teAudioStop();
+  const A = TE_AUDIO; const ctx = teCtx();
+  opts = opts||{};
+  const tl = teTimeline(doc, opts.speed||1);
+  let from = Math.max(0, Math.min(opts.from||0, doc.beats.length-1));
+  let to = opts.to!=null ? Math.min(opts.to, doc.beats.length-1) : doc.beats.length-1;
+  // não toca a batida vazia do fim (a do editor)
+  while(to > from && !doc.beats[to].notes.length && to===doc.beats.length-1) to--;
+  A.doc = doc; A.tl = tl; A.from = from; A.to = to; A.loop = !!opts.loop; A.metro = !!opts.metro;
+  A.onBeat = opts.onBeat||null; A.onStop = opts.onStop||null;
+  A.master = ctx.createGain(); A.master.gain.value = 0.9; A.master.connect(ctx.destination);
+  A.voices = {};
+  A.on = true; A.lastIdx = -1;
+  const segStart = tl.times[from];
+  const segEnd = to+1 < tl.times.length ? tl.times[to+1] : tl.total;
+  A.segLen = Math.max(0.05, segEnd - segStart);
+  A.base = ctx.currentTime + 0.1 - segStart;
+  A.next = from;
+  const agenda = ()=>{
+    if(!A.on) return;
+    const agora = ctx.currentTime;
+    while(A.on && A.next <= to && A.base + tl.times[A.next] < agora + 0.35){
+      const e = tl.ev[A.next]; const when = A.base + e.t;
+      e.notas.forEach(nt=>{
+        const v = A.voices[nt.s];
+        if(v && v.fim > when){ try{ v.g.gain.cancelScheduledValues(when); v.g.gain.setTargetAtTime(0.0001, when, 0.012); }catch(er){} }
+        A.voices[nt.s] = teVoice(ctx, A.master, nt, when);
+      });
+      if(A.metro && doc.modo==='partitura') teMetroClicks(ctx, doc, tl, A.next, when);
+      A.next++;
+    }
+    if(A.next > to && agora > A.base + segEnd + 0.15){
+      if(A.loop){ A.base = A.base + A.segLen; A.next = from; A.voices = {}; }
+      else { teAudioStop(); }
+    }
+  };
+  agenda();
+  A.timer = setInterval(agenda, 40);
+  const anima = ()=>{
+    if(!A.on) return;
+    const t = ctx.currentTime - A.base;
+    let idx = from;
+    for(let i=from;i<=to;i++){ if(tl.times[i] <= t + 0.005) idx = i; else break; }
+    if(t < tl.times[from]) idx = from;
+    if(idx!==A.lastIdx){ A.lastIdx = idx; if(A.onBeat) A.onBeat(idx); }
+    A.raf = requestAnimationFrame(anima);
+  };
+  A.raf = requestAnimationFrame(anima);
+}
+// Metrônomo: um clique a cada tempo (mais forte no primeiro do compasso).
+function teMetroClicks(ctx, doc, tl, i, when){
+  const tick0 = (()=>{ let acc = 0; for(let j=0;j<i;j++) acc += tl.durT[j]; return acc; })();
+  const pulso = (doc.compasso.d===8 && doc.compasso.n%3===0) ? TE_TPQ*1.5 : TE_TPQ*4/doc.compasso.d;
+  const L = teMeasureTicks(doc);
+  const fimT = tick0 + tl.durT[i];
+  let k = Math.ceil(tick0/pulso)*pulso;
+  for(; k < fimT; k += pulso){
+    const w = when + (k - tick0)*tl.spt;
+    const forte = (k % L)===0;
+    const o = ctx.createOscillator(); o.frequency.value = forte ? 1600 : 1100;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, w); g.gain.linearRampToValueAtTime(forte?0.35:0.22, w+0.002); g.gain.exponentialRampToValueAtTime(0.0001, w+0.05);
+    o.connect(g); g.connect(TE_AUDIO.master || ctx.destination); o.start(w); o.stop(w+0.06);
+  }
+}
+
+// ==== TAB EDITOR V2 — interface (editor, braço, menu de técnicas, visualização) ====
+const TE_ICON = {
+  play:'<svg viewBox="0 0 16 16"><path fill="currentColor" d="M4 2.5v11l9-5.5z"/></svg>',
+  stop:'<svg viewBox="0 0 16 16"><rect fill="currentColor" x="3.5" y="3.5" width="9" height="9" rx="1.5"/></svg>',
+  undo:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5H10a3.5 3.5 0 0 1 0 7H7"/></svg>',
+  redo:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5H6a3.5 3.5 0 0 0 0 7h3"/></svg>',
+  copy:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>',
+  paste:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="10" height="11.5" rx="1.5"/><path d="M6 3V2h4v1"/><path d="M5.5 7.5h5M5.5 10.5h3.5" stroke-linecap="round"/></svg>',
+  ins:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>',
+  del:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5h11M6 4.5V3h4v1.5M4 4.5l.7 9h6.6l.7-9"/></svg>',
+  metro:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M5.5 2h5l2.5 12H3z"/><path d="M8 11 11.5 4.5" stroke-linecap="round"/></svg>',
+  loop:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V6a2.5 2.5 0 0 1 2.5-2.5H12"/><path d="m10.5 1.8 1.7 1.7-1.7 1.7"/><path d="M13 9v1a2.5 2.5 0 0 1-2.5 2.5H4"/><path d="m5.5 14.2-1.7-1.7 1.7-1.7"/></svg>',
+  left:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10 3-5 5 5 5"/></svg>',
+  right:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>',
+  up:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 5-5 5 5"/></svg>',
+  down:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 5 5 5-5"/></svg>',
+  tec:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 12c3-8 6-8 6-4s3 4 6-4"/></svg>',
+};
+// Botão que não rouba o foco da partitura (o teclado continua funcionando).
+function teBtn(html, onclick, opts){
+  opts = opts||{};
+  return `<button type="button" class="te-btn${opts.cls?' '+opts.cls:''}${opts.on?' on':''}" ${opts.dis?'disabled':''} title="${escapeTe(opts.title||'')}" onmousedown="event.preventDefault()" onclick="${onclick}">${html}</button>`;
+}
+function teDurIcon(d){
+  const S = 4.3, hx = 1.18*S, y = 16.5, x = 3;
+  let s = '';
+  if(d===1){ s = teG('noteheadWhole', 2.5, y, S, 'te-ico'); }
+  else {
+    s = teG(d===2?'noteheadHalf':'noteheadBlack', x, y, S, 'te-ico');
+    const sx = x + hx - 0.5;
+    s += `<rect class="te-ico" x="${teF(sx)}" y="2.5" width="1.1" height="${teF(y-2.5-0.7)}"/>`;
+    const f = {8:'flag8thUp',16:'flag16thUp',32:'flag32ndUp'}[d];
+    if(f) s += teG(f, sx, 2.5, S, 'te-ico');
+  }
+  return `<svg viewBox="0 0 16 21" width="16" height="21">${s}</svg>`;
+}
+function teAvisar(msg){
+  TE.aviso = msg; teStatusRefresh();
+  clearTimeout(teAvisar._t); teAvisar._t = setTimeout(()=>{ TE.aviso = ''; teStatusRefresh(); }, 3500);
+}
+
+// ---- abrir / fechar ----
+function teOpenDraft(draft){
+  teAudioStop();
+  let doc, aviso = '';
+  if(draft && draft.tabV2){ doc = teNormalize(draft.tabV2); }
+  else if(draft && draft.tab && draft.tab!==DEFAULT_TAB_SKELETON){
+    const conv = teFromAscii(draft.tab);
+    doc = conv.doc;
+    if(conv.temNota) aviso = 'Este solo foi escrito no editor antigo e foi convertido para o novo. Confira antes de salvar — o original só é substituído quando você salvar.';
+  } else doc = teNewDoc();
+  teEnsureTrailing(doc);
+  Object.assign(TE, {doc, cur:{b:0, s:1}, sel:null, undo:[], redo:[], pend:null, pop:null, dirty:false, aviso:'', conv: aviso, play:{on:false, idx:-1}});
+  TE.curDur = (doc.beats[0] && doc.beats[0].dur) || 8;
+  if(draft) draft.tabV2 = doc;
+}
+function teAfterRender(){
+  const m = document.getElementById('teMount');
+  const v = document.getElementById('teViewMount');
+  if(m){
+    if(!TE.doc) teOpenDraft(state.soloDraft);
+    if(!m.dataset.ready){ m.innerHTML = teEditorShellHtml(); m.dataset.ready = '1'; }
+    teRefresh();
+  }
+  if(v){
+    if(TEV.soloId !== state.soloViewId || !TEV.doc){
+      const s = state.solosDetailCache[state.soloViewId];
+      teAudioStop();
+      TEV.soloId = state.soloViewId;
+      TEV.doc = s && s.tabV2 ? teTrimTrailing(teNormalize(s.tabV2)) : null;
+      TEV.showNot = TEV.doc ? !!TEV.doc.mostrarPartitura : true;
+      TEV.startIdx = 0; TEV.playIdx = -1;
+    }
+    if(!v.dataset.ready){ v.innerHTML = teViewerShellHtml(); v.dataset.ready = '1'; }
+    teViewerRefresh();
+  }
+  if(!m && !v && TE_AUDIO.on) teAudioStop();
+  if(!m && document.body.classList.contains('te-editing')){ document.body.classList.remove('te-editing'); document.body.style.paddingBottom = ''; }
+  if(!m && state.view!=='solo-editor'){ TE.doc = null; }
+}
+function teEditorShellHtml(){
+  return `<div class="te-wrap" id="teWrap">
+    <div class="te-conv" id="teConv"></div>
+    <div class="te-toolbar" id="teToolbar"></div>
+    <div class="te-status" id="teStatus"></div>
+    <div class="te-sheet" id="teSheet" tabindex="0" onpointerdown="teSheetDown(event)" onpointermove="teSheetMove(event)" onpointerup="teSheetUp(event)" onpointercancel="teSheetUp(event)"></div>
+    <div id="tePop"></div>
+    <div class="te-fb-wrap" id="teFbWrap">
+      <div class="te-fb-head" id="teFbHead"></div>
+      <div class="te-fb" id="teFb"></div>
+    </div>
+    <details class="te-help"><summary>Atalhos do teclado</summary>
+      <div class="te-help-grid">
+        <span><b>0–24</b> casa na corda do cursor (digite 1 e 2 rápido para 12)</span>
+        <span><b>← →</b> anda entre os tempos · <b>↑ ↓</b> troca de corda</span>
+        <span><b>Espaço</b> próximo tempo · <b>Enter</b> tocar / parar</span>
+        <span><b>Shift + ← →</b> seleciona · <b>Ctrl+C / Ctrl+V</b> copia e cola</span>
+        <span><b>Backspace</b> apaga a nota (ou o tempo vazio) · <b>Insert</b> abre um tempo</span>
+        <span><b>Ctrl+Z / Ctrl+Y</b> desfaz / refaz</span>
+        <span><b>+ / −</b> duração mais curta / mais longa · <b>.</b> pontuada · <b>T</b> tercina · <b>R</b> pausa</span>
+        <span><b>|</b> barra de compasso (escrita livre)</span>
+        <span><b>H</b> ligado · <b>S</b> slide · <b>B</b> bend · <b>V</b> vibrato · <b>M</b> palm mute · <b>L</b> let ring</span>
+        <span><b>X</b> abafada · <b>G</b> fantasma · <b>N</b> harmônico · <b>A</b> acento · <b>I</b> prolongar</span>
+      </div>
+    </details>
+  </div>`;
+}
+let _teRefreshBusy = false;
+function teRefresh(){
+  const sheet = document.getElementById('teSheet'); if(!sheet || !TE.doc) return;
+  teClampCur();
+  const conv = document.getElementById('teConv');
+  if(conv) conv.innerHTML = TE.conv ? `<div class="te-convbox">${escapeTe(TE.conv)}</div>` : '';
+  document.getElementById('teToolbar').innerHTML = teToolbarHtml();
+  const width = Math.max(280, Math.floor(sheet.clientWidth));
+  TE.layout = teLayout(TE.doc, width);
+  sheet.innerHTML = teRenderSvg(TE.doc, TE.layout, {editable:true, cursor:TE.cur, sel:TE.sel, playRect:'tePlayRect'});
+  teStatusRefresh();
+  tePopRefresh();
+  teFbRefresh();
+  if(TE_AUDIO.on && TE_AUDIO.lastIdx>=0 && TE_AUDIO.doc===TE.doc) teMovePlayRect('teSheet', TE.layout, TE_AUDIO.lastIdx);
+  teEnsureCursorVisible();
+}
+function teEnsureCursorVisible(){
+  if(TE.semRolar){ TE.semRolar = false; return; }
+  const el = document.querySelector('#teSheet .te-curcol:not(.te-curcol-not)'); if(!el) return;
+  const r = el.getBoundingClientRect();
+  // no celular o braço fica grudado embaixo da tela: o cursor tem que ficar acima dele
+  const fbw = document.querySelector('.te-fb-wrap');
+  const fbTopo = fbw && getComputedStyle(fbw).position==='fixed' ? fbw.getBoundingClientRect().top : window.innerHeight;
+  const topo = 70, fundo = Math.min(window.innerHeight, fbTopo) - 24;
+  if(r.top < topo) window.scrollBy({top: r.top - topo - 30});
+  else if(r.bottom > fundo) window.scrollBy({top: r.bottom - fundo + 30});
+}
+function teStatusRefresh(){
+  const el = document.getElementById('teStatus'); if(!el || !TE.doc) return;
+  const b = teCurBeat(); if(!b){ el.innerHTML=''; return; }
+  const nomes = teStringNames(TE.doc);
+  const part = TE.doc.modo==='partitura';
+  let onde;
+  if(part){
+    const ms = teMeasures(TE.doc); const mi = ms.findIndex(m=>TE.cur.b>=m.a && TE.cur.b<m.b);
+    onde = `Compasso ${mi+1} · ${TE_DUR_NOMES[b.dur]}${b.dot?' pontuada':''}${b.tup?' (tercina)':''}`;
+    const over = ms.filter(m=>m.over).map((m,k)=>ms.indexOf(m)+1);
+    if(over.length) onde += ` · <span class="te-warn">compasso ${over.join(', ')} com tempo a mais</span>`;
+  } else onde = `Tempo ${TE.cur.b+1} de ${TE.doc.beats.length}`;
+  const sel = TE.sel ? ` · ${Math.abs(TE.sel.b-TE.sel.a)+1} selecionado(s)` : '';
+  el.innerHTML = `<span>${onde} · corda ${TE.cur.s} (${nomes[TE.cur.s-1]})${sel}</span>${TE.aviso?`<span class="te-aviso">${escapeTe(TE.aviso)}</span>`:''}`;
+}
+function teToolbarHtml(){
+  const d = TE.doc; const part = d.modo==='partitura';
+  const b = teCurBeat();
+  const n = teCurNote();
+  const tocando = TE_AUDIO.on && TE_AUDIO.doc===TE.doc;
+  const r1 = `<div class="te-tb-row">
+    <div class="te-seg">
+      <button type="button" class="${!part?'on':''}" onmousedown="event.preventDefault()" onclick="teSetModo('livre')" title="Sem ritmo nem compassos obrigatórios">Escrita livre</button>
+      <button type="button" class="${part?'on':''}" onmousedown="event.preventDefault()" onclick="teSetModo('partitura')" title="Com durações, compassos e pentagrama">Com partitura</button>
+    </div>
+    ${teBtn('Pentagrama', 'teToggleNotacao()', {on:d.mostrarPartitura, title:'Mostrar ou esconder a partitura acima da tablatura'})}
+    <span class="te-field">Afinação <select onchange="teSetAfinacao(this.value)">${TE_TUNINGS.map((t,i)=>`<option value="${i}" ${i===(d.afinacao||0)?'selected':''}>${escapeTe(t.nome)}</option>`).join('')}</select></span>
+  </div>`;
+  const r2 = `<div class="te-tb-row">
+    ${teBtn(tocando?TE_ICON.stop+'<span class="te-lbl">Parar</span>':TE_ICON.play+'<span class="te-lbl">Tocar</span>', 'teTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar a partir do cursor (Enter)'})}
+    <span class="te-field te-bpm">Andamento
+      ${teBtn('−', 'teSetBpm(TE.doc.bpm-5)', {cls:'te-icon-btn', title:'Mais devagar'})}
+      <input type="number" min="30" max="300" value="${d.bpm}" onchange="teSetBpm(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}">
+      ${teBtn('+', 'teSetBpm(TE.doc.bpm+5)', {cls:'te-icon-btn', title:'Mais rápido'})}
+    </span>
+    ${part ? teBtn(TE_ICON.metro, 'TE.metro=!TE.metro;teRefresh()', {cls:'te-icon-btn', on:TE.metro, title:'Metrônomo durante a reprodução'}) : ''}
+    ${teBtn(TE_ICON.loop, 'TE.loop=!TE.loop;teRefresh()', {cls:'te-icon-btn', on:TE.loop, title:'Repetir (o trecho selecionado, ou tudo)'})}
+    <span class="te-sep"></span>
+    ${teBtn(TE_ICON.undo, 'teUndo()', {cls:'te-icon-btn', dis:!TE.undo.length, title:'Desfazer (Ctrl+Z)'})}
+    ${teBtn(TE_ICON.redo, 'teRedo()', {cls:'te-icon-btn', dis:!TE.redo.length, title:'Refazer (Ctrl+Y)'})}
+    ${teBtn(TE_ICON.copy, 'teCopy(false)', {cls:'te-icon-btn', title:'Copiar o trecho selecionado (Ctrl+C)'})}
+    ${teBtn(TE_ICON.paste, 'tePaste()', {cls:'te-icon-btn', dis:!TE.clip, title:'Colar no cursor (Ctrl+V)'})}
+    ${teBtn(TE_ICON.ins, 'teInsertBeat()', {cls:'te-icon-btn', title:'Abrir um tempo vazio no cursor (Insert)'})}
+    ${teBtn(TE_ICON.del, 'teDeleteAtCursor(false)', {cls:'te-icon-btn', title:'Apagar a nota do cursor, ou o tempo se estiver vazio (Delete)'})}
+    ${teBtn(TE_ICON.tec+'<span class="te-lbl">Técnicas</span>', 'teOpenPopAtCursor()', {dis:!n && !TE.sel, title:'Bend, ligado, slide, vibrato… da nota do cursor'})}
+  </div>`;
+  const r3 = part ? `<div class="te-tb-row">
+    ${TE_DURS.map(du=>teBtn(teDurIcon(du), `teSetDur(${du})`, {cls:'te-dur', on:b && b.dur===du, title:TE_DUR_NOMES[du]})).join('')}
+    ${teBtn('<span class="te-dot">•</span>', "teToggleBeatFlag('dot')", {cls:'te-icon-btn', on:b && b.dot, title:'Pontuada (.)'})}
+    ${teBtn('<b>3</b>', "teToggleBeatFlag('tup')", {cls:'te-icon-btn', on:b && b.tup===3, title:'Tercina (T)'})}
+    ${teBtn('Pausa', 'teMakeRest()', {title:'Transformar em pausa (R)'})}
+    <span class="te-field">Compasso <select onchange="teSetCompasso(this.value)">${['2/4','3/4','4/4','5/4','6/8','7/8','9/8','12/8'].map(v=>`<option ${v===d.compasso.n+'/'+d.compasso.d?'selected':''}>${v}</option>`).join('')}</select></span>
+  </div>` : `<div class="te-tb-row">
+    ${teBtn('<b>|</b><span class="te-lbl"> Barra de compasso</span>', 'teToggleBar()', {on:b && b.bar, title:'Colocar ou tirar uma barra depois deste tempo (|)'})}
+    <span class="te-hint">Na escrita livre não há ritmo: escreva as notas na ordem e ponha barras onde quiser.</span>
+  </div>`;
+  const r4 = `<div class="te-tb-row te-navrow">
+    ${teBtn(TE_ICON.left, 'teMove(-1,0)', {cls:'te-icon-btn', title:'Tempo anterior (←)'})}
+    ${teBtn(TE_ICON.right, 'teMove(1,0)', {cls:'te-icon-btn', title:'Próximo tempo (→)'})}
+    ${teBtn(TE_ICON.up, 'teMove(0,-1)', {cls:'te-icon-btn', title:'Corda de cima (↑)'})}
+    ${teBtn(TE_ICON.down, 'teMove(0,1)', {cls:'te-icon-btn', title:'Corda de baixo (↓)'})}
+  </div>`;
+  return r1 + r2 + r3 + r4;
+}
+
+// ---- mouse / toque na partitura ----
+function teHit(sheetId, lay, ev){
+  const svg = document.querySelector('#'+sheetId+' svg'); if(!svg || !lay) return null;
+  const r = svg.getBoundingClientRect();
+  const x = ev.clientX - r.left, y = ev.clientY - r.top;
+  let li = -1;
+  for(let i=0;i<lay.lines.length;i++){
+    const ln = lay.lines[i];
+    const topo = i===0 ? 0 : (lay.lines[i-1].y1 + ln.y0)/2;
+    const base = i===lay.lines.length-1 ? Infinity : (ln.y1 + lay.lines[i+1].y0)/2;
+    if(y>=topo && y<base){ li = i; break; }
+  }
+  if(li<0) li = lay.lines.length-1;
+  const ln = lay.lines[li];
+  let best = -1, bestD = Infinity;
+  lay.pos.forEach((p, i)=>{
+    if(!p || p.line!==li) return;
+    const dentro = x>=p.x0 && x<=p.x0+p.w;
+    const dd = dentro ? 0 : Math.abs(p.cx - x);
+    if(dd < bestD){ bestD = dd; best = i; }
+  });
+  if(best<0) return null;
+  let s = Math.round((y - ln.tabTop)/lay.M.T) + 1;
+  const naTab = y >= ln.tabTop - lay.M.T && y <= ln.tabBottom + lay.M.T;
+  s = Math.max(1, Math.min(6, s));
+  return {b:best, s, naTab};
+}
+let _teDrag = null;
+function teSheetDown(ev){
+  if(ev.button!=null && ev.button!==0) return;
+  const h = teHit('teSheet', TE.layout, ev); if(!h) return;
+  const sheet = document.getElementById('teSheet'); try{ sheet.focus({preventScroll:true}); }catch(e){}
+  TE.pend = null;
+  if(ev.shiftKey){
+    if(!TE.sel) TE.sel = {a:TE.cur.b, b:h.b}; else TE.sel.b = h.b;
+    TE.cur.b = h.b; TE.pop = null; teRefresh(); return;
+  }
+  const s = h.naTab ? h.s : TE.cur.s;
+  const beat = TE.doc.beats[h.b];
+  // clique no pentagrama: vai para a nota daquele tempo (a mais aguda)
+  const sAlvo = h.naTab ? s : (beat.notes.length ? beat.notes[0].s : s);
+  const eraMesma = TE.cur.b===h.b && TE.cur.s===sAlvo;
+  TE.cur = {b:h.b, s:sAlvo}; TE.sel = null;
+  const temNota = !!teNoteAt(beat, sAlvo);
+  TE.pop = temNota && (!TE.pop || !eraMesma) ? {b:h.b, s:sAlvo} : null;
+  _teDrag = ev.pointerType==='touch' ? null : {a:h.b, moved:false};
+  teRefresh();
+}
+function teSheetMove(ev){
+  if(!_teDrag || !(ev.buttons&1)) return;
+  const h = teHit('teSheet', TE.layout, ev); if(!h) return;
+  if(h.b!==_teDrag.a || _teDrag.moved){
+    _teDrag.moved = true;
+    const novo = {a:_teDrag.a, b:h.b};
+    if(!TE.sel || TE.sel.a!==novo.a || TE.sel.b!==novo.b){ TE.sel = novo; TE.cur.b = h.b; TE.pop = null; teRefresh(); }
+  }
+}
+function teSheetUp(){ _teDrag = null; }
+
+// ---- menu de técnicas (abre ao clicar numa nota) ----
+function teOpenPopAtCursor(){
+  if(!teCurNote()){ teAvisar('Coloque o cursor em cima de uma nota.'); return; }
+  TE.pop = {b:TE.cur.b, s:TE.cur.s}; tePopRefresh();
+}
+function teClosePop(){ TE.pop = null; tePopRefresh(); }
+function teChip(rot, onclick, on, title){
+  return `<button type="button" class="te-chip${on?' on':''}" title="${escapeTe(title||'')}" onmousedown="event.preventDefault()" onclick="${onclick}">${rot}</button>`;
+}
+function tePopRefresh(){
+  const host = document.getElementById('tePop'); if(!host) return;
+  const p = TE.pop;
+  const n = p ? teNoteAt(TE.doc.beats[p.b], p.s) : null;
+  if(!p || !n || !TE.layout || !TE.layout.pos[p.b]){ host.innerHTML = ''; return; }
+  const nomes = teStringNames(TE.doc);
+  const html = `<div class="te-pop" id="tePopBox" onpointerdown="event.stopPropagation()">
+    <div class="te-pop-head"><span>Casa <b>${n.dead?'x':n.f}</b> · corda ${p.s} (${nomes[p.s-1]})</span><button type="button" class="te-pop-x" onmousedown="event.preventDefault()" onclick="teClosePop()" title="Fechar (Esc)">✕</button></div>
+    <div class="te-pop-sec">Técnicas</div>
+    <div class="te-chips">${TE_TOGGLES.map(t=>teChip(t.rot + (t.atalho?` <kbd>${t.atalho}</kbd>`:''), `teToggleTec('${t.k}')`, !!n[t.k], t.dica)).join('')}</div>
+    <div class="te-pop-sec">Bend <kbd>B</kbd></div>
+    <div class="te-chips">${TE_BEND_TIPOS.map(bt=>teChip(bt.rot, `teSetBend('${bt.t}',null)`, n.bend && n.bend.t===bt.t)).join('')}${n.bend?teChip('Sem bend', 'teSetBend(null)', false):''}</div>
+    ${n.bend?`<div class="te-chips te-chips-sub"><span class="te-mini">Quanto:</span>${TE_BEND_VALORES.map(v=>teChip(v.rot==='inteiro'?'1 tom (full)':v.rot+' tom', `teSetBend('${n.bend.t}',${v.v})`, n.bend.v===v.v)).join('')}</div>`:''}
+    <div class="te-pop-sec">Slide <kbd>S</kbd></div>
+    <div class="te-chips">${TE_SLIDES.map(sl=>teChip(sl.rot, `teSetSlide('${sl.t}')`, n.slide===sl.t)).join('')}</div>
+    <div class="te-pop-sec">Harmônico</div>
+    <div class="te-chips">${teChip('Natural <kbd>N</kbd>', "teSetHarm('N')", n.harm==='N')}${teChip('Artificial (A.H.)', "teSetHarm('A')", n.harm==='A')}</div>
+    <div class="te-pop-foot">${teChip('Apagar nota', 'teDeleteAtCursor(false)', false)}</div>
+  </div>`;
+  host.innerHTML = html;
+  // posiciona embaixo da nota, sem sair da área do editor
+  const box = document.getElementById('tePopBox');
+  const wrap = document.getElementById('teWrap'); const sheet = document.getElementById('teSheet');
+  const pos = TE.layout.pos[p.b]; const ln = TE.layout.lines[pos.line];
+  const wr = wrap.getBoundingClientRect(); const sr = sheet.querySelector('svg').getBoundingClientRect();
+  const W = box.offsetWidth;
+  let left = (sr.left - wr.left) + pos.cx - W/2;
+  left = Math.max(4, Math.min(wr.width - W - 4, left));
+  const top = (sr.top - wr.top) + ln.tabTop + (p.s-1)*TE.layout.M.T + TE.layout.M.T*0.9 + 6;
+  box.style.left = left + 'px'; box.style.top = top + 'px';
+}
+
+// ---- braço da guitarra ----
+function teFbRefresh(){
+  const head = document.getElementById('teFbHead'); const fb = document.getElementById('teFb');
+  if(!head || !fb) return;
+  head.innerHTML = `<div class="te-fb-title">Braço — clique numa casa para escrever na tablatura</div>
+    <div class="te-tb-row">
+      <div class="te-seg">
+        <button type="button" class="${!TE.fbAcorde?'on':''}" onmousedown="event.preventDefault()" onclick="TE.fbAcorde=false;teFbRefresh()" title="Cada clique escreve uma nota e anda para o próximo tempo">Nota a nota</button>
+        <button type="button" class="${TE.fbAcorde?'on':''}" onmousedown="event.preventDefault()" onclick="TE.fbAcorde=true;teFbRefresh()" title="Os cliques vão todos para o mesmo tempo (acorde / double stop)">Acorde</button>
+      </div>
+      ${teBtn('Nomes das notas', 'TE.fbNomes=!TE.fbNomes;teFbRefresh()', {on:TE.fbNomes})}
+      ${teBtn(TE.fbOculto ? TE_ICON.up+' Braço' : TE_ICON.down, 'TE.fbOculto=!TE.fbOculto;teFbRefresh()', {cls:'te-fb-toggle'+(TE.fbOculto?'':' te-icon-btn'), title: TE.fbOculto ? 'Mostrar o braço' : 'Recolher o braço'})}
+    </div>`;
+  const sl = fb.scrollLeft;
+  fb.innerHTML = teFretboardSvg();
+  fb.scrollLeft = sl;
+  const wrap = document.getElementById('teFbWrap');
+  if(wrap) wrap.classList.toggle('te-oculto', !!TE.fbOculto);
+  teAjustaEspacoBraco();
+}
+// No celular o braço fica fixo embaixo da tela (como um teclado): reserva esse
+// espaço no fim da página, senão ele cobriria o botão "Salvar solo".
+function teAjustaEspacoBraco(){
+  const wrap = document.getElementById('teFbWrap');
+  const fixo = wrap && getComputedStyle(wrap).position==='fixed';
+  document.body.classList.toggle('te-editing', !!wrap);
+  document.body.style.paddingBottom = fixo ? (wrap.offsetHeight + 12) + 'px' : '';
+}
+function teFretboardSvg(){
+  const fb = document.getElementById('teFb');
+  const disp = fb ? Math.max(300, fb.clientWidth - 20) : 800;
+  const NF = 22, small = disp < 620;
+  const openW = small ? 30 : 36;
+  const fw = Math.max(small ? 34 : 30, (disp - openW - 8)/NF);
+  const rg = small ? 23 : 22, top = 12;
+  const W = Math.ceil(openW + NF*fw + 8), H = top + 5*rg + 30;
+  const tuning = teTuning(TE.doc);
+  const beat = teCurBeat();
+  const x0 = openW;
+  const cx = f => f===0 ? openW/2 : x0 + (f-0.5)*fw;
+  const out = [];
+  const midY = top + 2.5*rg;
+  [3,5,7,9,15,17,19,21].forEach(f=> out.push(`<circle class="te-fbdot" cx="${teF(cx(f))}" cy="${teF(midY)}" r="4.5"/>`));
+  out.push(`<circle class="te-fbdot" cx="${teF(cx(12))}" cy="${teF(midY-rg)}" r="4.5"/><circle class="te-fbdot" cx="${teF(cx(12))}" cy="${teF(midY+rg)}" r="4.5"/>`);
+  for(let f=0; f<=NF; f++){
+    const x = x0 + f*fw;
+    out.push(`<line class="${f===0?'te-fbnut':'te-fbfret'}" x1="${teF(x)}" y1="${top-4}" x2="${teF(x)}" y2="${teF(top+5*rg+4)}"/>`);
+    if(f>0) out.push(`<text class="te-fbnum" x="${teF(cx(f))}" y="${teF(top+5*rg+22)}">${f}</text>`);
+  }
+  for(let s=1;s<=6;s++){
+    const y = top + (s-1)*rg;
+    out.push(`<line class="te-fbstr" x1="${teF(x0)}" y1="${teF(y)}" x2="${teF(W-4)}" y2="${teF(y)}" style="stroke-width:${(0.8+(s-1)*0.45).toFixed(2)}"/>`);
+  }
+  for(let s=1;s<=6;s++){
+    const y = top + (s-1)*rg;
+    for(let f=0; f<=NF; f++){
+      const xa = f===0 ? 0 : x0 + (f-1)*fw, w = f===0 ? openW : fw;
+      const midi = tuning[s-1] + f;
+      const cur = beat && teNoteAt(beat, s);
+      const ativa = cur && cur.f===f && !cur.dead;
+      out.push(`<g class="te-fbcell${ativa?' on':''}" onmousedown="event.preventDefault()" onclick="teFbClick(${s},${f})"><rect x="${teF(xa)}" y="${teF(y-rg/2)}" width="${teF(w)}" height="${rg}"/>`
+        + (ativa ? `<circle cx="${teF(cx(f))}" cy="${teF(y)}" r="9"/><text x="${teF(cx(f))}" y="${teF(y+3.6)}">${f}</text>`
+          : (TE.fbNomes ? `<text class="te-fbname" x="${teF(cx(f))}" y="${teF(y+3.3)}">${TE_NOTE_NAMES[midi%12]}</text>` : (f===0 ? `<text class="te-fbname" x="${teF(cx(0))}" y="${teF(y+3.3)}">${TE_NOTE_NAMES[midi%12]}</text>` : '')))
+        + `</g>`);
+    }
+  }
+  return `<svg class="te-fbsvg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${out.join('')}</svg>`;
+}
+function teFbClick(s, f){
+  const beat = teCurBeat();
+  teSnapshot();
+  if(TE.fbAcorde){
+    const n = teNoteAt(beat, s);
+    if(n && n.f===f){ beat.notes = beat.notes.filter(x=>x!==n); }
+    else if(n){ n.f = f; }
+    else { beat.notes.push({s, f}); beat.notes.sort((a,b)=>a.s-b.s); }
+    TE.cur.s = s;
+  } else {
+    // nota a nota: o tempo fica só com esta nota e o cursor anda
+    const antiga = teNoteAt(beat, s);
+    const n = antiga && beat.notes.length===1 ? Object.assign(antiga, {f}) : {s, f};
+    beat.notes = [n];
+    TE.cur.s = s;
+    teEnsureTrailing(TE.doc);
+    TE.cur.b += 1;
+  }
+  teEnsureTrailing(TE.doc);
+  TE.sel = null; TE.pop = null; TE.pend = null;
+  teSyncDraft();
+  tePlayNotePreview(s, f);
+  // clicou no braço: não rola a página (senão o braço sai da vista no celular),
+  // a não ser que o cursor tenha ficado escondido atrás do próprio braço
+  TE.semRolar = !teCursorEscondido();
+  teRefresh();
+}
+function teCursorEscondido(){
+  const el = document.querySelector('#teSheet .te-curcol:not(.te-curcol-not)'); if(!el) return false;
+  const r = el.getBoundingClientRect();
+  const fbw = document.querySelector('.te-fb-wrap');
+  const lim = fbw && getComputedStyle(fbw).position==='fixed' ? fbw.getBoundingClientRect().top : window.innerHeight;
+  return r.top < 60 || r.bottom + 30 > lim;
+}
+
+// ---- reprodução no editor ----
+function teTogglePlay(){
+  if(TE_AUDIO.on){ teAudioStop(); teRefresh(); return; }
+  const doc = TE.doc;
+  const from = TE.sel ? Math.min(TE.sel.a, TE.sel.b) : TE.cur.b;
+  const to = TE.sel ? Math.max(TE.sel.a, TE.sel.b) : null;
+  if(!doc.beats.some(b=>b.notes.length)){ teAvisar('Escreva alguma nota antes de tocar.'); return; }
+  teAudioPlay(doc, {from: to==null && from>=doc.beats.length-1 ? 0 : from, to, loop:!!TE.loop, metro:!!TE.metro,
+    onBeat: i=>{ TE.play.idx = i; teMovePlayRect('teSheet', TE.layout, i); },
+    onStop: ()=>{ TE.play.idx = -1; teMovePlayRect('teSheet', TE.layout, -1); const tb = document.getElementById('teToolbar'); if(tb) tb.innerHTML = teToolbarHtml(); }});
+  const tb = document.getElementById('teToolbar'); if(tb) tb.innerHTML = teToolbarHtml();
+}
+function teMovePlayRect(sheetId, lay, idx){
+  const r = document.querySelector('#'+sheetId+' .te-playr-live'); if(!r || !lay) return;
+  const p = idx>=0 ? lay.pos[idx] : null;
+  if(!p){ r.setAttribute('width', 0); return; }
+  const ln = lay.lines[p.line];
+  const top = lay.showNot ? ln.notTop - 1.5*lay.M.S : ln.tabTop - 10;
+  const bot = ln.tabBottom + 8;
+  r.setAttribute('x', teF(p.x0)); r.setAttribute('y', teF(top)); r.setAttribute('width', teF(p.w)); r.setAttribute('height', teF(bot-top));
+  if(r._line !== p.line){
+    r._line = p.line;
+    const rr = r.getBoundingClientRect();
+    if(rr.top < 70 || rr.bottom > window.innerHeight - 30) window.scrollBy({top: rr.top - window.innerHeight*0.35, behavior:'smooth'});
+  }
+}
+
+// ---- teclado ----
+function teDigitando(ev){
+  const t = ev.target; if(!t) return false;
+  const tag = (t.tagName||'').toUpperCase();
+  return tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || t.isContentEditable;
+}
+function teKeydown(ev){
+  if(state.view==='solo-viewer' && TEV.doc && document.getElementById('teViewMount')){
+    if((ev.key===' ' || ev.key==='Enter') && !teDigitando(ev) && !(ev.target && ev.target.tagName==='BUTTON')){ ev.preventDefault(); teViewTogglePlay(); }
+    return;
+  }
+  if(state.view!=='solo-editor' || !document.getElementById('teSheet') || !TE.doc) return;
+  if(teDigitando(ev)) return;
+  if(state.confirmDialog) return;
+  const k = ev.key, ctrl = ev.ctrlKey || ev.metaKey;
+  const lower = k && k.length===1 ? k.toLowerCase() : k;
+  let ok = true;
+  if(ctrl){
+    if(lower==='z' && !ev.shiftKey) teUndo();
+    else if(lower==='y' || (lower==='z' && ev.shiftKey)) teRedo();
+    else if(lower==='c') teCopy(false);
+    else if(lower==='x') teCopy(true);
+    else if(lower==='v') tePaste();
+    else if(lower==='a') teSelectAll();
+    else ok = false;
+    if(ok) ev.preventDefault();
+    return;
+  }
+  if(ev.altKey) return;
+  const part = TE.doc.modo==='partitura';
+  if(/^[0-9]$/.test(k)) teTypeDigit(Number(k));
+  else if(k==='ArrowLeft') teMove(-1, 0, ev.shiftKey);
+  else if(k==='ArrowRight') teMove(1, 0, ev.shiftKey);
+  else if(k==='ArrowUp') teMove(0, -1);
+  else if(k==='ArrowDown') teMove(0, 1);
+  else if(k==='Home') teGoto(0, TE.cur.s);
+  else if(k==='End') teGoto(TE.doc.beats.length-1, TE.cur.s);
+  else if(k==='Backspace') teDeleteAtCursor(true);
+  else if(k==='Delete') teDeleteAtCursor(false);
+  else if(k==='Insert') teInsertBeat();
+  else if(k===' ') { if(ev.shiftKey) teTogglePlay(); else teMove(1, 0); }
+  else if(k==='Enter') teTogglePlay();
+  else if(k==='Escape'){ if(TE.pop) teClosePop(); else if(TE.sel){ TE.sel = null; teRefresh(); } else ok = false; }
+  else if(k==='+' || k==='=') { if(part) teStepDur(1); else ok = false; }
+  else if(k==='-' || k==='_') { if(part) teStepDur(-1); else ok = false; }
+  else if(k==='.') { if(part) teToggleBeatFlag('dot'); else ok = false; }
+  else if(k==='|') { if(!part) teToggleBar(); else ok = false; }
+  else if(lower==='t') { if(part) teToggleBeatFlag('tup'); else ok = false; }
+  else if(lower==='r') teMakeRest();
+  else if(lower==='h') teToggleTec('lig');
+  else if(lower==='v') teToggleTec('vib');
+  else if(lower==='m') teToggleTec('pm');
+  else if(lower==='l') teToggleTec('ring');
+  else if(lower==='x') teToggleTec('dead');
+  else if(lower==='g') teToggleTec('ghost');
+  else if(lower==='a') teToggleTec('acc');
+  else if(lower==='i') teToggleTec('tie');
+  else if(lower==='s') teSetSlide('para');
+  else if(lower==='n') teSetHarm('N');
+  else if(lower==='b'){ const n = teCurNote(); if(n && n.bend) teSetBend(null); else teSetBend('bend', 1); }
+  else ok = false;
+  if(ok) ev.preventDefault();
+}
+if(typeof document!=='undefined'){
+  document.addEventListener('keydown', teKeydown);
+  let _teRz = null;
+  window.addEventListener('resize', ()=>{ clearTimeout(_teRz); _teRz = setTimeout(()=>{ if(document.getElementById('teSheet')) teRefresh(); if(document.getElementById('teVSheet')) teViewerRefresh(); }, 160); });
+}
+
+// ---- visualização (tela do solo, para aluno e professor) ----
+const TEV = {doc:null, soloId:null, speed:1, loop:false, metro:false, showNot:true, startIdx:0, playIdx:-1, layout:null};
+function teViewerShellHtml(){
+  return `<div class="te-wrap te-view">
+    <div class="te-toolbar no-print" id="teVToolbar"></div>
+    <div class="te-sheet te-sheet-view" id="teVSheet" onpointerdown="teViewClick(event)"></div>
+  </div>`;
+}
+function teViewerToolbarHtml(){
+  const d = TEV.doc; if(!d) return '';
+  const tocando = TE_AUDIO.on && TE_AUDIO.doc===TEV.doc;
+  const part = d.modo==='partitura';
+  return `<div class="te-tb-row">
+    ${teBtn(tocando?TE_ICON.stop+'<span class="te-lbl">Parar</span>':TE_ICON.play+'<span class="te-lbl">Tocar</span>', 'teViewTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar / parar (Espaço)'})}
+    <span class="te-field">Velocidade <select onchange="TEV.speed=Number(this.value);if(TE_AUDIO.on){teViewTogglePlay();teViewTogglePlay();}">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}" ${v===TEV.speed?'selected':''}>${Math.round(v*100)}%</option>`).join('')}</select></span>
+    ${teBtn(TE_ICON.loop+'<span class="te-lbl">Repetir</span>', 'TEV.loop=!TEV.loop;teViewerRefresh()', {on:TEV.loop, title:'Repetir sem parar'})}
+    ${part ? teBtn(TE_ICON.metro+'<span class="te-lbl">Metrônomo</span>', 'TEV.metro=!TEV.metro;teViewerRefresh()', {on:TEV.metro}) : ''}
+    ${teBtn('Pentagrama', 'TEV.showNot=!TEV.showNot;teViewerRefresh()', {on:TEV.showNot, title:'Mostrar ou esconder a partitura'})}
+    <span class="te-hint">${d.bpm} bpm · toque num ponto da tablatura para começar dali</span>
+  </div>`;
+}
+function teViewerRefresh(){
+  const sheet = document.getElementById('teVSheet'); if(!sheet || !TEV.doc) return;
+  const tb = document.getElementById('teVToolbar'); if(tb) tb.innerHTML = teViewerToolbarHtml();
+  const doc = Object.assign({}, TEV.doc, {mostrarPartitura: TEV.showNot});
+  const width = Math.max(280, Math.floor(sheet.clientWidth));
+  TEV.layout = teLayout(doc, width);
+  TEV.docRender = doc;
+  sheet.innerHTML = teRenderSvg(doc, TEV.layout, {editable:false, playRect:'teVPlayRect', startIdx: TE_AUDIO.on ? null : TEV.startIdx});
+  if(TE_AUDIO.on && TE_AUDIO.lastIdx>=0) teMovePlayRect('teVSheet', TEV.layout, TE_AUDIO.lastIdx);
+}
+function teViewTogglePlay(){
+  if(TE_AUDIO.on){ teAudioStop(); teViewerRefresh(); return; }
+  teAudioPlay(TEV.doc, {from:TEV.startIdx||0, speed:TEV.speed, loop:TEV.loop, metro:TEV.metro,
+    onBeat: i=>{ TEV.playIdx = i; teMovePlayRect('teVSheet', TEV.layout, i); },
+    onStop: ()=>{ TEV.playIdx = -1; teViewerRefresh(); }});
+  teViewerRefresh();
+}
+function teViewClick(ev){
+  const h = teHit('teVSheet', TEV.layout, ev); if(!h) return;
+  TEV.startIdx = h.b;
+  if(TE_AUDIO.on){ teAudioStop(); teViewTogglePlay(); }
+  else teViewerRefresh();
+}
+
+// ==== TAB EDITOR V2 (fim) ====
 
 // ---------- Perfil do Aluno ----------
 // Pedido do usuário em 14/09/2026: tirou-se o seletor de 16 avatares
@@ -4077,6 +6007,7 @@ function tocarPecaBateria(key, ev){
   const row = DRUM_SEQ_ROWS.find(r=>r.key===key);
   if(row) row.fn();
 }
+
 function _b64ToArrayBuffer(b64){
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
@@ -4110,10 +6041,10 @@ function carregarSamplesBateria(){
   ));
   return drumSamplesPromise;
 }
-function tocarSample(key, fallback){
+function tocarSample(key, fallback, quando){
   const s = drumSamples[key];
-  if(!pecaSoa(key)) return;
-  if(!s){ carregarSamplesBateria(); if(fallback) fallback(); return; }
+  if(!pecaSoa(key)) return null;
+  if(!s){ carregarSamplesBateria(); if(fallback) fallback(); return null; }
   const ctx = getToolCtx();
   const src = ctx.createBufferSource();
   src.buffer = s.buffer;
@@ -4128,14 +6059,18 @@ function tocarSample(key, fallback){
     g.connect(p); ultimo = p;
   }
   src.connect(g); ultimo.connect(ctx.destination);
-  src.start(0, s.onsetOffset);
+  // [Rodada 88] `quando` = horário exato no relógio do áudio (agendado pelo sequenciador)
+  const t = quando ? Math.max(quando, ctx.currentTime) : 0;
+  src._quando = t || ctx.currentTime;
+  src.start(t, s.onsetOffset);
   src.onended = ()=>{ try{ src.disconnect(); g.disconnect(); if(ultimo!==g) ultimo.disconnect(); }catch(e){} };
+  return src;
 }
-function playKick(){ tocarSample('kick', playKickSintetizado); }
-function playSnare(){ tocarSample('snare', playSnareSintetizado); }
-function playHihat(){ tocarSample('hihat', playHihatSintetizado); }
-function playTom(){ tocarSample('tom', playTomSintetizado); }
-function playCrash(){ tocarSample('crash', playCrashSintetizado); }
+function playKick(t){ return tocarSample('kick', playKickSintetizado, t); }
+function playSnare(t){ return tocarSample('snare', playSnareSintetizado, t); }
+function playHihat(t){ return tocarSample('hihat', playHihatSintetizado, t); }
+function playTom(t){ return tocarSample('tom', playTomSintetizado, t); }
+function playCrash(t){ return tocarSample('crash', playCrashSintetizado, t); }
 
 // ---- Metrônomo ----
 let metronomeTimer = null;
@@ -4917,33 +6852,118 @@ function setDrumBpm(v){
     state.drumBpms[state.drumSeq.preset] = state.drumSeq.bpm;
     try{ storageSet('drumBpms', JSON.stringify(state.drumBpms)); }catch(e){}
   }
-  if(state.drumSeq.running) startDrumSeq();
+  // [Rodada 88] tocando: não reinicia — o agendador lê o andamento a cada passo
   const el = document.getElementById('drumBpmVal'); if(el) el.textContent = state.drumSeq.bpm;
 }
-function drumStepTick(){
-  const seq = state.drumSeq;
-  seq.step = (seq.step+1)%drumSeqSteps();
-  DRUM_SEQ_ROWS.forEach(r=>{ if(seq.pattern[r.key][seq.step]) r.fn(); });
-  document.querySelectorAll('.drumseq-cell').forEach(c=>c.classList.remove('current'));
-  document.querySelectorAll(`.drumseq-cell[data-step="${seq.step}"]`).forEach(c=>c.classList.add('current'));
-  const hcell = document.querySelector(`.drumseq-headcell[data-step="${seq.step}"]`);
-  document.querySelectorAll('.drumseq-headcell').forEach(c=>c.classList.remove('current'));
-  if(hcell) hcell.classList.add('current');
-}
-function startDrumSeq(){
+// [Rodada 88 — 28/09/2026] Bateria no tempo exato desde a primeira batida.
+// Bug reportado: "ao dar play, ele começa meio acelerado e depois se ajusta".
+// Causa: cada passo era disparado por setInterval e o som tocava "agora"
+// (start(0)). No play, o áudio do navegador ainda estava acordando (resume) e a
+// tela estava sendo redesenhada: os primeiros disparos se acumulavam e soavam
+// juntos, depois o ritmo assentava. Agora: espera o áudio acordar e as amostras
+// carregarem, e cada passo é AGENDADO no relógio do próprio áudio
+// (AudioContext.currentTime), com antecedência de ~120ms — o intervalo entre
+// batidas sai exato, com precisão de amostra, mesmo se a tela engasgar.
+// O destaque do passo na grade acompanha pelo requestAnimationFrame.
+// Também: contagem prévia opcional (1 compasso só no chimbal, um toque por tempo).
+const DRUM_SCHED = {timer:null, raf:null, next:0, step:0, fila:[], srcs:[], token:0, contando:false};
+function drumPassoSeg(){ const s = state.drumSeq; return 60/s.bpm/(s.sub||4); }
+async function startDrumSeq(opts){
   stopDrumSeq();
-  // sub = passos por tempo (4 em semicolcheias, 3 em compasso composto/shuffle)
-  const stepMs = (60000/state.drumSeq.bpm)/(state.drumSeq.sub||4);
-  state.drumSeq.step = -1;
-  drumSeqTimer = setInterval(drumStepTick, stepMs);
+  const S = DRUM_SCHED; const token = ++S.token;
+  const ctx = getToolCtx();
+  try{ if(ctx.state !== 'running') await ctx.resume(); }catch(e){}
+  try{ await carregarSamplesBateria(); }catch(e){}
+  if(token !== S.token || !state.drumSeq.running) return;
+  const seq = state.drumSeq;
+  S.step = 0; S.fila = []; S.srcs = [];
+  S.next = ctx.currentTime + 0.12;
+  S.contando = false;
+  if(opts && opts.contagem && state.drumContagem){
+    const sub = seq.sub || 4, passo = drumPassoSeg();
+    const tempos = Math.max(1, Math.round(drumSeqSteps()/sub));
+    for(let b=0; b<tempos; b++){
+      const t = S.next + b*sub*passo;
+      drumCliqueContagem(t, b===0);
+      S.fila.push({t, conta:b+1, de:tempos});
+    }
+    S.next += tempos*sub*passo;
+    S.contando = true;
+  }
+  drumAgenda();
+  S.timer = setInterval(drumAgenda, 25);
+  S.raf = requestAnimationFrame(drumAnima);
+}
+function drumAgenda(){
+  const S = DRUM_SCHED; const ctx = getToolCtx(); const seq = state.drumSeq;
+  if(!seq.running) return;
+  // aba ficou em segundo plano (o navegador atrasa os timers): pula o que
+  // passou em vez de tocar tudo de uma vez quando voltar
+  if(S.next < ctx.currentTime - 0.05){ S.next = ctx.currentTime + 0.05; }
+  while(S.next < ctx.currentTime + 0.12){
+    const n = drumSeqSteps();
+    const i = S.step % n;
+    DRUM_SEQ_ROWS.forEach(r=>{ if(seq.pattern[r.key] && seq.pattern[r.key][i]){ const src = r.fn(S.next); if(src) S.srcs.push(src); } });
+    S.fila.push({t:S.next, step:i});
+    S.next += drumPassoSeg();
+    S.step = (i+1) % n;
+  }
+  if(S.srcs.length > 64) S.srcs = S.srcs.slice(-32);
+}
+function drumAnima(){
+  const S = DRUM_SCHED; if(!state.drumSeq.running) return;
+  const agora = getToolCtx().currentTime;
+  let ult = null;
+  while(S.fila.length && S.fila[0].t <= agora + 0.01){ ult = S.fila.shift(); }
+  if(ult){
+    if(ult.conta){ drumMostraContagem(ult.conta, ult.de); }
+    else { if(S.contando){ S.contando = false; drumMostraContagem(0); } drumMostraPasso(ult.step); }
+  }
+  S.raf = requestAnimationFrame(drumAnima);
+}
+function drumMostraPasso(i){
+  document.querySelectorAll('.drumseq-cell.current, .drumseq-headcell.current').forEach(c=>c.classList.remove('current'));
+  document.querySelectorAll(`.drumseq-cell[data-step="${i}"], .drumseq-headcell[data-step="${i}"]`).forEach(c=>c.classList.add('current'));
+}
+function drumMostraContagem(k, de){
+  const el = document.getElementById('drumCountBadge'); if(!el) return;
+  if(!k){ el.textContent = ''; el.classList.remove('on'); return; }
+  el.textContent = 'Contagem ' + k + ' / ' + de;
+  el.classList.add('on');
+}
+// Clique da contagem: a amostra do chimbal, sempre audível (ignora mudo/solo da
+// mixagem — é só uma referência de tempo), com o primeiro tempo mais forte.
+function drumCliqueContagem(t, forte){
+  const ctx = getToolCtx();
+  const s = drumSamples.hihat;
+  if(!s){ return; }
+  const src = ctx.createBufferSource(); src.buffer = s.buffer;
+  const g = ctx.createGain(); g.gain.value = forte ? 1.25 : 0.85;
+  src.connect(g); g.connect(ctx.destination);
+  src._quando = Math.max(t, ctx.currentTime);
+  src.start(src._quando, s.onsetOffset);
+  DRUM_SCHED.srcs.push(src);
 }
 function stopDrumSeq(){
-  if(drumSeqTimer){ clearInterval(drumSeqTimer); drumSeqTimer=null; }
+  const S = DRUM_SCHED;
+  S.token++;
+  if(S.timer){ clearInterval(S.timer); S.timer = null; }
+  if(S.raf){ cancelAnimationFrame(S.raf); S.raf = null; }
+  // corta o que já estava agendado para daqui a pouco
+  const agora = (typeof toolAudioCtx!=='undefined' && toolAudioCtx) ? toolAudioCtx.currentTime : 0;
+  S.srcs.forEach(src=>{ try{ if(src._quando==null || src._quando > agora) src.stop(); }catch(e){} });
+  S.srcs = []; S.fila = []; S.contando = false;
+  drumMostraContagem(0);
   document.querySelectorAll('.drumseq-cell.current, .drumseq-headcell.current').forEach(c=>c.classList.remove('current'));
 }
 function toggleDrumSeqPlay(){
   state.drumSeq.running = !state.drumSeq.running;
-  if(state.drumSeq.running) startDrumSeq(); else stopDrumSeq();
+  if(state.drumSeq.running) startDrumSeq({contagem:true}); else stopDrumSeq();
+  render();
+}
+function toggleDrumContagem(){
+  state.drumContagem = !state.drumContagem;
+  try{ storageSet('drumContagem', state.drumContagem ? '1' : '0'); }catch(e){}
   render();
 }
 function renderToolDrums(app, themeSwitch){
@@ -4991,6 +7011,9 @@ function renderToolDrums(app, themeSwitch){
           </select>
         </div>
         <button class="rail-btn-wide ${seq.running?'active':''}" style="width:auto;" onclick="toggleDrumSeqPlay()">${seq.running?ICON_PAUSE+' Parar':ICON_PLAY+' Tocar'}</button>
+        <!-- [Rodada 88] contagem prévia: 1 compasso só no chimbal antes do ritmo -->
+        <button type="button" class="drum-count-btn ${state.drumContagem?'on':''}" onclick="toggleDrumContagem()" title="Antes de começar, toca 1 compasso só no chimbal (um toque por tempo)" aria-pressed="${!!state.drumContagem}"><span class="drum-count-sw"></span>Contagem prévia</button>
+        <span class="drum-count-badge" id="drumCountBadge" aria-live="polite"></span>
         <!-- [Rodada 80] Limpar / Salvar padrão / Restaurar saíram da barra e
              foram pro menu do lápis, no canto. -->
         <div class="drum-edit-wrap" style="margin-left:auto;">
@@ -9305,65 +11328,196 @@ function diagramsRowHtml(chordNames, orient, mirror, overrides, capo){
   }).join('') + '</div>';
 }
 
-// [Rodada 83] PDF (cifra/solo/material) ganhou tela cheia + zoom. Só existe um
-// visualizador de PDF na tela por vez (telas separadas), então os ids são fixos
-// (pdfEmbedWrap/pdfEmbedFrame) em vez de um por item.
-let pdfZoomLevel = 1;
-let pdfFullscreenFallback = false;
+// [Rodada 88 — 28/09/2026] Leitor de PDF próprio (cifra/solo/material).
+// Bug reportado: "o leitor dos materiais está exibindo a tela toda branca. Só
+// consigo ler os PDFs se eu baixar" — e a tela cheia também branca, com botões
+// sobrepostos. Causa: o PDF ia inteiro (em base64) no endereço de um <iframe>.
+// O Chrome não abre endereços com mais de 2 MB (a maioria das apostilas passa
+// disso → branco) e navegador de celular não mostra PDF dentro de iframe nenhum.
+// Agora as páginas são desenhadas com o pdf.js (já carregado pelo app) em
+// <canvas>, o que funciona em qualquer navegador, computador ou celular. As
+// páginas desenhadas ficam guardadas: um render() da tela (ex.: marcar a cifra
+// como memorizada) só reaproveita os canvas, sem redesenhar o PDF.
+// Só existe um leitor de PDF na tela por vez, então os ids são fixos.
+const PDFV = {src:null, pend:null, doc:null, erro:null, carregando:false, zoom:1, pagesEl:null, paginas:[], larg:0, obs:null, token:0, fsFallback:false};
 function pdfEmbedHtml(src){
-  return `<div class="pdf-embed-wrap" id="pdfEmbedWrap">
-    <iframe class="pdf-embed" id="pdfEmbedFrame" src="${src}"></iframe>
-    <button type="button" class="pdf-fs-btn no-print" title="Ver em tela cheia" onclick="abrirPdfTelaCheia()">${ICON_FULLSCREEN}</button>
-    <div class="pdf-zoom-bar no-print">
-      <button type="button" onclick="pdfZoomBy(-0.25)" title="Diminuir zoom">−</button>
-      <span class="pdf-zoom-val" id="pdfZoomVal">100%</span>
-      <button type="button" onclick="pdfZoomBy(0.25)" title="Aumentar zoom">+</button>
-      <button type="button" class="pdf-fs-exit" onclick="sairPdfTelaCheia()">${ICON_CLOSE_SM} Sair da tela cheia</button>
+  PDFV.pend = src;
+  return `<div class="pdf-viewer" id="pdfEmbedWrap">
+    <div class="pdf-bar no-print">
+      <span class="pdf-info" id="pdfInfo">${PDFV.src===src && PDFV.doc ? pdfInfoTxt() : 'Carregando…'}</span>
+      <div class="pdf-bar-acoes">
+        <button type="button" class="pdf-bt" onclick="pdfZoomBy(-0.25)" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
+        <span class="pdf-zoom-val" id="pdfZoomVal">${Math.round(PDFV.zoom*100)}%</span>
+        <button type="button" class="pdf-bt" onclick="pdfZoomBy(0.25)" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
+        <button type="button" class="pdf-bt pdf-bt-fs" onclick="alternarPdfTelaCheia()" title="Tela cheia">${ICON_FULLSCREEN}<span class="pdf-fs-txt">Tela cheia</span></button>
+        <button type="button" class="pdf-bt pdf-bt-sair" onclick="alternarPdfTelaCheia()" title="Sair da tela cheia">${ICON_CLOSE_SM}<span>Sair</span></button>
+      </div>
     </div>
+    <div class="pdf-scroll" id="pdfScroll"><div class="pdf-status" id="pdfStatus">Carregando o PDF…</div></div>
   </div>`;
 }
-function abrirPdfTelaCheia(){
+function pdfInfoTxt(){ const n = PDFV.doc ? PDFV.doc.numPages : 0; return n + (n===1 ? ' página' : ' páginas'); }
+// Chamado no fim de cada render(): põe o PDF (já desenhado, se for o mesmo) no lugar.
+function pdfViewerMount(){
   const wrap = document.getElementById('pdfEmbedWrap');
-  if(!wrap) return;
-  const req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
-  if(req && document.fullscreenEnabled!==false){
-    try{
-      const p = req.call(wrap);
-      if(p && p.catch) p.catch(()=>ativarPdfFullscreenFallback(wrap));
-    }catch(e){ ativarPdfFullscreenFallback(wrap); }
-  } else {
-    ativarPdfFullscreenFallback(wrap);
-  }
-}
-function ativarPdfFullscreenFallback(wrap){
-  pdfFullscreenFallback = true;
-  wrap.classList.add('pdf-fallback-fs');
-  document.body.style.overflow = 'hidden';
-}
-function sairPdfTelaCheia(){
-  if(pdfFullscreenFallback){
-    const wrap = document.getElementById('pdfEmbedWrap');
-    if(wrap) wrap.classList.remove('pdf-fallback-fs');
-    document.body.style.overflow = '';
-    pdfFullscreenFallback = false;
-    pdfZoomLevel = 1; aplicarPdfZoom();
+  if(!wrap){ if(PDFV.obs){ PDFV.obs.disconnect(); PDFV.obs = null; } return; }
+  const src = PDFV.pend;
+  const scroll = document.getElementById('pdfScroll');
+  if(PDFV.src === src && PDFV.pagesEl){
+    scroll.innerHTML = ''; scroll.appendChild(PDFV.pagesEl);
+    pdfObservar();
+    pdfAjustarLargura();
     return;
   }
-  const exit = document.exitFullscreen || document.webkitExitFullscreen;
-  if((document.fullscreenElement || document.webkitFullscreenElement) && exit) exit.call(document);
+  if(PDFV.src === src && PDFV.carregando) return;
+  pdfCarregar(src);
+}
+async function pdfGarantirLib(){
+  if(window.pdfjsLib) return window.pdfjsLib;
+  await new Promise((ok, falha)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = ok; s.onerror = ()=>falha(new Error('Não foi possível carregar o leitor de PDF.'));
+    document.head.appendChild(s);
+  });
+  return window.pdfjsLib;
+}
+async function pdfCarregar(src){
+  const token = ++PDFV.token;
+  PDFV.src = src; PDFV.doc = null; PDFV.erro = null; PDFV.carregando = true; PDFV.pagesEl = null; PDFV.paginas = []; PDFV.zoom = 1;
+  if(PDFV.obs){ PDFV.obs.disconnect(); PDFV.obs = null; }
+  const status = (t)=>{ const el = document.getElementById('pdfStatus'); if(el) el.innerHTML = t; };
+  try{
+    const lib = await pdfGarantirLib();
+    if(!lib.GlobalWorkerOptions.workerSrc) lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    // base64 -> bytes (fetch de um data: URL faz isso sem travar a tela)
+    let dados;
+    try{ dados = new Uint8Array(await (await fetch(src)).arrayBuffer()); }
+    catch(e){ const b = atob(String(src).split(',')[1]||''); dados = new Uint8Array(b.length); for(let i=0;i<b.length;i++) dados[i] = b.charCodeAt(i); }
+    if(token!==PDFV.token) return;
+    const doc = await lib.getDocument({data: dados}).promise;
+    if(token!==PDFV.token){ try{ doc.destroy(); }catch(e){} return; }
+    PDFV.doc = doc;
+    const pagesEl = document.createElement('div'); pagesEl.className = 'pdf-pages';
+    for(let n=1; n<=doc.numPages; n++){
+      const pg = await doc.getPage(n);
+      if(token!==PDFV.token) return;
+      const vp = pg.getViewport({scale:1});
+      const div = document.createElement('div'); div.className = 'pdf-page'; div.dataset.n = n;
+      div.style.aspectRatio = vp.width + ' / ' + vp.height;
+      pagesEl.appendChild(div);
+      PDFV.paginas.push({n, pg, w:vp.width, h:vp.height, div, canvas:null, escala:0, task:null});
+    }
+    PDFV.pagesEl = pagesEl; PDFV.carregando = false;
+    const info = document.getElementById('pdfInfo'); if(info) info.textContent = pdfInfoTxt();
+    const scroll = document.getElementById('pdfScroll');
+    if(scroll && PDFV.src===src){ scroll.innerHTML = ''; scroll.appendChild(pagesEl); pdfAjustarLargura(true); pdfObservar(); }
+  }catch(err){
+    if(token!==PDFV.token) return;
+    console.error('Leitor de PDF', err);
+    PDFV.carregando = false; PDFV.erro = err;
+    status(`Não foi possível mostrar este PDF aqui. Use o botão <b>Baixar</b> para abri-lo no seu aparelho.`);
+  }
+}
+// Largura em que as páginas são desenhadas = largura disponível × zoom.
+function pdfLarguraAlvo(){
+  const scroll = document.getElementById('pdfScroll'); if(!scroll) return 0;
+  const cs = getComputedStyle(scroll);
+  const util = scroll.clientWidth - parseFloat(cs.paddingLeft||0) - parseFloat(cs.paddingRight||0);
+  return Math.max(200, Math.floor(util * PDFV.zoom));
+}
+function pdfAjustarLargura(forcar){
+  if(!PDFV.pagesEl) return;
+  const larg = pdfLarguraAlvo(); if(!larg) return;
+  PDFV.pagesEl.style.width = larg + 'px';
+  if(!forcar && Math.abs(larg - PDFV.larg) < 2) return;
+  PDFV.larg = larg;
+  // páginas já desenhadas em outra largura: redesenha as visíveis agora, o resto quando aparecer
+  PDFV.paginas.forEach(p=>{ p.sujo = true; });
+  pdfDesenharVisiveis();
+}
+function pdfObservar(){
+  if(PDFV.obs){ PDFV.obs.disconnect(); PDFV.obs = null; }
+  if(!('IntersectionObserver' in window)){ PDFV.paginas.forEach(pdfDesenhar); return; }
+  const raiz = document.getElementById('pdfEmbedWrap');
+  const emTelaCheia = raiz && raiz.classList.contains('pdf-is-fs');
+  PDFV.obs = new IntersectionObserver((ents)=>{
+    ents.forEach(e=>{ if(e.isIntersecting){ const p = PDFV.paginas[Number(e.target.dataset.n)-1]; if(p) pdfDesenhar(p); } });
+  }, {root: emTelaCheia ? document.getElementById('pdfScroll') : null, rootMargin:'600px 0px'});
+  PDFV.paginas.forEach(p=>PDFV.obs.observe(p.div));
+}
+function pdfDesenharVisiveis(){
+  const alt = window.innerHeight;
+  PDFV.paginas.forEach(p=>{
+    const r = p.div.getBoundingClientRect();
+    if(r.bottom > -600 && r.top < alt + 600) pdfDesenhar(p);
+  });
+}
+async function pdfDesenhar(p){
+  const larg = PDFV.larg || pdfLarguraAlvo(); if(!larg) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const escala = larg / p.w * dpr;
+  if(p.canvas && !p.sujo && Math.abs(p.escala - escala) < 0.01) return;
+  if(p.task){ try{ p.task.cancel(); }catch(e){} p.task = null; }
+  const vp = p.pg.getViewport({scale: escala});
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
+  const ctx = canvas.getContext('2d');
+  const task = p.pg.render({canvasContext: ctx, viewport: vp});
+  p.task = task;
+  try{ await task.promise; }catch(e){ return; }
+  if(p.task !== task) return;
+  p.task = null; p.sujo = false; p.escala = escala;
+  p.div.innerHTML = ''; p.div.appendChild(canvas); p.canvas = canvas;
 }
 function pdfZoomBy(delta){
-  pdfZoomLevel = Math.max(0.5, Math.min(3, Math.round((pdfZoomLevel+delta)*100)/100));
-  aplicarPdfZoom();
+  const antes = PDFV.zoom;
+  PDFV.zoom = Math.max(0.5, Math.min(3, Math.round((PDFV.zoom + delta)*100)/100));
+  const val = document.getElementById('pdfZoomVal'); if(val) val.textContent = Math.round(PDFV.zoom*100) + '%';
+  if(antes !== PDFV.zoom) pdfAjustarLargura();
 }
-function aplicarPdfZoom(){
-  const frame = document.getElementById('pdfEmbedFrame');
-  if(frame) frame.style.transform = pdfZoomLevel===1 ? '' : `scale(${pdfZoomLevel})`;
-  const val = document.getElementById('pdfZoomVal');
-  if(val) val.textContent = Math.round(pdfZoomLevel*100)+'%';
+// Tela cheia: a barra de controles fica em cima, numa linha só (nada flutuando
+// por cima do PDF — era o "botões sobrepostos"), e as páginas rolam embaixo dela.
+function alternarPdfTelaCheia(){
+  const wrap = document.getElementById('pdfEmbedWrap'); if(!wrap) return;
+  const emFs = !!(document.fullscreenElement || document.webkitFullscreenElement) || PDFV.fsFallback;
+  if(emFs){
+    if(PDFV.fsFallback){ pdfSairFallback(); return; }
+    const sair = document.exitFullscreen || document.webkitExitFullscreen;
+    if(sair) sair.call(document);
+    return;
+  }
+  const req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+  if(req && document.fullscreenEnabled !== false){
+    try{ const pr = req.call(wrap); if(pr && pr.catch) pr.catch(()=>pdfEntrarFallback(wrap)); }
+    catch(e){ pdfEntrarFallback(wrap); }
+  } else pdfEntrarFallback(wrap);
 }
-document.addEventListener('fullscreenchange', ()=>{ if(!document.fullscreenElement){ pdfZoomLevel=1; aplicarPdfZoom(); } });
-document.addEventListener('webkitfullscreenchange', ()=>{ if(!document.webkitFullscreenElement){ pdfZoomLevel=1; aplicarPdfZoom(); } });
+// iPhone não tem tela cheia de verdade para um pedaço da página: ocupa a tela toda com CSS.
+function pdfEntrarFallback(wrap){
+  PDFV.fsFallback = true;
+  wrap.classList.add('pdf-fallback-fs');
+  document.body.style.overflow = 'hidden';
+  pdfAposTrocarTelaCheia();
+}
+function pdfSairFallback(){
+  const wrap = document.getElementById('pdfEmbedWrap');
+  if(wrap) wrap.classList.remove('pdf-fallback-fs');
+  document.body.style.overflow = '';
+  PDFV.fsFallback = false;
+  pdfAposTrocarTelaCheia();
+}
+function pdfAposTrocarTelaCheia(){
+  const wrap = document.getElementById('pdfEmbedWrap'); if(!wrap) return;
+  const emFs = (document.fullscreenElement === wrap) || (document.webkitFullscreenElement === wrap) || PDFV.fsFallback;
+  wrap.classList.toggle('pdf-is-fs', emFs);
+  if(!emFs && PDFV.zoom !== 1){ PDFV.zoom = 1; const val = document.getElementById('pdfZoomVal'); if(val) val.textContent = '100%'; }
+  setTimeout(()=>{ pdfObservar(); pdfAjustarLargura(true); }, 60);
+}
+document.addEventListener('fullscreenchange', pdfAposTrocarTelaCheia);
+document.addEventListener('webkitfullscreenchange', pdfAposTrocarTelaCheia);
+let _pdfRz = null;
+window.addEventListener('resize', ()=>{ clearTimeout(_pdfRz); _pdfRz = setTimeout(()=>pdfAjustarLargura(), 180); });
 
 // ---------- main render ----------
 function captureFocus(){
@@ -9501,6 +11655,8 @@ function render(){
   updateWhatsappFabVisibility();
   updateDocumentTitle();
   updateTabDisplay();
+  if(typeof teAfterRender==='function') teAfterRender(); // [Rodada 87] editor de solos novo
+  pdfViewerMount(); // [Rodada 88] leitor de PDF próprio
   syncHistoryAfterRender();
 }
 // Título da aba do navegador — pedido do usuário em 13/09/2026: antes era sempre
@@ -10206,7 +12362,12 @@ function renderApp(){
         <button type="button" class="${(d.fonte||'tab')==='tab'?'active':''}" onclick="setSoloFonte('tab')">✎ Tablatura</button>
         <button type="button" class="${d.fonte==='pdf'?'active':''}" onclick="setSoloFonte('pdf')">${ICON_FILE} Upload de PDF</button>
       </div>
-      ${(d.fonte||'tab')==='tab' ? `
+      ${(d.fonte||'tab')==='tab' && SOLO_EDITOR_V2 ? `
+      <div class="field">
+        <label>Tablatura</label>
+        <div id="teMount"></div>
+      </div>
+      ` : (d.fonte||'tab')==='tab' ? `
       <div class="field">
         <label>Tablatura</label>
         <div class="tab-toolbar">
@@ -10360,7 +12521,7 @@ function renderApp(){
       </div>`:''}
       ${s.fonte==='pdf' && s.pdfData
         ? pdfEmbedHtml(s.pdfData)
-        : `<pre class="tab-display" id="tabDisplay"></pre>`}
+        : (SOLO_EDITOR_V2 && s.tabV2) ? `<div id="teViewMount"></div>` : `<pre class="tab-display" id="tabDisplay"></pre>`}
     `;
     return;
   }
