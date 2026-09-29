@@ -1536,7 +1536,7 @@
   .te-pop-foot{margin-top:12px;display:flex;justify-content:flex-end;}
   .te-pop-foot .te-chip{color:var(--danger);}
   .te-fb-wrap{margin-top:14px;}
-  .te-fb-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .te-fb-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-top:8px;}
   .te-fb-title{font-size:12.5px;color:var(--muted);}
   .te-fb{overflow-x:auto;background:transparent;border-radius:0;padding:12px 0 6px;-webkit-overflow-scrolling:touch;}
   .te-fbsvg{display:block;}
@@ -1569,7 +1569,7 @@
     .te-fb-wrap.te-oculto .te-fb{display:none;}
     .te-fb-toggle{display:inline-flex !important;}
     body.te-editing #whatsappBtn{display:none !important;}
-    .te-fb-head{margin-bottom:5px;}
+    .te-fb-head{margin-top:5px;}
     .te-fb-title{display:none;}
     .te-fb{padding:8px 0 2px;}
     .te-tb-row::-webkit-scrollbar{display:none;}
@@ -4870,8 +4870,8 @@ function teEditorShellHtml(){
     <div class="te-sheet" id="teSheet" tabindex="0" onpointerdown="teSheetDown(event)" onpointermove="teSheetMove(event)" onpointerup="teSheetUp(event)" onpointercancel="teSheetUp(event)"></div>
     <div id="tePop"></div>
     <div class="te-fb-wrap" id="teFbWrap">
-      <div class="te-fb-head" id="teFbHead"></div>
       <div class="te-fb" id="teFb"></div>
+      <div class="te-fb-head" id="teFbHead"></div>
     </div>
     <details class="te-help"><summary>Atalhos do teclado</summary>
       <div class="te-help-grid">
@@ -4895,7 +4895,7 @@ function teRefresh(){
   teClampCur();
   const conv = document.getElementById('teConv');
   if(conv) conv.innerHTML = TE.conv ? `<div class="te-convbox">${escapeTe(TE.conv)}</div>` : '';
-  document.getElementById('teToolbar').innerHTML = teToolbarHtml();
+  document.getElementById('teToolbar').innerHTML = teToolbarHtml(); teAjustaOpc();
   const width = Math.max(280, Math.floor(sheet.clientWidth));
   TE.layout = teLayout(TE.doc, width);
   sheet.innerHTML = teRenderSvg(TE.doc, TE.layout, {editable:true, cursor:TE.cur, sel:TE.sel, playRect:'tePlayRect'});
@@ -4937,7 +4937,7 @@ function teToolbarHtml(){
   const n = teCurNote();
   const tocando = TE_AUDIO.on && TE_AUDIO.doc===TE.doc;
   // [Rodada 93] esquerda: opções + edição · direita: andamento, repetir e tocar
-  const esq = `<div class="te-tb-left">
+  const esq = `<div class="te-tb-right">
     <div class="te-menu-wrap">
       ${teBtn(TE_ICON.menu, 'teToggleOpcoes()', {cls:'te-icon-btn', on:TE.opcoes, title:'Opções: forma de escrita, pentagrama e afinação'})}
       ${TE.opcoes ? teOpcoesHtml() : ''}
@@ -4949,16 +4949,16 @@ function teToolbarHtml(){
     ${teBtn(TE_ICON.tec+'<span class="te-lbl">Técnicas</span>', 'teOpenPopAtCursor()', {dis:!n && !TE.sel, title:'Bend, ligado, slide, vibrato… da nota do cursor'})}
     ${!part ? teBtn('<b class="te-barra">|</b><span class="te-lbl">Barra</span>', 'teToggleBar()', {on:b && b.bar, title:'Colocar ou tirar uma barra de compasso depois deste tempo (|)'}) : ''}
   </div>`;
-  const dir = `<div class="te-tb-right">
+  const dir = `<div class="te-tb-left">
+    ${teBtn(tocando?TE_ICON.stop+'<span>Parar</span>':TE_ICON.play+'<span>Tocar</span>', 'teTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar a partir do cursor (Enter)'})}
+    ${teBtn(TE_ICON.loop, 'TE.loop=!TE.loop;teRefresh()', {cls:'te-icon-btn', on:TE.loop, title:'Repetir (o trecho selecionado, ou tudo)'})}
+    ${part ? teBtn(TE_ICON.metro, 'TE.metro=!TE.metro;teRefresh()', {cls:'te-icon-btn', on:TE.metro, title:'Metrônomo durante a reprodução'}) : ''}
     <div class="te-bpm" title="Andamento (batidas por minuto)">
       <button type="button" onmousedown="event.preventDefault()" onclick="teSetBpm(TE.doc.bpm-5)" title="Mais devagar">−</button>
       <input type="number" min="30" max="300" value="${d.bpm}" onchange="teSetBpm(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" aria-label="Andamento">
       <span class="te-bpm-u">bpm</span>
       <button type="button" onmousedown="event.preventDefault()" onclick="teSetBpm(TE.doc.bpm+5)" title="Mais rápido">+</button>
     </div>
-    ${part ? teBtn(TE_ICON.metro, 'TE.metro=!TE.metro;teRefresh()', {cls:'te-icon-btn', on:TE.metro, title:'Metrônomo durante a reprodução'}) : ''}
-    ${teBtn(TE_ICON.loop, 'TE.loop=!TE.loop;teRefresh()', {cls:'te-icon-btn', on:TE.loop, title:'Repetir (o trecho selecionado, ou tudo)'})}
-    ${teBtn(tocando?TE_ICON.stop+'<span>Parar</span>':TE_ICON.play+'<span>Tocar</span>', 'teTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar a partir do cursor (Enter)'})}
   </div>`;
   const ritmo = part ? `<div class="te-tb-row te-ritmo">
     ${TE_DURS.map(du=>teBtn(teDurIcon(du), `teSetDur(${du})`, {cls:'te-dur', on:b && b.dur===du, title:TE_DUR_NOMES[du]})).join('')}
@@ -4972,11 +4972,18 @@ function teToolbarHtml(){
     ${teBtn(TE_ICON.up, 'teMove(0,-1)', {cls:'te-icon-btn', title:'Corda de cima (↑)'})}
     ${teBtn(TE_ICON.down, 'teMove(0,1)', {cls:'te-icon-btn', title:'Corda de baixo (↓)'})}
   </div>`;
-  return `<div class="te-tb">${esq}${dir}</div>` + ritmo + nav;
+  return `<div class="te-tb">${dir}${esq}</div>` + ritmo + nav;
 }
 // ---- menu de opções (☰) do editor ----
 function teToggleOpcoes(){ TE.opcoes = !TE.opcoes; teToolbarOnly(); }
-function teToolbarOnly(){ const tb = document.getElementById('teToolbar'); if(tb && TE.doc) tb.innerHTML = teToolbarHtml(); }
+function teToolbarOnly(){ const tb = document.getElementById('teToolbar'); if(tb && TE.doc) tb.innerHTML = teToolbarHtml(); teAjustaOpc(); }
+function teAjustaOpc(){
+  document.querySelectorAll('.te-opc').forEach(el=>{
+    el.style.left = ''; el.style.right = '';
+    const r = el.getBoundingClientRect(), lim = document.documentElement.clientWidth - 12;
+    if(r.right > lim) el.style.left = Math.round(lim - r.right) + 'px';
+  });
+}
 function teSwitch(on, onclick, rot){
   return `<button type="button" class="te-opc-linha te-opc-toggle" onmousedown="event.preventDefault()" onclick="${onclick}"><span>${rot}</span><span class="te-switch${on?' on':''}"><i></i></span></button>`;
 }
@@ -5336,24 +5343,24 @@ function teViewerToolbarHtml(){
       ${part ? teSwitch(TEV.metro, 'TEV.metro=!TEV.metro;teViewerRefresh()', 'Metrônomo ao tocar') : ''}
       <div class="te-opc-nota">Toque num ponto da tablatura para começar a tocar dali.</div>
     </div>` : '';
-  return `<div class="te-tb">
-    <div class="te-tb-left">
+  const play = `<div class="te-tb-left">
+      ${teBtn(tocando?TE_ICON.stop+'<span>Parar</span>':TE_ICON.play+'<span>Tocar</span>', 'teViewTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar / parar (Espaço)'})}
+      ${teBtn(TE_ICON.loop, 'TEV.loop=!TEV.loop;teViewerRefresh()', {cls:'te-icon-btn', on:TEV.loop, title:'Repetir sem parar'})}
+      <select class="te-pill-sel" title="Velocidade" onchange="TEV.speed=Number(this.value);if(TE_AUDIO.on){teViewTogglePlay();teViewTogglePlay();}">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}" ${v===TEV.speed?'selected':''}>${Math.round(v*100)}%</option>`).join('')}</select>
+    </div>`;
+  return `<div class="te-tb">${play}
+    <div class="te-tb-right">
       <div class="te-menu-wrap">
         ${teBtn(TE_ICON.menu, 'TEV.opcoes=!TEV.opcoes;teViewerRefresh()', {cls:'te-icon-btn', on:TEV.opcoes, title:'Opções: pentagrama e metrônomo'})}
         ${opc}
       </div>
       ${typeof soloViewerAcoesHtml==='function' ? soloViewerAcoesHtml() : ''}
     </div>
-    <div class="te-tb-right">
-      <select class="te-pill-sel" title="Velocidade" onchange="TEV.speed=Number(this.value);if(TE_AUDIO.on){teViewTogglePlay();teViewTogglePlay();}">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}" ${v===TEV.speed?'selected':''}>${Math.round(v*100)}%</option>`).join('')}</select>
-      ${teBtn(TE_ICON.loop, 'TEV.loop=!TEV.loop;teViewerRefresh()', {cls:'te-icon-btn', on:TEV.loop, title:'Repetir sem parar'})}
-      ${teBtn(tocando?TE_ICON.stop+'<span>Parar</span>':TE_ICON.play+'<span>Tocar</span>', 'teViewTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar / parar (Espaço)'})}
-    </div>
   </div>`;
 }
 function teViewerRefresh(){
   const sheet = document.getElementById('teVSheet'); if(!sheet || !TEV.doc) return;
-  const tb = document.getElementById('teVToolbar'); if(tb) tb.innerHTML = teViewerToolbarHtml();
+  const tb = document.getElementById('teVToolbar'); if(tb){ tb.innerHTML = teViewerToolbarHtml(); teAjustaOpc(); }
   const doc = Object.assign({}, TEV.doc, {mostrarPartitura: TEV.showNot});
   const width = Math.max(280, Math.floor(sheet.clientWidth));
   TEV.layout = teLayout(doc, width);
@@ -13259,7 +13266,7 @@ function renderApp(){
           <div class="stars">${[1,2,3,4,5].map(n=>`<span class="star ${n<=(s.dificuldade||0)?'filled':''}" onclick="setSoloDificuldade('${s.id}', ${n})">★</span>`).join('')}</div>
         </div>
       </div>`:''}
-      ${(SOLO_EDITOR_V2 && s.tabV2 && s.fonte!=='pdf') ? '' : `<div class="te-toolbar no-print solo-vbar"><div class="te-tb"><div class="te-tb-left">${soloViewerAcoesHtml()}</div></div></div>`}
+      ${(SOLO_EDITOR_V2 && s.tabV2 && s.fonte!=='pdf') ? '' : `<div class="te-toolbar no-print solo-vbar"><div class="te-tb"><div class="te-tb-right">${soloViewerAcoesHtml()}</div></div></div>`}
       ${s.fonte==='pdf' && s.pdfData
         ? pdfEmbedHtml(s.pdfData, pdfAnotChaveDe('solo', s.id))
         : (SOLO_EDITOR_V2 && s.tabV2) ? `<div id="teViewMount"></div>` : `<pre class="tab-display" id="tabDisplay"></pre>`}
