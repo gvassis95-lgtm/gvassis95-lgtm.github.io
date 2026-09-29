@@ -1488,7 +1488,7 @@
   .te-status .te-aviso{color:var(--accent);font-weight:600;}
   .te-status .te-warn{color:var(--danger);font-weight:600;}
   .te-convbox{font-size:12.5px;line-height:1.45;background:color-mix(in srgb,var(--accent) 14%,var(--bg-panel));border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:10px;padding:9px 12px;margin-bottom:10px;}
-  .te-sheet{--te-paper:var(--bg-panel);--te-ink:var(--text);--te-line:color-mix(in srgb,var(--text) 32%,transparent);background:var(--te-paper);border-radius:14px;padding:8px 0;outline:none;overflow:hidden;touch-action:pan-y;cursor:text;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
+  .te-sheet{--te-paper:var(--bg);--te-ink:var(--text);--te-line:color-mix(in srgb,var(--text) 32%,transparent);background:transparent;border-radius:0;padding:8px 0;outline:none;overflow:hidden;touch-action:pan-y;cursor:text;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
   .te-sheet:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 45%,transparent);}
   .te-sheet-view{cursor:pointer;background:transparent;border-radius:0;padding:0;} /* [Rodada 95] tela do solo sem o box de fundo */
   .te-svg{display:block;overflow:visible;}
@@ -1538,7 +1538,7 @@
   .te-fb-wrap{margin-top:14px;}
   .te-fb-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;}
   .te-fb-title{font-size:12.5px;color:var(--muted);}
-  .te-fb{overflow-x:auto;background:var(--bg-panel);border-radius:14px;padding:12px 10px 6px;-webkit-overflow-scrolling:touch;}
+  .te-fb{overflow-x:auto;background:transparent;border-radius:0;padding:12px 0 6px;-webkit-overflow-scrolling:touch;}
   .te-fbsvg{display:block;}
   .te-fbsvg text{font-family:'Montserrat',system-ui,sans-serif;}
   .te-fbdot{fill:var(--pill-bg);}
@@ -1571,13 +1571,13 @@
     body.te-editing #whatsappBtn{display:none !important;}
     .te-fb-head{margin-bottom:5px;}
     .te-fb-title{display:none;}
-    .te-fb{padding:8px 6px 2px;border-radius:10px;}
+    .te-fb{padding:8px 0 2px;}
     .te-tb-row::-webkit-scrollbar{display:none;}
     .te-btn .te-lbl{display:none;}
     .te-btn.te-play{padding:0 14px 0 12px;}
     .te-hint{white-space:nowrap;}
     .te-navrow{display:flex;}
-    .te-sheet{border-radius:10px;}
+    .te-sheet{}
     .te-pop{left:4px !important;right:4px;width:auto;}
   }
   @media print{
