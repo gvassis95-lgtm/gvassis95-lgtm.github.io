@@ -599,6 +599,22 @@
   .icon-btn.on{color:var(--accent);}
   .viewer-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:22px;}
   .viewer-title{margin-bottom:20px;}
+  .ns-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:18px 0 8px;}
+  .ns-opcoes{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .ns-opcao{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:14px;border-radius:14px;border:none;background:var(--pill-bg);color:var(--text);cursor:pointer;font-family:'Montserrat',sans-serif;transition:background .2s,color .2s,transform .1s;}
+  .ns-opcao:hover{background:color-mix(in srgb,var(--accent) 18%,var(--pill-bg));}
+  .ns-opcao:active{transform:scale(.98);}
+  .ns-opcao b{font-size:13.5px;font-weight:700;}
+  .ns-opcao span:last-child{font-size:11.5px;color:var(--muted);}
+  .ns-ico{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+  .ns-ico svg{width:15px !important;height:15px !important;vertical-align:0 !important;}
+  .ns-erro{color:var(--danger);font-size:12.5px;font-weight:600;margin-top:4px;}
+  .solo-ed-head{margin-bottom:16px;}
+  .solo-ed-linha{display:flex;align-items:center;gap:6px;}
+  .solo-ed-lapis svg{width:16px;height:16px;}
+  .solo-ed-lapis:hover{color:var(--accent);}
+  .solo-ed-art{font-size:13px;color:var(--muted);margin-top:3px;}
+  .solo-vbar{margin-bottom:12px;}
   .capo-note{background:var(--pill-bg);color:var(--accent);font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:10px;display:inline-block;margin:-8px 0 18px;}
   .viewer-title h2{margin:0 0 3px;font-size:25px;font-weight:800;color:var(--text);}
   .viewer-title .art{color:var(--muted);font-size:15px;}
@@ -1409,27 +1425,63 @@
 /* ==== TAB EDITOR V2 CSS (inicio) ==== */
   /* ==== TAB EDITOR V2 (rodada 87) ==== */
   .te-wrap{position:relative;margin:4px 0 18px;}
-  .te-toolbar{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+  .te-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+  /* [Rodada 93] barra no estilo do app: pílulas sem borda, botões redondos */
+  .te-tb{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .te-tb-left,.te-tb-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .te-tb-right{margin-left:auto;}
   .te-tb-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-  .te-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;min-width:32px;padding:0 11px;border-radius:9px;border:1px solid var(--border);background:var(--pill-bg);color:var(--text);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;line-height:1;transition:border-color .15s,background .15s;}
-  .te-btn:hover:not(:disabled){border-color:color-mix(in srgb,var(--accent) 60%,transparent);}
-  .te-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-  .te-btn:disabled{opacity:.38;cursor:default;}
+  .te-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;min-width:36px;padding:0 15px;border-radius:999px;border:none;background:var(--pill-bg);color:var(--text);font:inherit;font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;line-height:1;transition:color .2s,background .2s,filter .2s,opacity .2s;}
+  .te-btn:hover:not(:disabled){color:var(--accent);}
+  .te-btn.on{background:var(--accent);color:#fff;}
+  .te-btn.on:hover:not(:disabled){color:#fff;filter:brightness(1.1);}
+  .te-btn:disabled{opacity:.35;cursor:default;}
   .te-btn svg{width:15px;height:15px;flex:0 0 auto;}
-  .te-icon-btn{padding:0;width:32px;}
-  .te-dur{padding:0;width:34px;}
+  .te-icon-btn{padding:0;width:36px;}
+  .te-barra{font-size:15px;line-height:1;}
+  .te-dur{padding:0;width:36px;}
   .te-dur svg{width:16px;height:21px;}
   .te-dur .te-ico{fill:currentColor;}
   .te-dot{font-size:20px;line-height:0;position:relative;top:-1px;}
-  .te-play{font-weight:600;}
-  .te-seg{display:inline-flex;background:var(--pill-bg);border-radius:10px;padding:3px;gap:2px;border:1px solid var(--border);}
-  .te-seg button{border:none;background:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;}
+  .te-play{background:var(--accent);color:#fff;padding:0 20px 0 16px;font-weight:700;letter-spacing:.02em;}
+  .te-play:hover:not(:disabled){color:#fff;filter:brightness(1.12);}
+  .te-play.on{background:color-mix(in srgb,var(--accent) 70%,#000);}
+  .te-play svg{width:13px;height:13px;}
+  .te-bpm{display:inline-flex;align-items:center;height:36px;border-radius:999px;background:var(--pill-bg);padding:0 4px;gap:2px;}
+  .te-bpm button{width:28px;height:28px;border-radius:50%;border:none;background:none;color:var(--text);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .2s,background .2s;}
+  .te-bpm button:hover{color:var(--accent);background:color-mix(in srgb,var(--text) 8%,transparent);}
+  .te-bpm input{width:38px;height:28px;border:none;background:none;color:var(--text);font:inherit;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;text-align:right;padding:0;margin:0;-moz-appearance:textfield;}
+  .te-bpm input:focus{outline:none;color:var(--accent);}
+  .te-bpm input::-webkit-outer-spin-button,.te-bpm input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .te-bpm-u{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin:0 4px 0 3px;}
+  .te-pill-sel{height:36px;border-radius:999px;border:none;background:var(--pill-bg);color:var(--text);font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:600;padding:0 14px;width:auto;min-width:0;margin:0;cursor:pointer;}
+  .te-seg{display:inline-flex;background:var(--pill-bg);border-radius:999px;padding:3px;gap:2px;}
+  .te-seg button{border:none;background:none;color:var(--muted);font:inherit;font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:color .2s,background .2s;}
+  .te-seg button:hover{color:var(--text);}
   .te-seg button.on{background:var(--accent);color:#fff;}
+  .te-seg-full{display:flex;width:100%;}
+  .te-seg-full button{flex:1;}
   .te-sep{width:1px;height:22px;background:var(--border);margin:0 3px;}
+  /* menu ☰ */
+  .te-menu-wrap{position:relative;}
+  .te-opc{position:absolute;top:calc(100% + 8px);left:0;z-index:70;width:280px;max-width:calc(100vw - 32px);background:color-mix(in srgb,var(--bg-panel) 88%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;padding:14px;box-shadow:0 14px 34px -10px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:8px;text-align:left;}
+  .te-opc-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin-top:2px;}
+  .te-opc-div{height:1px;background:var(--border);margin:2px 0;}
+  .te-opc-sel{height:36px;border-radius:10px;border:none;background:var(--pill-bg);color:var(--text);font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:500;padding:0 10px;width:100%;margin:0;}
+  .te-opc-linha{display:flex;align-items:center;justify-content:space-between;width:100%;border:none;background:none;color:var(--text);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;padding:4px 0;cursor:pointer;}
+  .te-switch{width:36px;height:20px;border-radius:999px;background:var(--pill-bg);position:relative;flex:0 0 auto;transition:background .2s;}
+  .te-switch i{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:left .2s,background .2s;}
+  .te-switch.on{background:var(--accent);}
+  .te-switch.on i{left:19px;background:#fff;}
+  .te-cordas{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .te-corda{display:flex;align-items:center;gap:4px;background:var(--pill-bg);border-radius:999px;padding:3px;}
+  .te-corda-n{font-size:10.5px;color:var(--muted);font-weight:700;width:24px;text-align:center;}
+  .te-corda b{flex:1;text-align:center;font-size:13px;}
+  .te-corda button{width:24px;height:24px;border-radius:50%;border:none;background:none;color:var(--text);font-size:15px;line-height:1;cursor:pointer;}
+  .te-corda button:hover{color:var(--accent);background:color-mix(in srgb,var(--text) 8%,transparent);}
+  .te-opc-nota{font-size:11px;color:var(--muted);line-height:1.4;}
   .te-field{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
   .te-field select,.te-field input{height:32px;padding:0 8px;border-radius:9px;background:var(--pill-bg);color:var(--text);border:1px solid var(--border);font:inherit;font-size:12.5px;width:auto;min-width:0;margin:0;}
-  .te-bpm input{width:54px;text-align:center;-moz-appearance:textfield;}
-  .te-bpm input::-webkit-outer-spin-button,.te-bpm input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .te-hint{font-size:11.5px;color:var(--muted);}
   .te-navrow{display:none;}
   .te-status{font-size:12px;color:var(--muted);margin:0 0 8px;min-height:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
@@ -1438,7 +1490,7 @@
   .te-convbox{font-size:12.5px;line-height:1.45;background:color-mix(in srgb,var(--accent) 14%,var(--bg-panel));border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:10px;padding:9px 12px;margin-bottom:10px;}
   .te-sheet{--te-paper:var(--bg-panel);--te-ink:var(--text);--te-line:color-mix(in srgb,var(--text) 32%,transparent);background:var(--te-paper);border-radius:14px;padding:8px 0;outline:none;overflow:hidden;touch-action:pan-y;cursor:text;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
   .te-sheet:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 45%,transparent);}
-  .te-sheet-view{cursor:pointer;}
+  .te-sheet-view{cursor:pointer;background:transparent;border-radius:0;padding:0;} /* [Rodada 95] tela do solo sem o box de fundo */
   .te-svg{display:block;overflow:visible;}
   .te-svg text{font-family:'Montserrat',system-ui,sans-serif;}
   .te-svg .te-line{stroke:var(--te-line);stroke-width:1;}
@@ -1477,8 +1529,8 @@
   .te-chips{display:flex;flex-wrap:wrap;gap:5px;}
   .te-chips-sub{margin-top:5px;align-items:center;}
   .te-mini{font-size:11.5px;color:var(--muted);margin-right:2px;}
-  .te-chip{height:28px;padding:0 9px;border-radius:8px;border:1px solid var(--border);background:var(--pill-bg);color:var(--text);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
-  .te-chip:hover{border-color:color-mix(in srgb,var(--accent) 60%,transparent);}
+  .te-chip{height:28px;padding:0 11px;border-radius:999px;border:none;background:var(--pill-bg);color:var(--text);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+  .te-chip:hover{color:var(--accent);}
   .te-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
   .te-chip kbd,.te-pop-sec kbd{font:inherit;font-size:10px;opacity:.6;border:1px solid currentColor;border-radius:4px;padding:0 3px;line-height:1.3;}
   .te-pop-foot{margin-top:12px;display:flex;justify-content:flex-end;}
@@ -1509,6 +1561,10 @@
   @media(max-width:640px){
     .te-tb-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px;}
     .te-tb-row > *{flex:0 0 auto;}
+    .te-tb{gap:8px;}
+    .te-tb-left,.te-tb-right{gap:5px;}
+    .te-btn,.te-bpm,.te-pill-sel{height:34px;}
+    .te-icon-btn,.te-dur{width:34px;min-width:34px;}
     .te-fb-wrap{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--bg);margin:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -10px 20px -10px rgba(0,0,0,.55);border-top:1px solid var(--border);}
     .te-fb-wrap.te-oculto .te-fb{display:none;}
     .te-fb-toggle{display:inline-flex !important;}
@@ -1518,8 +1574,7 @@
     .te-fb{padding:8px 6px 2px;border-radius:10px;}
     .te-tb-row::-webkit-scrollbar{display:none;}
     .te-btn .te-lbl{display:none;}
-    .te-btn.te-play{padding:0 12px;}
-    .te-btn.te-play .te-lbl{display:inline;}
+    .te-btn.te-play{padding:0 14px 0 12px;}
     .te-hint{white-space:nowrap;}
     .te-navrow{display:flex;}
     .te-sheet{border-radius:10px;}
@@ -2901,11 +2956,71 @@ async function deleteMaterialRemote(id){
   if(!sb) return;
   try{ const { error } = await sb.from('materiais').delete().eq('id', id); if(error) throw error; if(state._materialKnownIds) state._materialKnownIds.delete(id); }catch(e){ console.error('Erro ao excluir material', e); }
 }
+// [Rodada 93] "+ Novo solo" abre um popup que pede o nome e o artista e, embaixo,
+// a forma de criar (escrever no editor ou subir um PDF). A tela de escrita não
+// repete esses campos — o nome pode ser trocado depois pelo lápis ao lado do título.
 function openNewSolo(){
-  state.soloDraft = {id:null, isNew:true, titulo:'', artista:'', tab:DEFAULT_TAB_SKELETON, tabV2:null, fonte:'tab', pdfData:null, pdfName:'', pdfLoading:false};
+  state.novoSolo = {modo:'novo', titulo:'', artista:'', erro:''};
+  render();
+  setTimeout(()=>{ const el = document.getElementById('ns_titulo'); if(el) el.focus(); }, 40);
+}
+function fecharNovoSolo(){ state.novoSolo = null; render(); }
+function iniciarNovoSolo(fonte){
+  const ns = state.novoSolo; if(!ns) return;
+  const titulo = (ns.titulo||'').trim();
+  if(!titulo){ ns.erro = 'Dê um nome ao solo.'; render(); setTimeout(()=>{ const el = document.getElementById('ns_titulo'); if(el) el.focus(); }, 30); return; }
+  state.novoSolo = null;
+  state.soloDraft = {id:null, isNew:true, titulo, artista:(ns.artista||'').trim(), tab:DEFAULT_TAB_SKELETON, tabV2:null, fonte, pdfData:null, pdfName:'', pdfLoading:false};
   if(SOLO_EDITOR_V2) teOpenDraft(state.soloDraft); // [Rodada 87] editor novo
   state.view = 'solo-editor';
   render();
+  if(fonte==='pdf'){ const inp = document.getElementById('solo_pdf'); if(inp) inp.click(); } // já abre a escolha do arquivo
+}
+function abrirNomeSolo(){
+  const d = state.soloDraft; if(!d) return;
+  state.novoSolo = {modo:'editar', titulo:d.titulo||'', artista:d.artista||'', erro:''};
+  render();
+  setTimeout(()=>{ const el = document.getElementById('ns_titulo'); if(el) el.focus(); }, 40);
+}
+function salvarNomeSolo(){
+  const ns = state.novoSolo, d = state.soloDraft; if(!ns || !d) return;
+  const titulo = (ns.titulo||'').trim();
+  if(!titulo){ ns.erro = 'Dê um nome ao solo.'; render(); return; }
+  if(titulo!==d.titulo || (ns.artista||'').trim()!==(d.artista||'')){ d.nomeAlterado = true; if(SOLO_EDITOR_V2 && TE.doc) TE.dirty = true; }
+  d.titulo = titulo; d.artista = (ns.artista||'').trim();
+  state.novoSolo = null;
+  render();
+}
+function novoSoloModalHtml(){
+  const ns = state.novoSolo; if(!ns) return '';
+  const novo = ns.modo==='novo';
+  return `
+  <div class="modal-bg" onclick="if(event.target===this) fecharNovoSolo()">
+    <div class="mini-modal ns-modal" style="max-width:460px;text-align:left;">
+      <h4 style="margin:0 0 14px;">${novo?'Novo solo':'Nome do solo'}</h4>
+      <form onsubmit="event.preventDefault(); ${novo?"iniciarNovoSolo('tab')":'salvarNomeSolo()'}">
+        <div class="login-field"><label>Nome do solo</label><input id="ns_titulo" type="text" placeholder="Ex: Sweet Child O' Mine (intro)" value="${escapeHtml(ns.titulo||'')}" oninput="state.novoSolo.titulo=this.value"></div>
+        <div class="login-field"><label>Artista ou banda</label><input id="ns_artista" type="text" placeholder="Opcional" value="${escapeHtml(ns.artista||'')}" oninput="state.novoSolo.artista=this.value"></div>
+        ${ns.erro?`<div class="ns-erro">${escapeHtml(ns.erro)}</div>`:''}
+        ${novo ? `
+        <div class="ns-lbl">Como você quer criar?</div>
+        <div class="ns-opcoes">
+          <button type="button" class="ns-opcao" onclick="iniciarNovoSolo('tab')">
+            <span class="ns-ico">${EDIT_SVG}</span><b>Escrever o solo</b><span>No editor de tablatura</span>
+          </button>
+          <button type="button" class="ns-opcao" onclick="iniciarNovoSolo('pdf')">
+            <span class="ns-ico">${ICON_FILE}</span><b>Subir um PDF</b><span>Um arquivo já pronto</span>
+          </button>
+        </div>
+        <div class="form-actions"><button type="button" class="btn-ghost" onclick="fecharNovoSolo()">Cancelar</button></div>
+        ` : `
+        <div class="form-actions">
+          <button type="button" class="btn-ghost" onclick="fecharNovoSolo()">Cancelar</button>
+          <button type="submit" class="btn">Salvar</button>
+        </div>`}
+      </form>
+    </div>
+  </div>`;
 }
 async function openEditSolo(id, ev){
   if(ev) ev.stopPropagation();
@@ -2962,7 +3077,7 @@ async function processSoloPdfFile(file){
 }
 async function closeSoloEditor(){
   // [Rodada 87] o editor novo guarda muito trabalho — confirma antes de jogar fora
-  if(SOLO_EDITOR_V2 && TE.doc && TE.dirty){
+  if((SOLO_EDITOR_V2 && TE.doc && TE.dirty) || (state.soloDraft && state.soloDraft.nomeAlterado)){
     const ok = await customConfirm('Sair sem salvar? As alterações na tablatura serão perdidas.');
     if(!ok) return;
   }
@@ -2979,9 +3094,9 @@ async function openSoloViewer(id){
 }
 async function saveSoloDraft(){
   const d = state.soloDraft; if(!d) return;
-  const titulo = document.getElementById('solo_titulo').value.trim();
-  if(!titulo){ showToast('Dê um nome ao solo antes de salvar.', true); return; }
-  const artista = document.getElementById('solo_artista').value.trim();
+  const titulo = (d.titulo||'').trim();
+  if(!titulo){ showToast('Dê um nome ao solo antes de salvar.', true); abrirNomeSolo(); return; }
+  const artista = (d.artista||'').trim();
   const fonte = d.fonte || 'tab';
   if(fonte==='pdf' && d.pdfLoading){ showToast('Aguarde o PDF terminar de carregar e tente salvar novamente.', true); return; }
   if(fonte==='pdf' && !d.pdfData){ showToast('Envie um arquivo PDF ou escolha "Tablatura" como fonte.', true); return; }
@@ -3055,6 +3170,13 @@ async function deleteSolo(id, ev){
   await saveSolosIndex();
   await deleteSoloRemote(id);
   render();
+}
+// [Rodada 93] Editar / Imprimir / Excluir da tela do solo: botões redondos à esquerda da barra
+function soloViewerAcoesHtml(){
+  const id = state.soloViewId; if(!id) return '';
+  return teBtn(TE_ICON.edit, `openEditSolo('${id}')`, {cls:'te-icon-btn', title:'Editar solo'})
+    + teBtn(TE_ICON.print, 'soloImprimir()', {cls:'te-icon-btn', title:'Imprimir'})
+    + teBtn(TE_ICON.del, `deleteSoloFromViewer('${id}')`, {cls:'te-icon-btn', title:'Excluir solo'});
 }
 async function deleteSoloFromViewer(id){
   const ok = await customConfirm('Excluir este solo? Essa ação não pode ser desfeita.');
@@ -3421,7 +3543,12 @@ function teNewDoc(){
   return {v:2, modo:'livre', bpm:90, compasso:{n:4,d:4}, afinacao:0, mostrarPartitura:true, beats:[teNewBeat(8)]};
 }
 function teClone(o){ return JSON.parse(JSON.stringify(o)); }
-function teTuning(doc){ return (TE_TUNINGS[doc && doc.afinacao] || TE_TUNINGS[0]).midi; }
+// afinacao = índice de TE_TUNINGS, ou -1 = personalizada (notas em doc.afinacaoMidi, corda 1 → 6)
+function teTuning(doc){
+  if(doc && doc.afinacao===-1 && Array.isArray(doc.afinacaoMidi) && doc.afinacaoMidi.length===6) return doc.afinacaoMidi;
+  return (TE_TUNINGS[doc && doc.afinacao] || TE_TUNINGS[0]).midi;
+}
+function teNomeNota(m){ return TE_NOTE_NAMES[((m%12)+12)%12] + (Math.floor(m/12)-1); }
 function teStringNames(doc){ return teTuning(doc).map(m=>TE_NOTE_NAMES[m%12]).map((n,i)=> i===0 ? n.toLowerCase() : n); }
 function teMidi(doc, note){ return teTuning(doc)[note.s-1] + note.f; }
 function teTicks(beat){
@@ -3689,7 +3816,36 @@ function teSetBpm(v){
   if(v===TE.doc.bpm) return;
   teSnapshot(); TE.doc.bpm = v; teSyncDraft(); teRefresh();
 }
-function teSetAfinacao(i){ teSnapshot(); TE.doc.afinacao = Number(i)||0; teSyncDraft(); teRefresh(); }
+function teSetAfinacao(i){
+  i = Number(i)||0;
+  teSnapshot();
+  if(i===-1) TE.doc.afinacaoMidi = teTuning(TE.doc).slice(); // parte da afinação atual
+  TE.doc.afinacao = i;
+  teSyncDraft(); teRefresh();
+}
+// Afinação personalizada: sobe/desce uma corda de meio em meio tom
+function teAjustaCorda(s, delta){
+  const atual = teTuning(TE.doc).slice();
+  const m = atual[s-1] + delta;
+  if(m < 24 || m > 81) return;
+  teSnapshot();
+  atual[s-1] = m;
+  TE.doc.afinacao = -1; TE.doc.afinacaoMidi = atual;
+  teSyncDraft(); teRefresh();
+  tePlayNotePreview(s, 0);
+}
+// Tecla X: escreve um "x" (nota abafada) na corda do cursor; em cima de uma nota, liga/desliga o x
+function teTypeDead(){
+  const n = teCurNote();
+  const beat = teCurBeat(); if(!beat) return;
+  if(n && n.dead){ teSnapshot(); beat.notes = beat.notes.filter(x=>x!==n); TE.pend = null; teSyncDraft(); teRefresh(); return; } // x de novo: tira o x
+  if(n){ teToggleTec('dead'); return; }
+  teSnapshot();
+  beat.notes.push({s:TE.cur.s, f:0, dead:true}); beat.notes.sort((a,b)=>a.s-b.s);
+  TE.pend = null;
+  teEnsureTrailing(TE.doc);
+  teSyncDraft(); teRefresh();
+}
 function teToggleNotacao(){ TE.doc.mostrarPartitura = !TE.doc.mostrarPartitura; TE.dirty = true; teSyncDraft(); teRefresh(); }
 
 // ---- Texto (compatibilidade com o formato antigo) ----
@@ -3790,6 +3946,7 @@ function teNormalize(doc){
   d.beats = d.beats.map(b=>Object.assign(teNewBeat(8), b, {notes: Array.isArray(b.notes)? b.notes.filter(n=>n && n.s>=1 && n.s<=6) : []}));
   if(!d.compasso || !d.compasso.n) d.compasso = {n:4,d:4};
   if(d.modo!=='partitura') d.modo = 'livre';
+  if(d.afinacao===-1 && !(Array.isArray(d.afinacaoMidi) && d.afinacaoMidi.length===6)) d.afinacao = 0;
   return d;
 }
 
@@ -4638,6 +4795,9 @@ const TE_ICON = {
   right:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>',
   up:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 5-5 5 5"/></svg>',
   down:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 5 5 5-5"/></svg>',
+  menu:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg>',
+  edit:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.8 2.7a1.6 1.6 0 0 1 2.3 2.3L5.6 12.5 2.5 13.5l1-3.1z"/></svg>',
+  print:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4.5 6V2.5h7V6"/><rect x="2" y="6" width="12" height="5.5" rx="1.3"/><path d="M4.5 9.5h7v4h-7z"/></svg>',
   tec:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 12c3-8 6-8 6-4s3 4 6-4"/></svg>',
 };
 // Botão que não rouba o foco da partitura (o teclado continua funcionando).
@@ -4674,7 +4834,7 @@ function teOpenDraft(draft){
     if(conv.temNota) aviso = 'Este solo foi escrito no editor antigo e foi convertido para o novo. Confira antes de salvar — o original só é substituído quando você salvar.';
   } else doc = teNewDoc();
   teEnsureTrailing(doc);
-  Object.assign(TE, {doc, cur:{b:0, s:1}, sel:null, undo:[], redo:[], pend:null, pop:null, dirty:false, aviso:'', conv: aviso, play:{on:false, idx:-1}});
+  Object.assign(TE, {doc, cur:{b:0, s:1}, sel:null, undo:[], redo:[], pend:null, pop:null, opcoes:false, dirty:false, aviso:'', conv: aviso, play:{on:false, idx:-1}});
   TE.curDur = (doc.beats[0] && doc.beats[0].dur) || 8;
   if(draft) draft.tabV2 = doc;
 }
@@ -4693,7 +4853,7 @@ function teAfterRender(){
       TEV.soloId = state.soloViewId;
       TEV.doc = s && s.tabV2 ? teTrimTrailing(teNormalize(s.tabV2)) : null;
       TEV.showNot = TEV.doc ? !!TEV.doc.mostrarPartitura : true;
-      TEV.startIdx = 0; TEV.playIdx = -1;
+      TEV.startIdx = 0; TEV.playIdx = -1; TEV.opcoes = false;
     }
     if(!v.dataset.ready){ v.innerHTML = teViewerShellHtml(); v.dataset.ready = '1'; }
     teViewerRefresh();
@@ -4716,15 +4876,15 @@ function teEditorShellHtml(){
     <details class="te-help"><summary>Atalhos do teclado</summary>
       <div class="te-help-grid">
         <span><b>0–24</b> casa na corda do cursor (digite 1 e 2 rápido para 12)</span>
-        <span><b>← →</b> anda entre os tempos · <b>↑ ↓</b> troca de corda</span>
+        <span><b>← →</b> anda entre os tempos · <b>↑ ↓</b> troca de corda (no mesmo tempo: digite outro número para empilhar notas)</span>
         <span><b>Espaço</b> próximo tempo · <b>Enter</b> tocar / parar</span>
-        <span><b>Shift + ← →</b> seleciona · <b>Ctrl+C / Ctrl+V</b> copia e cola</span>
+        <span><b>Shift + ← →</b> seleciona · <b>Ctrl+C / Ctrl+V</b> copia e cola o trecho</span>
         <span><b>Backspace</b> apaga a nota (ou o tempo vazio) · <b>Insert</b> abre um tempo</span>
         <span><b>Ctrl+Z / Ctrl+Y</b> desfaz / refaz</span>
         <span><b>+ / −</b> duração mais curta / mais longa · <b>.</b> pontuada · <b>T</b> tercina · <b>R</b> pausa</span>
         <span><b>|</b> barra de compasso (escrita livre)</span>
         <span><b>H</b> ligado · <b>S</b> slide · <b>B</b> bend · <b>V</b> vibrato · <b>M</b> palm mute · <b>L</b> let ring</span>
-        <span><b>X</b> abafada · <b>G</b> fantasma · <b>N</b> harmônico · <b>A</b> acento · <b>I</b> prolongar</span>
+        <span><b>X</b> escreve um x (abafada) · <b>G</b> fantasma · <b>N</b> harmônico · <b>A</b> acento · <b>I</b> prolongar</span>
       </div>
     </details>
   </div>`;
@@ -4776,49 +4936,85 @@ function teToolbarHtml(){
   const b = teCurBeat();
   const n = teCurNote();
   const tocando = TE_AUDIO.on && TE_AUDIO.doc===TE.doc;
-  const r1 = `<div class="te-tb-row">
-    <div class="te-seg">
-      <button type="button" class="${!part?'on':''}" onmousedown="event.preventDefault()" onclick="teSetModo('livre')" title="Sem ritmo nem compassos obrigatórios">Escrita livre</button>
-      <button type="button" class="${part?'on':''}" onmousedown="event.preventDefault()" onclick="teSetModo('partitura')" title="Com durações, compassos e pentagrama">Com partitura</button>
+  // [Rodada 93] esquerda: opções + edição · direita: andamento, repetir e tocar
+  const esq = `<div class="te-tb-left">
+    <div class="te-menu-wrap">
+      ${teBtn(TE_ICON.menu, 'teToggleOpcoes()', {cls:'te-icon-btn', on:TE.opcoes, title:'Opções: forma de escrita, pentagrama e afinação'})}
+      ${TE.opcoes ? teOpcoesHtml() : ''}
     </div>
-    ${teBtn('Pentagrama', 'teToggleNotacao()', {on:d.mostrarPartitura, title:'Mostrar ou esconder a partitura acima da tablatura'})}
-    <span class="te-field">Afinação <select onchange="teSetAfinacao(this.value)">${TE_TUNINGS.map((t,i)=>`<option value="${i}" ${i===(d.afinacao||0)?'selected':''}>${escapeTe(t.nome)}</option>`).join('')}</select></span>
-  </div>`;
-  const r2 = `<div class="te-tb-row">
-    ${teBtn(tocando?TE_ICON.stop+'<span class="te-lbl">Parar</span>':TE_ICON.play+'<span class="te-lbl">Tocar</span>', 'teTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar a partir do cursor (Enter)'})}
-    <span class="te-field te-bpm">Andamento
-      ${teBtn('−', 'teSetBpm(TE.doc.bpm-5)', {cls:'te-icon-btn', title:'Mais devagar'})}
-      <input type="number" min="30" max="300" value="${d.bpm}" onchange="teSetBpm(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}">
-      ${teBtn('+', 'teSetBpm(TE.doc.bpm+5)', {cls:'te-icon-btn', title:'Mais rápido'})}
-    </span>
-    ${part ? teBtn(TE_ICON.metro, 'TE.metro=!TE.metro;teRefresh()', {cls:'te-icon-btn', on:TE.metro, title:'Metrônomo durante a reprodução'}) : ''}
-    ${teBtn(TE_ICON.loop, 'TE.loop=!TE.loop;teRefresh()', {cls:'te-icon-btn', on:TE.loop, title:'Repetir (o trecho selecionado, ou tudo)'})}
-    <span class="te-sep"></span>
     ${teBtn(TE_ICON.undo, 'teUndo()', {cls:'te-icon-btn', dis:!TE.undo.length, title:'Desfazer (Ctrl+Z)'})}
     ${teBtn(TE_ICON.redo, 'teRedo()', {cls:'te-icon-btn', dis:!TE.redo.length, title:'Refazer (Ctrl+Y)'})}
-    ${teBtn(TE_ICON.copy, 'teCopy(false)', {cls:'te-icon-btn', title:'Copiar o trecho selecionado (Ctrl+C)'})}
-    ${teBtn(TE_ICON.paste, 'tePaste()', {cls:'te-icon-btn', dis:!TE.clip, title:'Colar no cursor (Ctrl+V)'})}
     ${teBtn(TE_ICON.ins, 'teInsertBeat()', {cls:'te-icon-btn', title:'Abrir um tempo vazio no cursor (Insert)'})}
     ${teBtn(TE_ICON.del, 'teDeleteAtCursor(false)', {cls:'te-icon-btn', title:'Apagar a nota do cursor, ou o tempo se estiver vazio (Delete)'})}
     ${teBtn(TE_ICON.tec+'<span class="te-lbl">Técnicas</span>', 'teOpenPopAtCursor()', {dis:!n && !TE.sel, title:'Bend, ligado, slide, vibrato… da nota do cursor'})}
+    ${!part ? teBtn('<b class="te-barra">|</b><span class="te-lbl">Barra</span>', 'teToggleBar()', {on:b && b.bar, title:'Colocar ou tirar uma barra de compasso depois deste tempo (|)'}) : ''}
   </div>`;
-  const r3 = part ? `<div class="te-tb-row">
+  const dir = `<div class="te-tb-right">
+    <div class="te-bpm" title="Andamento (batidas por minuto)">
+      <button type="button" onmousedown="event.preventDefault()" onclick="teSetBpm(TE.doc.bpm-5)" title="Mais devagar">−</button>
+      <input type="number" min="30" max="300" value="${d.bpm}" onchange="teSetBpm(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" aria-label="Andamento">
+      <span class="te-bpm-u">bpm</span>
+      <button type="button" onmousedown="event.preventDefault()" onclick="teSetBpm(TE.doc.bpm+5)" title="Mais rápido">+</button>
+    </div>
+    ${part ? teBtn(TE_ICON.metro, 'TE.metro=!TE.metro;teRefresh()', {cls:'te-icon-btn', on:TE.metro, title:'Metrônomo durante a reprodução'}) : ''}
+    ${teBtn(TE_ICON.loop, 'TE.loop=!TE.loop;teRefresh()', {cls:'te-icon-btn', on:TE.loop, title:'Repetir (o trecho selecionado, ou tudo)'})}
+    ${teBtn(tocando?TE_ICON.stop+'<span>Parar</span>':TE_ICON.play+'<span>Tocar</span>', 'teTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar a partir do cursor (Enter)'})}
+  </div>`;
+  const ritmo = part ? `<div class="te-tb-row te-ritmo">
     ${TE_DURS.map(du=>teBtn(teDurIcon(du), `teSetDur(${du})`, {cls:'te-dur', on:b && b.dur===du, title:TE_DUR_NOMES[du]})).join('')}
     ${teBtn('<span class="te-dot">•</span>', "teToggleBeatFlag('dot')", {cls:'te-icon-btn', on:b && b.dot, title:'Pontuada (.)'})}
     ${teBtn('<b>3</b>', "teToggleBeatFlag('tup')", {cls:'te-icon-btn', on:b && b.tup===3, title:'Tercina (T)'})}
     ${teBtn('Pausa', 'teMakeRest()', {title:'Transformar em pausa (R)'})}
-    <span class="te-field">Compasso <select onchange="teSetCompasso(this.value)">${['2/4','3/4','4/4','5/4','6/8','7/8','9/8','12/8'].map(v=>`<option ${v===d.compasso.n+'/'+d.compasso.d?'selected':''}>${v}</option>`).join('')}</select></span>
-  </div>` : `<div class="te-tb-row">
-    ${teBtn('<b>|</b><span class="te-lbl"> Barra de compasso</span>', 'teToggleBar()', {on:b && b.bar, title:'Colocar ou tirar uma barra depois deste tempo (|)'})}
-    <span class="te-hint">Na escrita livre não há ritmo: escreva as notas na ordem e ponha barras onde quiser.</span>
-  </div>`;
-  const r4 = `<div class="te-tb-row te-navrow">
+  </div>` : '';
+  const nav = `<div class="te-tb-row te-navrow">
     ${teBtn(TE_ICON.left, 'teMove(-1,0)', {cls:'te-icon-btn', title:'Tempo anterior (←)'})}
     ${teBtn(TE_ICON.right, 'teMove(1,0)', {cls:'te-icon-btn', title:'Próximo tempo (→)'})}
     ${teBtn(TE_ICON.up, 'teMove(0,-1)', {cls:'te-icon-btn', title:'Corda de cima (↑)'})}
     ${teBtn(TE_ICON.down, 'teMove(0,1)', {cls:'te-icon-btn', title:'Corda de baixo (↓)'})}
   </div>`;
-  return r1 + r2 + r3 + r4;
+  return `<div class="te-tb">${esq}${dir}</div>` + ritmo + nav;
+}
+// ---- menu de opções (☰) do editor ----
+function teToggleOpcoes(){ TE.opcoes = !TE.opcoes; teToolbarOnly(); }
+function teToolbarOnly(){ const tb = document.getElementById('teToolbar'); if(tb && TE.doc) tb.innerHTML = teToolbarHtml(); }
+function teSwitch(on, onclick, rot){
+  return `<button type="button" class="te-opc-linha te-opc-toggle" onmousedown="event.preventDefault()" onclick="${onclick}"><span>${rot}</span><span class="te-switch${on?' on':''}"><i></i></span></button>`;
+}
+function teOpcoesHtml(){
+  const d = TE.doc; const part = d.modo==='partitura';
+  const custom = d.afinacao===-1;
+  const tuning = teTuning(d);
+  const cordas = custom ? `<div class="te-cordas">${tuning.map((m,i)=>`<div class="te-corda">
+      <span class="te-corda-n">${i+1}ª</span>
+      <button type="button" onmousedown="event.preventDefault()" onclick="teAjustaCorda(${i+1},-1)" title="Meio tom abaixo">−</button>
+      <b>${teNomeNota(m)}</b>
+      <button type="button" onmousedown="event.preventDefault()" onclick="teAjustaCorda(${i+1},1)" title="Meio tom acima">+</button>
+    </div>`).join('')}</div>` : '';
+  return `<div class="te-opc" onpointerdown="event.stopPropagation()">
+    <div class="te-opc-lbl">Forma de escrita</div>
+    <div class="te-seg te-seg-full">
+      <button type="button" class="${!part?'on':''}" onmousedown="event.preventDefault()" onclick="teSetModo('livre')" title="Sem ritmo nem compassos obrigatórios">Escrita livre</button>
+      <button type="button" class="${part?'on':''}" onmousedown="event.preventDefault()" onclick="teSetModo('partitura')" title="Com durações, compassos e pentagrama">Com partitura</button>
+    </div>
+    ${part ? `<div class="te-opc-lbl">Compasso</div>
+    <select class="te-opc-sel" onchange="teSetCompasso(this.value)">${['2/4','3/4','4/4','5/4','6/8','7/8','9/8','12/8'].map(v=>`<option ${v===d.compasso.n+'/'+d.compasso.d?'selected':''}>${v}</option>`).join('')}</select>` : ''}
+    <div class="te-opc-div"></div>
+    ${teSwitch(!!d.mostrarPartitura, 'teToggleNotacao()', 'Ver pentagrama')}
+    <div class="te-opc-div"></div>
+    <div class="te-opc-lbl">Afinação</div>
+    <select class="te-opc-sel" onchange="teSetAfinacao(this.value)">${TE_TUNINGS.map((t,i)=>`<option value="${i}" ${!custom && i===(d.afinacao||0)?'selected':''}>${escapeTe(t.nome)}</option>`).join('')}<option value="-1" ${custom?'selected':''}>Personalizada…</option></select>
+    ${cordas}
+    ${custom ? '<div class="te-opc-nota">1ª = corda mais aguda. Cada toque sobe ou desce meio tom.</div>' : ''}
+  </div>`;
+}
+// fecha os menus ☰ ao tocar fora deles
+if(typeof document!=='undefined'){
+  document.addEventListener('pointerdown', ev=>{
+    const t = ev.target;
+    if(t && t.closest && t.closest('.te-menu-wrap, #tselPanel, .tsel-panel')) return;
+    if(TE.opcoes){ TE.opcoes = false; teToolbarOnly(); }
+    if(TEV.opcoes){ TEV.opcoes = false; const tb = document.getElementById('teVToolbar'); if(tb) tb.innerHTML = teViewerToolbarHtml(); }
+  }, true);
 }
 
 // ---- mouse / toque na partitura ----
@@ -4922,14 +5118,15 @@ function tePopRefresh(){
 }
 
 // ---- braço da guitarra ----
+const TE_TOQUE = typeof window!=='undefined' && window.matchMedia && window.matchMedia('(hover: none)').matches;
 function teFbRefresh(){
   const head = document.getElementById('teFbHead'); const fb = document.getElementById('teFb');
   if(!head || !fb) return;
-  head.innerHTML = `<div class="te-fb-title">Braço — clique numa casa para escrever na tablatura</div>
+  head.innerHTML = `<div class="te-fb-title">Braço — clique numa casa para escrever na tablatura. Para empilhar notas no mesmo tempo, use <b>Acorde</b>${TE_TOQUE ? '' : ' (ou segure Shift ao clicar)'}.</div>
     <div class="te-tb-row">
       <div class="te-seg">
         <button type="button" class="${!TE.fbAcorde?'on':''}" onmousedown="event.preventDefault()" onclick="TE.fbAcorde=false;teFbRefresh()" title="Cada clique escreve uma nota e anda para o próximo tempo">Nota a nota</button>
-        <button type="button" class="${TE.fbAcorde?'on':''}" onmousedown="event.preventDefault()" onclick="TE.fbAcorde=true;teFbRefresh()" title="Os cliques vão todos para o mesmo tempo (acorde / double stop)">Acorde</button>
+        <button type="button" class="${TE.fbAcorde?'on':''}" onmousedown="event.preventDefault()" onclick="TE.fbAcorde=true;teFbRefresh()" title="Os cliques vão todos para o mesmo tempo: empilha notas (acorde / double stop). O cursor não anda.">Acorde</button>
       </div>
       ${teBtn('Nomes das notas', 'TE.fbNomes=!TE.fbNomes;teFbRefresh()', {on:TE.fbNomes})}
       ${teBtn(TE.fbOculto ? TE_ICON.up+' Braço' : TE_ICON.down, 'TE.fbOculto=!TE.fbOculto;teFbRefresh()', {cls:'te-fb-toggle'+(TE.fbOculto?'':' te-icon-btn'), title: TE.fbOculto ? 'Mostrar o braço' : 'Recolher o braço'})}
@@ -4981,7 +5178,7 @@ function teFretboardSvg(){
       const midi = tuning[s-1] + f;
       const cur = beat && teNoteAt(beat, s);
       const ativa = cur && cur.f===f && !cur.dead;
-      out.push(`<g class="te-fbcell${ativa?' on':''}" onmousedown="event.preventDefault()" onclick="teFbClick(${s},${f})"><rect x="${teF(xa)}" y="${teF(y-rg/2)}" width="${teF(w)}" height="${rg}"/>`
+      out.push(`<g class="te-fbcell${ativa?' on':''}" onmousedown="event.preventDefault()" onclick="teFbClick(${s},${f},event)"><rect x="${teF(xa)}" y="${teF(y-rg/2)}" width="${teF(w)}" height="${rg}"/>`
         + (ativa ? `<circle cx="${teF(cx(f))}" cy="${teF(y)}" r="9"/><text x="${teF(cx(f))}" y="${teF(y+3.6)}">${f}</text>`
           : (TE.fbNomes ? `<text class="te-fbname" x="${teF(cx(f))}" y="${teF(y+3.3)}">${TE_NOTE_NAMES[midi%12]}</text>` : (f===0 ? `<text class="te-fbname" x="${teF(cx(0))}" y="${teF(y+3.3)}">${TE_NOTE_NAMES[midi%12]}</text>` : '')))
         + `</g>`);
@@ -4989,20 +5186,22 @@ function teFretboardSvg(){
   }
   return `<svg class="te-fbsvg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${out.join('')}</svg>`;
 }
-function teFbClick(s, f){
+function teFbClick(s, f, ev){
   const beat = teCurBeat();
   teSnapshot();
-  if(TE.fbAcorde){
+  if(TE.fbAcorde || (ev && ev.shiftKey)){
     const n = teNoteAt(beat, s);
     if(n && n.f===f){ beat.notes = beat.notes.filter(x=>x!==n); }
     else if(n){ n.f = f; }
     else { beat.notes.push({s, f}); beat.notes.sort((a,b)=>a.s-b.s); }
     TE.cur.s = s;
   } else {
-    // nota a nota: o tempo fica só com esta nota e o cursor anda
+    // nota a nota: escreve nesta corda (troca só a nota que já estava NESTA
+    // corda; as das outras cordas ficam — assim dá para voltar num tempo e
+    // empilhar mais uma nota) e o cursor anda
     const antiga = teNoteAt(beat, s);
-    const n = antiga && beat.notes.length===1 ? Object.assign(antiga, {f}) : {s, f};
-    beat.notes = [n];
+    if(antiga) antiga.f = f;
+    else { beat.notes.push({s, f}); beat.notes.sort((a,b)=>a.s-b.s); }
     TE.cur.s = s;
     teEnsureTrailing(TE.doc);
     TE.cur.b += 1;
@@ -5093,7 +5292,7 @@ function teKeydown(ev){
   else if(k==='Insert') teInsertBeat();
   else if(k===' ') { if(ev.shiftKey) teTogglePlay(); else teMove(1, 0); }
   else if(k==='Enter') teTogglePlay();
-  else if(k==='Escape'){ if(TE.pop) teClosePop(); else if(TE.sel){ TE.sel = null; teRefresh(); } else ok = false; }
+  else if(k==='Escape'){ if(TE.opcoes){ TE.opcoes = false; teToolbarOnly(); } else if(TE.pop) teClosePop(); else if(TE.sel){ TE.sel = null; teRefresh(); } else ok = false; }
   else if(k==='+' || k==='=') { if(part) teStepDur(1); else ok = false; }
   else if(k==='-' || k==='_') { if(part) teStepDur(-1); else ok = false; }
   else if(k==='.') { if(part) teToggleBeatFlag('dot'); else ok = false; }
@@ -5104,7 +5303,7 @@ function teKeydown(ev){
   else if(lower==='v') teToggleTec('vib');
   else if(lower==='m') teToggleTec('pm');
   else if(lower==='l') teToggleTec('ring');
-  else if(lower==='x') teToggleTec('dead');
+  else if(lower==='x') teTypeDead();
   else if(lower==='g') teToggleTec('ghost');
   else if(lower==='a') teToggleTec('acc');
   else if(lower==='i') teToggleTec('tie');
@@ -5121,7 +5320,7 @@ if(typeof document!=='undefined'){
 }
 
 // ---- visualização (tela do solo, para aluno e professor) ----
-const TEV = {doc:null, soloId:null, speed:1, loop:false, metro:false, showNot:true, startIdx:0, playIdx:-1, layout:null};
+const TEV = {doc:null, soloId:null, speed:1, loop:false, metro:false, opcoes:false, showNot:true, startIdx:0, playIdx:-1, layout:null};
 function teViewerShellHtml(){
   return `<div class="te-wrap te-view">
     <div class="te-toolbar no-print" id="teVToolbar"></div>
@@ -5132,13 +5331,24 @@ function teViewerToolbarHtml(){
   const d = TEV.doc; if(!d) return '';
   const tocando = TE_AUDIO.on && TE_AUDIO.doc===TEV.doc;
   const part = d.modo==='partitura';
-  return `<div class="te-tb-row">
-    ${teBtn(tocando?TE_ICON.stop+'<span class="te-lbl">Parar</span>':TE_ICON.play+'<span class="te-lbl">Tocar</span>', 'teViewTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar / parar (Espaço)'})}
-    <span class="te-field">Velocidade <select onchange="TEV.speed=Number(this.value);if(TE_AUDIO.on){teViewTogglePlay();teViewTogglePlay();}">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}" ${v===TEV.speed?'selected':''}>${Math.round(v*100)}%</option>`).join('')}</select></span>
-    ${teBtn(TE_ICON.loop+'<span class="te-lbl">Repetir</span>', 'TEV.loop=!TEV.loop;teViewerRefresh()', {on:TEV.loop, title:'Repetir sem parar'})}
-    ${part ? teBtn(TE_ICON.metro+'<span class="te-lbl">Metrônomo</span>', 'TEV.metro=!TEV.metro;teViewerRefresh()', {on:TEV.metro}) : ''}
-    ${teBtn('Pentagrama', 'TEV.showNot=!TEV.showNot;teViewerRefresh()', {on:TEV.showNot, title:'Mostrar ou esconder a partitura'})}
-    <span class="te-hint">${d.bpm} bpm · toque num ponto da tablatura para começar dali</span>
+  const opc = TEV.opcoes ? `<div class="te-opc" onpointerdown="event.stopPropagation()">
+      ${teSwitch(TEV.showNot, 'TEV.showNot=!TEV.showNot;teViewerRefresh()', 'Ver pentagrama')}
+      ${part ? teSwitch(TEV.metro, 'TEV.metro=!TEV.metro;teViewerRefresh()', 'Metrônomo ao tocar') : ''}
+      <div class="te-opc-nota">Toque num ponto da tablatura para começar a tocar dali.</div>
+    </div>` : '';
+  return `<div class="te-tb">
+    <div class="te-tb-left">
+      <div class="te-menu-wrap">
+        ${teBtn(TE_ICON.menu, 'TEV.opcoes=!TEV.opcoes;teViewerRefresh()', {cls:'te-icon-btn', on:TEV.opcoes, title:'Opções: pentagrama e metrônomo'})}
+        ${opc}
+      </div>
+      ${typeof soloViewerAcoesHtml==='function' ? soloViewerAcoesHtml() : ''}
+    </div>
+    <div class="te-tb-right">
+      <select class="te-pill-sel" title="Velocidade" onchange="TEV.speed=Number(this.value);if(TE_AUDIO.on){teViewTogglePlay();teViewTogglePlay();}">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}" ${v===TEV.speed?'selected':''}>${Math.round(v*100)}%</option>`).join('')}</select>
+      ${teBtn(TE_ICON.loop, 'TEV.loop=!TEV.loop;teViewerRefresh()', {cls:'te-icon-btn', on:TEV.loop, title:'Repetir sem parar'})}
+      ${teBtn(tocando?TE_ICON.stop+'<span>Parar</span>':TE_ICON.play+'<span>Tocar</span>', 'teViewTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar / parar (Espaço)'})}
+    </div>
   </div>`;
 }
 function teViewerRefresh(){
@@ -5362,6 +5572,13 @@ function normalizaPerfilTextos(p){
   if(Array.isArray(p.wishlist)) p.wishlist = p.wishlist.map(w=>({...w, musica: tituloCase(w.musica), artista: tituloCase(w.artista)}));
   return p;
 }
+function nomeCadastroDe(email){
+  if(!email) return '';
+  const e = String(email).toLowerCase();
+  if(state.session && (state.session.email||'').toLowerCase()===e && state.session.nome) return state.session.nome;
+  const a = (state.alunosAutorizados||[]).find(x=>(x.email||'').toLowerCase()===e);
+  return (a && a.nome) || '';
+}
 async function loadPerfilForAluno(email){
   if(!sb || !email){ state.perfil = null; return; }
   try{
@@ -5369,6 +5586,12 @@ async function loadPerfilForAluno(email){
     if(error) throw error;
     state.perfil = data ? normalizaPerfilTextos(data.dados) : null;
   }catch(e){ console.error('Erro ao carregar perfil', e); state.perfil = null; }
+  // [Rodada 94] Perfil sem nome (aluno recém-cadastrado, ou cadastrado antes desta
+  // correção): usa o nome que o professor digitou no cadastro.
+  if(!state.perfil || !(state.perfil.nome||'').trim()){
+    const nome = nomeCadastroDe(email);
+    if(nome) state.perfil = Object.assign(defaultPerfil(), state.perfil||{}, {nome});
+  }
 }
 async function savePerfil(){
   const email = currentAlunoEmail();
@@ -9073,6 +9296,14 @@ function goHome(){
   // [Rodada 65] Professor dentro do perfil de um aluno: a logo leva de volta à
   // área dele, na lista de alunos (mesmo caminho do "Voltar à área do professor").
   if(state.professorMode && state.professorMode.email){ exitProfessorMode(); return; }
+  // Na Área do Professor o professorMode pode estar vazio: antes caía no "perfil"
+  // do aluno, sem sessão de aluno, e o app mandava pro login (parecia deslogar).
+  // Já na aba Alunos (lista aberta), a logo não faz nada.
+  if(state.view==='professorArea'){
+    if(state.professorTab==='alunos' && !state.professorStudentEmail) return;
+    state.professorTab = 'alunos'; state.professorStudentEmail = null;
+    render(); return;
+  }
   if(state.professorMode && !state.professorMode.email){
     state.professorTab = 'alunos';
     state.professorStudentEmail = null;
@@ -9294,8 +9525,11 @@ async function submitAlunoCadastro(ev){
     });
     const out = await resp.json();
     if(!resp.ok) throw new Error(out.error||'Erro ao cadastrar aluno.');
-    if(fotoParaSalvar || observacoes){
-      try{ await sb.from('profiles').update({foto: fotoParaSalvar||undefined, observacoes: observacoes||undefined}).eq('id', out.id); }catch(e){}
+    // [Rodada 94] o nome digitado no cadastro fica gravado de vez: no cadastro
+    // (profiles) e já no perfil do aluno (perfis), que é de onde a tela Perfil lê.
+    try{ await sb.from('profiles').update({nome: nome||undefined, foto: fotoParaSalvar||undefined, observacoes: observacoes||undefined}).eq('id', out.id); }catch(e){}
+    if(nome){
+      try{ await sb.from('perfis').upsert({ aluno_email: normalizeEmail(emailRaw), dados: Object.assign(defaultPerfil(), {nome}) }); }catch(e){}
     }
     await refreshAlunosAutorizados();
     render();
@@ -12218,7 +12452,7 @@ function updateDocumentTitle(){
 // #app, então funciona em toda tela sem precisar lembrar de incluir em cada view.
 function updateGlobalDialogs(){
   const el = document.getElementById('globalDialogs');
-  if(el) el.innerHTML = dialogsHtml() + itemContextMenuHtml() + (state.toolContextMenu?toolContextMenuHtml():'');
+  if(el) el.innerHTML = dialogsHtml() + itemContextMenuHtml() + (state.toolContextMenu?toolContextMenuHtml():'') + (state.novoSolo?novoSoloModalHtml():'');
 }
 function updateWhatsappFabVisibility(){
   const waBtn = document.getElementById('whatsappBtn');
@@ -12869,24 +13103,15 @@ function renderApp(){
         ${themeSwitch}
       </div>
       ${mainNavHtml()}
-      <div class="page-header-row">
-        <h2 style="margin:0;">${d.isNew?'Novo solo':'Editar solo'}</h2>
+      <div class="page-header-row solo-ed-head">
+        <div class="solo-ed-titulo">
+          <div class="solo-ed-linha"><h2 style="margin:0;">${escapeHtml(d.titulo||'Novo solo')}</h2><button type="button" class="icon-btn solo-ed-lapis" onclick="abrirNomeSolo()" title="Trocar o nome ou o artista">${EDIT_SVG}</button></div>
+          ${d.artista?`<div class="solo-ed-art">${escapeHtml(d.artista)}</div>`:''}
+        </div>
         <a class="tool-back" onclick="closeSoloEditor()">&larr; Voltar aos solos</a>
       </div>
-      <div class="row2">
-        <div class="field"><label>Nome do solo</label><input id="solo_titulo" value="${escapeHtml(d.titulo||'')}" oninput="state.soloDraft.titulo=this.value"></div>
-        <div class="field"><label>Artista ou banda</label><input id="solo_artista" value="${escapeHtml(d.artista||'')}" oninput="state.soloDraft.artista=this.value"></div>
-      </div>
-      <label>Fonte do solo</label>
-      <div class="source-toggle">
-        <button type="button" class="${(d.fonte||'tab')==='tab'?'active':''}" onclick="setSoloFonte('tab')">✎ Tablatura</button>
-        <button type="button" class="${d.fonte==='pdf'?'active':''}" onclick="setSoloFonte('pdf')">${ICON_FILE} Upload de PDF</button>
-      </div>
       ${(d.fonte||'tab')==='tab' && SOLO_EDITOR_V2 ? `
-      <div class="field">
-        <label>Tablatura</label>
-        <div id="teMount"></div>
-      </div>
+      <div id="teMount"></div>
       ` : (d.fonte||'tab')==='tab' ? `
       <div class="field">
         <label>Tablatura</label>
@@ -13024,11 +13249,6 @@ function renderApp(){
       ${isProfessorAdmin?professorNavHtml():mainNavHtml()}
       <a class="back-link no-print" onclick="backToSolos()">&larr; Voltar aos solos</a>
       <div class="viewer-title"><h2>${escapeHtml(titleCase(s.titulo))}</h2><div class="art">${escapeHtml(titleCase(s.artista||''))}</div></div>
-      <div class="no-print" style="display:flex;gap:10px;margin-bottom:18px;">
-        <button class="rail-btn-wide" style="width:auto;" onclick="openEditSolo('${s.id}')"><span class="rail-icon">${EDIT_SVG}</span> <span>Editar solo</span></button>
-        <button class="rail-btn-wide" style="width:auto;" onclick="soloImprimir()"><span class="rail-icon">${DOWNLOAD_SVG}</span> <span>Imprimir</span></button>
-        <button class="rail-btn-wide" style="width:auto;" onclick="deleteSoloFromViewer('${s.id}')"><span class="rail-icon">✕</span> <span>Excluir</span></button>
-      </div>
       ${mostraProgressoAluno()?`<div class="no-print" style="display:flex;align-items:center;gap:16px;margin:-6px 0 18px;flex-wrap:wrap;">
         <div class="toggle-pair-row" style="margin:0;">
           <button class="brain-toggle ${s.memorizada?'on':''}" onclick="toggleSoloMemorizada('${s.id}')">${BRAIN_SVG} <span>Memorizado</span></button>
@@ -13039,6 +13259,7 @@ function renderApp(){
           <div class="stars">${[1,2,3,4,5].map(n=>`<span class="star ${n<=(s.dificuldade||0)?'filled':''}" onclick="setSoloDificuldade('${s.id}', ${n})">★</span>`).join('')}</div>
         </div>
       </div>`:''}
+      ${(SOLO_EDITOR_V2 && s.tabV2 && s.fonte!=='pdf') ? '' : `<div class="te-toolbar no-print solo-vbar"><div class="te-tb"><div class="te-tb-left">${soloViewerAcoesHtml()}</div></div></div>`}
       ${s.fonte==='pdf' && s.pdfData
         ? pdfEmbedHtml(s.pdfData, pdfAnotChaveDe('solo', s.id))
         : (SOLO_EDITOR_V2 && s.tabV2) ? `<div id="teViewMount"></div>` : `<pre class="tab-display" id="tabDisplay"></pre>`}
