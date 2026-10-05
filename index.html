@@ -671,6 +671,12 @@
   .variant-option:hover{border-color:var(--muted);}
   .variant-option.selected{border-color:var(--accent);background:rgba(191,98,44,.1);}
   .variant-label{font-size:11px;color:var(--muted);margin-top:2px;}
+  .dict-inversoes{font-size:12px;color:var(--muted);margin:2px 0 8px;}
+  .inv-link{color:var(--accent);cursor:pointer;font-weight:600;}
+  .inv-link.ativo{color:var(--text);cursor:default;}
+  .variant-name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;color:var(--accent);margin-bottom:4px;}
+  .variant-notes{font-size:10.5px;color:var(--muted);margin-top:3px;opacity:.85;}
+  .variant-notes.aviso{color:var(--accent);opacity:1;}
   .chord-svg{width:136px;height:196px;display:block;margin:0 auto;}
   .dict-draw-name{font-size:44px;font-weight:800;color:var(--accent);line-height:1.1;}
   .dict-draw-row{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap;}
@@ -1888,6 +1894,8 @@ function chordSuffixInfo(sufixo){
   iv.add(st.quinta==='d' ? 6 : st.quinta==='A' ? 8 : 7);
   if(st.sexta) iv.add(9);
   if(st.setima==='m') iv.add(10); else if(st.setima==='M') iv.add(11); else if(st.setima==='d') iv.add(9);
+  // [Rodada 109] Como no Cifra Club, "Fº" (diminuto) usa os desenhos do diminuto com sétima (F, Láb, Si, Ré): 4 notas simétricas.
+  if(st.dim && !st.setima && !st.sexta) iv.add(9);
   const EXT = {'9':2,'b9':1,'#9':3,'11':5,'#11':6,'b11':4,'13':9,'b13':8,'#13':10,'2':2,'4':5,'b6':8,'#4':6};
   // Notação brasileira: "C9" = C com nona adicionada (sem sétima); "C11" = com 11ª
   // adicionada; "C13" sozinho = C7(13).
@@ -1948,7 +1956,7 @@ function chordDisp(st){
 
 // ---- Posições no braço ----
 const CH_AFIN = [40,45,50,55,59,64]; // E A D G B e (corda 6 → 1)
-function chordVoicings(rootPc, info, bassPc){
+function chordVoicings(rootPc, info, bassPc, maxPos){
   const notas = new Set(info.iv.map(v=>(rootPc+v)%12));
   const baixo = bassPc==null ? rootPc : bassPc;
   const permit = new Set(notas); permit.add(baixo);
@@ -1956,7 +1964,7 @@ function chordVoicings(rootPc, info, bassPc){
   const obrig = [...notas].filter(p=>!opc.has(p));
   const minCordas = info.iv.length<=2 ? 2 : 3;
   const achados = new Map();
-  for(let p=0;p<=12;p++){
+  for(let p=0;p<=(maxPos||12);p++){
     const janela = p===0 ? [1,2,3,4] : [p,p+1,p+2,p+3];
     const opcoes = CH_AFIN.map(m=>{
       const o = ['x'];
@@ -2597,6 +2605,9 @@ function detectBarre(frets){
   if(fretted.length<2) return null;
   const minFret = Math.min(...fretted.map(o=>o.v));
   const atMin = fretted.filter(o=>o.v===minFret);
+  // [Rodada 109] Pestana não passa por cima de corda solta (ex.: 1.2.0.1.0.1 não tem pestana)
+  const primeira = atMin.length ? atMin[0].i : 0, ultima = atMin.length ? atMin[atMin.length-1].i : 0;
+  for(let k=primeira+1;k<ultima;k++){ if(frets[k]===0) return null; }
   if(atMin.length>=3) return minFret;
   if(atMin.length===2 && atMin[1].i===atMin[0].i+1) return minFret;
   return null;
@@ -2648,15 +2659,20 @@ function pdfAcordesMapa(){
   return _pdfMapa;
 }
 const _chordVarCache = new Map();
-function getVariations(rootSharpName, quality, bassPc){
+function getVariations(rootSharpName, quality, bassPc, todas){
   const rootPc = SHARP_NAMES.indexOf(rootSharpName);
   const info = chordSuffixInfo(quality); if(!info || rootPc<0) return [];
   if(bassPc===rootPc) bassPc = null;
-  const chave = rootPc+'|'+info.iv.join(',')+'|'+(bassPc==null?'':bassPc);
+  const chave = rootPc+'|'+info.iv.join(',')+'|'+(bassPc==null?'':bassPc)+(todas?'|T':'');
   if(_chordVarCache.has(chave)) return _chordVarCache.get(chave).map(o=>({...o}));
   const list = [];
   const add = (d)=>{ if(!list.some(o=>o.frets.join()===d.frets.join())) list.push(d); };
-  const doPdf = bassPc==null ? (pdfAcordesMapa().get(rootPc+'|'+info.iv.join(',')) || []) : [];
+  // [Rodada 109] REGRA: o baixo (nota mais grave que toca) é sempre a tônica do acorde — ou a nota
+  // depois da barra, em acordes como A/C#. Nunca aparece inversão nem acorde sem fundamental
+  // quando o acorde é pedido sem barra.
+  const baixoDe = (frets)=>{ const AF=[4,9,2,7,11,4]; for(let i=0;i<6;i++){ if(frets[i]!=='x') return (AF[i]+frets[i])%12; } return -1; };
+  const baixoCerto = (bassPc==null ? rootPc : bassPc);
+  const doPdf = bassPc==null ? (pdfAcordesMapa().get(rootPc+'|'+info.iv.join(',')) || []).filter(d=>baixoDe(d.frets)===baixoCerto) : [];
   doPdf.forEach(d=>add({...d}));
   if(bassPc==null && list.length<3){
     const ab = chordAbertos()[rootPc+'|'+info.iv.join(',')];
@@ -2668,14 +2684,22 @@ function getVariations(rootSharpName, quality, bassPc){
       pe.forEach(d=>add({...d, approx:false}));
     }
   }
-  const gerados = chordVoicings(rootPc, info, bassPc);
+  const gerados = chordVoicings(rootPc, info, bassPc, todas ? 14 : 12);
   const posUsadas = list.map(d=>{ const n = d.frets.filter(v=>v!=='x' && v>0); return n.length ? Math.min(...n) : 0; });
+  const limite = todas ? 12 : (doPdf.length>=3 ? 4 : 6);
   for(const g of gerados){
-    if(list.length >= (doPdf.length ? 4 : 6)) break;
-    if(posUsadas.some(pu=>Math.abs(pu - g.pos) < 2) && list.length >= 2) continue;
+    if(list.length >= limite) break;
+    if(todas){ if(posUsadas.some(pu=>Math.abs(pu - g.pos) < 2)) continue; }
+    else if(posUsadas.some(pu=>Math.abs(pu - g.pos) < 2) && list.length >= 2) continue;
     add(chordDiagDe(g.frets, g.pos ? g.pos+'ª casa' : 'Posição aberta'));
     posUsadas.push(g.pos);
   }
+  // do mais grave (perto do nut) para o mais agudo, como no Cifra Club
+  const posDe = (d)=>{ if(d.frets.some(v=>v===0)) return 0; const n=d.frets.filter(v=>v!=='x'&&v>0); return n.length?Math.min(...n):0; };
+  list.sort((a,b)=>posDe(a)-posDe(b));
+  list.forEach(d=>{ if(d.frets.some(v=>v===0)) d.label='Posição aberta'; });
+  const certos = list.filter(d=>baixoDe(d.frets)===baixoCerto);
+  if(certos.length) { list.length = 0; certos.forEach(d=>list.push(d)); }
   _chordVarCache.set(chave, list);
   return list.map(o=>({...o}));
 }
@@ -8675,16 +8699,51 @@ function dictResultsHtml(){
   const p = parseChord(q);
   if(!p) return '<p class="hint">Não reconheci esse acorde. Tente algo como "G", "Am7" ou "D/F#".</p>';
   const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
-  const options = getVariations(rootSharp, p.quality, chordBassPc(p));
+  const options = getVariations(rootSharp, p.quality, chordBassPc(p), true);
   return `
     <div class="chord-fullname" style="margin-bottom:10px;">${escapeHtml(chordFullNamePt(q))}</div>
+    ${dictInversoesHtml(p)}
     <div class="variant-grid">
       ${options.map(o=>`
         <div class="variant-option plain">
+          <div class="variant-name">${escapeHtml(q)}</div>
           ${chordDiagramSVG(o.frets, o.base, o.barre, 'v', false, o.fingers)}
           <div class="variant-label">${escapeHtml(o.label||'')}</div>
+          ${dictNotasHtml(o, rootSharp, p)}
         </div>`).join('')}
     </div>`;
+}
+// [Rodada 109] Linha "Inversões": o mesmo acorde com cada nota dele no baixo (Fº, Fº/D, Fº/G#…), clicável.
+function dictInversoesHtml(p){
+  const rootPc = noteIndex(p.root,p.acc);
+  const nomes = (p.acc==='b' || p.root==='F') ? FLAT_NAMES : SHARP_NAMES;
+  const base = p.root + (p.acc||'') + p.quality;
+  const atual = chordBassPc(p)==null ? rootPc : chordBassPc(p);
+  const pcs = [...new Set(p.info.iv.map(v=>(rootPc+v)%12))];
+  if(pcs.length<2) return '';
+  const itens = pcs.map(pc=>{
+    const nome = pc===rootPc ? base : base+'/'+nomes[pc];
+    const ativo = pc===atual;
+    return `<a class="inv-link${ativo?' ativo':''}" onclick="dictPickChord('${nome.replace(/'/g,"\\'")}')">${escapeHtml(nome)}</a>`;
+  });
+  return `<div class="dict-inversoes">Inversões: ${itens.join(', ')}</div>`;
+}
+// [Rodada 109] Mostra, embaixo de cada desenho, as notas que ele toca (da mais grave à mais aguda)
+// e avisa quando o baixo não é a tônica (inversão) ou quando a tônica não aparece.
+function dictNotasHtml(o, rootSharp, p){
+  const AF = [4,9,2,7,11,4];
+  const rootPc = SHARP_NAMES.indexOf(rootSharp);
+  const bemol = p.acc==='b' || ['F'].includes(p.root);
+  const nomes = bemol ? FLAT_NAMES : SHARP_NAMES;
+  const pcs = [];
+  o.frets.forEach((f,i)=>{ if(f!=='x') pcs.push((AF[i]+f)%12); });
+  if(!pcs.length) return '';
+  const lista = pcs.map(n=>nomes[n]).join(' · ');
+  let aviso = '';
+  const bassPc = chordBassPc(p);
+  const baixoEsperado = bassPc==null ? rootPc : bassPc;
+  if(pcs[0]!==baixoEsperado) aviso = pcs.includes(rootPc) ? 'inversão — baixo em '+nomes[pcs[0]] : 'sem a fundamental — baixo em '+nomes[pcs[0]];
+  return `<div class="variant-notes">${escapeHtml(lista)}</div>`+(aviso?`<div class="variant-notes aviso">${escapeHtml(aviso)}</div>`:'');
 }
 function updateDictResults(v){
   state.dictChordQuery = v;
