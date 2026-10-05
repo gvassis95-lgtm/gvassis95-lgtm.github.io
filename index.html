@@ -357,7 +357,7 @@
   .ear-feedback.bad{color:#af3226;background:rgba(192,57,43,.14);}
   .metronome-pendulum-wrap{width:140px;height:150px;margin:0 auto 8px;position:relative;}
   .metronome-pendulum-base{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:56px;height:10px;background:var(--pill-bg);border-radius:4px;}
-  .metronome-pendulum-arm{position:absolute;bottom:8px;left:50%;width:3px;height:128px;background:var(--accent);transform-origin:bottom center;transform:translateX(-50%) rotate(-22deg);animation-name:pendulum-swing;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate;}
+  .metronome-pendulum-arm{position:absolute;bottom:8px;left:50%;width:3px;height:128px;background:var(--accent);transform-origin:bottom center;transform:translateX(-50%) rotate(-22deg);will-change:transform;}
   .metronome-pendulum-weight{position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:var(--accent);}
   @keyframes pendulum-swing{0%{transform:translateX(-50%) rotate(-22deg);}100%{transform:translateX(-50%) rotate(22deg);}}
   .metronome-dot{width:26px;height:26px;border-radius:50%;background:var(--pill-bg);margin:0 auto 18px;transition:background .08s,transform .08s;}
@@ -1227,7 +1227,9 @@
   /* Numeral do grau: sempre em caixa alta (feito em harmComputeChords), cor
      laranjinha (--accent) e sem a caixinha/fundo que a 1ª versão tinha atrás
      dele — pedido do usuário em 14/09/2026. */
-  .harm-degree{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.02em;}
+  .harm-obs{font-size:12px;line-height:1.55;color:var(--muted);margin:16px 4px 0;max-width:760px;}
+  .harm-obs b{color:var(--text);font-weight:600;}
+  .harm-degree{font-size:13px;font-weight:300;color:var(--accent);letter-spacing:.04em;}
   /* Os nomes dos acordes ficam na mesma cor do título da página (var(--text))
      em vez da cor de destaque laranja padrão de .chord — pedido do usuário
      em 14/09/2026 ("numa cor mais clara... na cor do título da página").
@@ -1801,20 +1803,236 @@ function canonQuality(q){
 // "maj7(#5)" -> "7M(#5)") — daí o prefixo em vez de igualdade exata.
 function qualityDisplay(q){
   if(!q) return q;
-  if(q==='m7b5') return 'm7(b5)';
-  if(q==='dim7') return 'º7';
-  if(q==='dim') return 'º';
-  if(q==='aug') return '(#5)';
-  if(q.indexOf('maj7')===0) return '7M'+q.slice(4);
-  return q;
+  const info = chordSuffixInfo(q);
+  return info ? info.disp : q;
 }
-function parseChord(raw){ if(!raw) return null; const tok=raw.replace(/[.,;:|]+$/,''); const m=CHORD_RE.exec(tok); if(!m) return null;
-  return {root:m[1], acc:m[2]||'', quality:canonQuality(m[3]||''), bassRoot:m[5]||null, bassAcc:m[6]||''}; }
+// ==== Acordes: leitura da cifra e cálculo das posições no braço ====
+// [Rodada 108 — 04/10/2026] Antes o app só tinha desenho pronto para meia dúzia
+// de tipos de acorde (maior, menor, 7, m7, 7M, sus4, aumentado) e qualquer outro
+// (diminuto, com 6, com 9…) caía no desenho do acorde MAIOR — bug relatado pelo
+// usuário ("as correspondências precisam ser exatas"). Agora:
+//   1) chordSuffixInfo() lê o sufixo da cifra (notação brasileira: 7M, º, m7(b5),
+//      7(9), 6(9), 7/4, (#5), sus4, m7M, add9…) e devolve as notas exatas do acorde
+//      (intervalos a partir da tônica). Sufixo que não entende → acorde não
+//      reconhecido (nunca mais "chuta" o maior).
+//   2) chordVoicings() procura no braço posições tocáveis que tenham exatamente
+//      essas notas (a 5ª justa pode ficar de fora em acordes de 4+ notas, como se
+//      faz no violão), com o baixo certo (D/F# tem F# no baixo), até 4 dedos, no
+//      máximo 4 casas de abertura, e dá nota a cada uma (mais cordas, posição mais
+//      baixa, cordas soltas, sem cordas abafadas no meio…).
+//   3) Os desenhos "clássicos" de sempre (acordes abertos e pestanas nos formatos
+//      de E e de A) continuam sendo a primeira opção quando batem nota a nota.
+
+// Lê o sufixo. Devolve {iv:[intervalos], opc:[intervalos que podem faltar],
+// nome:'descrição em português', disp:'sufixo normalizado'} ou null.
+function chordSuffixInfo(sufixo){
+  let s = String(sufixo==null ? '' : sufixo).replace(/\s+/g,'').replace(/°/g,'º').replace(/Δ/g,'7M').replace(/–/g,'-');
+  const st = {terca:'M', quinta:'J', sus:null, sexta:false, setima:null, ext:[], add:[], power:false, dim:false};
+  let i = 0;
+  const vem = (t)=> s.startsWith(t, i);
+  // tríade
+  if(vem('maj') || vem('Maj')){ /* sétima maior, tratada abaixo */ }
+  else if(vem('min')){ st.terca='m'; i+=3; }
+  else if(vem('mi') && !vem('mi7M')){ st.terca='m'; i+=2; }
+  else if(vem('m')){ st.terca='m'; i+=1; }
+  else if(vem('-') && !/^-\d/.test(s.slice(i))){ st.terca='m'; i+=1; }
+  if(vem('º') || vem('dim')){ st.terca='m'; st.quinta='d'; st.dim=true; i += vem('dim') ? 3 : 1; }
+  else if(vem('ø')){ st.terca='m'; st.quinta='d'; st.setima='m'; i+=1; }
+  else if(vem('aug')){ st.quinta='A'; i+=3; }
+  else if(vem('+') && !/^\+\d/.test(s.slice(i))){ st.quinta='A'; i+=1; }
+  let ultimoNum = false; // para "7/9": a barra depois de um número é extensão
+  while(i < s.length){
+    const r = s.slice(i);
+    let m;
+    if(/^[()\/,]/.test(r)){ i++; continue; }
+    if((m = /^(maj7|Maj7|maj|Maj|7M|M7|7\+|M)/.exec(r))){
+      if(m[1]==='maj' || m[1]==='Maj' || m[1]==='M'){ // "Cmaj9", "CM9", "Cm(M7)"
+        const nx = /^(maj|Maj|M)(7|9|11|13)?/.exec(r);
+        st.setima = 'M'; i += nx[0].length;
+        if(nx[2] && nx[2]!=='7') st.ext.push(nx[2]);
+        continue;
+      }
+      st.setima = 'M'; i += m[1].length; continue;
+    }
+    if((m = /^(sus4|sus2|sus)/.exec(r))){ st.sus = m[1]==='sus2' ? 2 : 4; i += m[1].length; continue; }
+    if((m = /^add(b|#)?(2|4|9|11|13|6)/.exec(r))){
+      const n = m[2]; i += m[0].length;
+      if(n==='6' || n==='13' && !m[1]) st.sexta = true; else st.add.push((m[1]||'')+n);
+      continue;
+    }
+    if((m = /^no3/.exec(r))){ st.terca = null; i+=3; continue; }
+    if((m = /^(b|#|-|\+)?(13|11|9|7|6|5|4|2)/.exec(r))){
+      const acc = m[1]==='-' ? 'b' : m[1]==='+' ? '#' : (m[1]||''), n = m[2]; i += m[0].length;
+      if(n==='7' && !acc){ st.setima = st.dim ? 'd' : 'm'; continue; }
+      if(n==='6' && !acc){ st.sexta = true; continue; }
+      if(n==='5'){
+        if(acc==='b'){ st.quinta = 'd'; continue; }
+        if(acc==='#'){ st.quinta = 'A'; continue; }
+        // "C5" (power chord): só se for o sufixo inteiro
+        if(i===s.length && st.terca==='M' && !st.setima && !st.sexta && !st.ext.length && !st.add.length){ st.power = true; continue; }
+        return null;
+      }
+      if(n==='4' && !acc){ st.sus = 4; continue; }
+      if(n==='2' && !acc){ if(st.setima || st.sexta) st.ext.push('9'); else st.add.push('9'); continue; }
+      st.ext.push(acc + n); continue;
+    }
+    return null; // sobrou algo que não é cifra
+  }
+  // monta os intervalos
+  const iv = new Set([0]); const opc = new Set();
+  if(st.power){ return {iv:[0,7], opc:[], nome:'quinta (power chord)', disp:'5'}; }
+  if(st.sus===4) iv.add(5); else if(st.sus===2) iv.add(2); else if(st.terca) iv.add(st.terca==='m'?3:4);
+  iv.add(st.quinta==='d' ? 6 : st.quinta==='A' ? 8 : 7);
+  if(st.sexta) iv.add(9);
+  if(st.setima==='m') iv.add(10); else if(st.setima==='M') iv.add(11); else if(st.setima==='d') iv.add(9);
+  const EXT = {'9':2,'b9':1,'#9':3,'11':5,'#11':6,'b11':4,'13':9,'b13':8,'#13':10,'2':2,'4':5,'b6':8,'#4':6};
+  // Notação brasileira: "C9" = C com nona adicionada (sem sétima); "C11" = com 11ª
+  // adicionada; "C13" sozinho = C7(13).
+  st.ext.forEach(e=>{ if(EXT[e]==null) return; iv.add(EXT[e]); });
+  if(st.ext.some(e=>e==='13' || e==='b13') && !st.setima && !st.sexta) iv.add(10);
+  st.add.forEach(e=>{ if(EXT[e]!=null) iv.add(EXT[e]); });
+  if(st.ext.some(e=>!(e in EXT)) || st.add.some(e=>!(e in EXT))) return null;
+  const lista = [...iv].sort((a,b)=>a-b);
+  if(lista.length >= 4 && st.quinta==='J') opc.add(7);
+  // com muitas notas (ex.: 7(9/11/13)) a 9ª também pode faltar se houver 13ª
+  if(lista.length >= 6 && iv.has(2) && iv.has(9)) opc.add(2);
+  return {iv:lista, opc:[...opc], nome: chordNomePt(st, iv), disp: chordDisp(st)};
+}
+function chordNomePt(st, iv){
+  let base;
+  if(st.dim && st.setima==='d') base = 'diminuto (tétrade)';
+  else if(st.terca==='m' && st.quinta==='d' && st.setima==='m') base = 'meio-diminuto';
+  else if(st.dim) base = 'diminuto';
+  else if(st.sus===4) base = 'suspenso de quarta';
+  else if(st.sus===2) base = 'suspenso de segunda';
+  else if(st.terca===null) base = 'sem terça';
+  else if(st.quinta==='A' && st.terca==='M') base = 'aumentado';
+  else base = st.terca==='m' ? 'menor' : 'maior';
+  const partes = [];
+  if(st.sexta) partes.push('sexta');
+  if(st.setima==='m' && base!=='meio-diminuto') partes.push('sétima');
+  if(st.setima==='M') partes.push('sétima maior');
+  if(st.quinta==='d' && !st.dim && base!=='meio-diminuto') partes.push('quinta diminuta');
+  if(st.quinta==='A' && base!=='aumentado') partes.push('quinta aumentada');
+  const NOMES = {'9':'nona','b9':'nona menor','#9':'nona aumentada','11':'décima primeira','#11':'décima primeira aumentada','13':'décima terceira','b13':'décima terceira menor','2':'nona','4':'quarta'};
+  st.ext.concat(st.add).forEach(e=>{ if(NOMES[e] && !partes.includes(NOMES[e])) partes.push(NOMES[e]); });
+  if(!partes.length) return base;
+  return base + ' com ' + (partes.length===1 ? partes[0] : partes.slice(0,-1).join(', ') + ' e ' + partes[partes.length-1]);
+}
+// Sufixo "oficial" do app (notação brasileira: 7M, º, m7(b5), (#5), 7(9)…)
+function chordDisp(st){
+  if(st.power) return '5';
+  let s = '';
+  if(st.dim){ s = 'º'; if(st.setima==='d') s += '7'; }
+  else if(st.terca==='m' && st.quinta==='d' && st.setima==='m'){ s = 'm7(b5)'; }
+  else {
+    if(st.terca==='m') s += 'm';
+    if(st.sexta) s += '6';
+    if(st.setima==='m') s += '7'; else if(st.setima==='M') s += '7M';
+    if(st.sus===4) s += st.setima ? '(4)' : 'sus4'; else if(st.sus===2) s += 'sus2';
+  }
+  const par = [];
+  if(st.quinta==='A' && !st.dim) par.push('#5');
+  if(st.quinta==='d' && !st.dim && !(st.terca==='m' && st.setima==='m')) par.push('b5');
+  st.ext.concat(st.add).forEach(e=>{ const v = e==='2' ? '9' : e; if(!par.includes(v)) par.push(v); });
+  if(par.length){
+    // "C9" = C com nona (sem sétima); com sétima/sexta vai entre parênteses
+    if(!st.setima && !st.sexta && par.length===1 && par[0]==='9' && st.quinta==='J') s += '9';
+    else s += '(' + par.join('/') + ')';
+  }
+  return s;
+}
+
+// ---- Posições no braço ----
+const CH_AFIN = [40,45,50,55,59,64]; // E A D G B e (corda 6 → 1)
+function chordVoicings(rootPc, info, bassPc){
+  const notas = new Set(info.iv.map(v=>(rootPc+v)%12));
+  const baixo = bassPc==null ? rootPc : bassPc;
+  const permit = new Set(notas); permit.add(baixo);
+  const opc = new Set(info.opc.map(v=>(rootPc+v)%12));
+  const obrig = [...notas].filter(p=>!opc.has(p));
+  const minCordas = info.iv.length<=2 ? 2 : 3;
+  const achados = new Map();
+  for(let p=0;p<=12;p++){
+    const janela = p===0 ? [1,2,3,4] : [p,p+1,p+2,p+3];
+    const opcoes = CH_AFIN.map(m=>{
+      const o = ['x'];
+      if(permit.has(m%12)) o.push(0);
+      janela.forEach(f=>{ if(permit.has((m+f)%12)) o.push(f); });
+      return o;
+    });
+    const cur = new Array(6);
+    const dfs = (k)=>{
+      if(k===6){ avalia(cur.slice()); return; }
+      for(const f of opcoes[k]){ cur[k] = f; dfs(k+1); }
+    };
+    const avalia = (fr)=>{
+      const tocadas = []; fr.forEach((f,k)=>{ if(f!=='x') tocadas.push(k); });
+      if(tocadas.length < minCordas) return;
+      const pcs = tocadas.map(k=>(CH_AFIN[k]+fr[k])%12);
+      if(pcs[0]!==baixo) return;
+      const tem = new Set(pcs);
+      for(const q of obrig) if(!tem.has(q)) return;
+      if(bassPc!=null && bassPc!==rootPc && !tem.has(rootPc)) return;
+      // o baixo de inversão (ex.: D/F#) não pode repetir acima como se fosse só nota do acorde? pode — é comum.
+      const primeira = tocadas[0], ultima = tocadas[tocadas.length-1];
+      let mudasMeio = 0; for(let k=primeira;k<=ultima;k++) if(fr[k]==='x') mudasMeio++;
+      if(mudasMeio > 1) return;
+      const presas = tocadas.filter(k=>fr[k]>0);
+      let dedos = 0, pestana = null;
+      if(presas.length){
+        const fs = presas.map(k=>fr[k]); const mn = Math.min(...fs), mx = Math.max(...fs);
+        if(mx - mn > 3) return;
+        const naMin = presas.filter(k=>fr[k]===mn);
+        let podePestana = false;
+        if(naMin.length>=2){
+          const a = naMin[0], b = naMin[naMin.length-1];
+          podePestana = true;
+          for(let k=a;k<=b;k++){ if(fr[k]==='x' || fr[k]===0 || fr[k] < mn){ podePestana = false; break; } }
+        }
+        if(podePestana){ pestana = mn; dedos = 1 + presas.filter(k=>fr[k]>mn).length; }
+        else dedos = presas.length;
+        if(dedos > 4) return;
+        // corda solta só junto de casas baixas (acorde aberto): solta + casa 7, 8… fica estranho de tocar
+        if(mx > 4 && tocadas.some(k=>fr[k]===0)) return;
+      }
+      // nota
+      const fsP = presas.map(k=>fr[k]); const mnP = fsP.length ? Math.min(...fsP) : 0;
+      let nota = tocadas.length*2 - mudasMeio*4;
+      nota -= (5 - ultima)*1.0;          // cordas agudas abafadas
+      nota -= primeira*0.8;              // começar na 6ª/5ª corda é melhor
+      nota -= mnP*1.0;                   // posição mais baixa primeiro
+      nota += tocadas.filter(k=>fr[k]===0).length*0.5;
+      if(!tem.has((rootPc+7)%12) && info.iv.includes(7)) nota -= 1.2;
+      nota -= dedos*0.4;
+      if(fsP.length) nota -= (Math.max(...fsP) - mnP)*1.0; // abertura da mão
+      // nota mais aguda sendo a tônica ou a 3ª fica mais "redonda"
+      const chave = fr.join(',');
+      if(!achados.has(chave)) achados.set(chave, {frets:fr, nota, pestana, pos:mnP});
+    };
+    dfs(0);
+  }
+  return [...achados.values()].sort((a,b)=>b.nota-a.nota);
+}
+
+// Lê uma cifra inteira: tônica (A-G com # ou b, incluindo E#, B#, Cb, Fb), sufixo
+// e baixo opcional ("/F#"). A barra seguida de número é extensão (7/9, 6/9, 7/4).
+function parseChord(raw){
+  if(!raw) return null;
+  const tok = String(raw).replace(/[.,;:|]+$/,'');
+  const m = /^([A-G])(#|b)?(.*)$/.exec(tok); if(!m) return null;
+  let suf = m[3], bassRoot = null, bassAcc = '';
+  const bm = /\/([A-G])(#|b)?$/.exec(suf);
+  if(bm){ bassRoot = bm[1]; bassAcc = bm[2]||''; suf = suf.slice(0, bm.index); }
+  const info = chordSuffixInfo(suf); if(!info) return null;
+  return {root:m[1], acc:m[2]||'', quality:suf, bassRoot, bassAcc, info};
+}
+function chordBassPc(p){ return p && p.bassRoot ? noteIndex(p.bassRoot, p.bassAcc) : null; }
 function isChordLine(line){ const tokens=line.trim().split(/\s+/).filter(Boolean); if(tokens.length===0) return false;
   return tokens.filter(t=>parseChord(t)).length/tokens.length >= 0.6; }
 function isSectionLine(line){ return /^\s*[\[\(].*[\]\)]\s*$/.test(line) && line.trim().length>0; }
 function transposeToken(tok, semis, preferFlat){ const p=parseChord(tok); if(!p) return tok; const names=preferFlat?FLAT_NAMES:SHARP_NAMES;
-  let out=names[(noteIndex(p.root,p.acc)+semis+120)%12]+qualityDisplay(p.quality); if(p.bassRoot) out+='/'+names[(noteIndex(p.bassRoot,p.bassAcc)+semis+120)%12]; return out; }
+  let out=names[(noteIndex(p.root,p.acc)+semis+120)%12]+p.quality; if(p.bassRoot) out+='/'+names[(noteIndex(p.bassRoot,p.bassAcc)+semis+120)%12]; return out; }
 function transposeKeyName(keyName, semis, preferFlat){ const m=/^([A-G])(#|b)?(.*)$/.exec(keyName||'C'); if(!m) return keyName;
   const names=preferFlat?FLAT_NAMES:SHARP_NAMES; return names[(noteIndex(m[1],m[2]||'')+semis+120)%12]+(m[3]||''); }
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -2018,7 +2236,7 @@ function noteNamePt(letter, acc){
 }
 function chordFullNamePt(name){
   const p = parseChord(name); if(!p) return '';
-  let s = noteNamePt(p.root, p.acc) + ' ' + (QUALITY_PT[p.quality]!==undefined ? QUALITY_PT[p.quality] : p.quality);
+  let s = noteNamePt(p.root, p.acc) + ' ' + p.info.nome;
   if(p.bassRoot) s += ' com baixo em ' + noteNamePt(p.bassRoot, p.bassAcc);
   return s;
 }
@@ -2380,31 +2598,55 @@ function detectBarre(frets){
   if(atMin.length===2 && atMin[1].i===atMin[0].i+1) return minFret;
   return null;
 }
-function getDiagram(rootSharpName, quality){
-  const key=rootSharpName+quality;
-  if(OPEN_CHORDS[key]) return {frets:OPEN_CHORDS[key], base:1, barre:detectBarre(OPEN_CHORDS[key]), fingers:assignFingersHeuristic(OPEN_CHORDS[key]), approx:false};
-  const rootIdx=SHARP_NAMES.indexOf(rootSharpName);
-  const hasTmpl=!!TEMPLATES[quality]; const tmpl=TEMPLATES[hasTmpl?quality:''];
-  const d = buildFromTemplate(tmpl, rootIdx, 4); // E string = index 4
-  d.approx = !hasTmpl;
-  return d;
+// [Rodada 108] Desenhos de cada acorde, sempre com exatamente as notas da cifra.
+// Ordem: acorde aberto clássico (OPEN_CHORDS) → pestanas nos formatos de E e de A
+// (para maior, menor, 7, m7, 7M e sus4) → posições calculadas por chordVoicings().
+const TPL_POR_NOTAS = {'0,4,7':'', '0,3,7':'m', '0,4,7,10':'7', '0,3,7,10':'m7', '0,4,7,11':'maj7', '0,5,7':'sus4'};
+let _chordAbertos = null;
+function chordAbertos(){
+  if(_chordAbertos) return _chordAbertos;
+  _chordAbertos = {};
+  Object.keys(OPEN_CHORDS).forEach(nome=>{ const p = parseChord(nome); if(p) _chordAbertos[noteIndex(p.root,p.acc)+'|'+p.info.iv.join(',')] = OPEN_CHORDS[nome]; });
+  return _chordAbertos;
 }
-// Returns up to 3 distinct, playable voicings for a chord: the default shown one, plus movable
-// E-shape and A-shape barre alternatives — used by the "Variações" picker.
-function getVariations(rootSharpName, quality){
-  const rootIdx = SHARP_NAMES.indexOf(rootSharpName);
+function chordDiagDe(frets, label){
+  const num = frets.filter(v=>v!=='x' && v>0);
+  const mn = num.length ? Math.min(...num) : 0, mx = num.length ? Math.max(...num) : 0;
+  return {frets, base: mx>5 ? mn : 1, barre: detectBarre(frets), fingers: assignFingersHeuristic(frets), approx:false, label};
+}
+const _chordVarCache = new Map();
+function getVariations(rootSharpName, quality, bassPc){
+  const rootPc = SHARP_NAMES.indexOf(rootSharpName);
+  const info = chordSuffixInfo(quality); if(!info || rootPc<0) return [];
+  if(bassPc===rootPc) bassPc = null;
+  const chave = rootPc+'|'+info.iv.join(',')+'|'+(bassPc==null?'':bassPc);
+  if(_chordVarCache.has(chave)) return _chordVarCache.get(chave).map(o=>({...o}));
   const list = [];
-  const def = getDiagram(rootSharpName, quality);
-  list.push({...def, label: OPEN_CHORDS[rootSharpName+quality] ? 'Posição aberta' : 'Padrão'});
-  const eTmpl = TEMPLATES[quality] ? TEMPLATES[quality] : TEMPLATES[''];
-  const eVariant = buildFromTemplate(eTmpl, rootIdx, 4);
-  const aTmpl = A_TEMPLATES[quality] ? A_TEMPLATES[quality] : A_TEMPLATES[''];
-  const aVariant = buildFromTemplate(aTmpl, rootIdx, 9); // A string = index 9
-  [{...eVariant, label:'Formato E (braço)'}, {...aVariant, label:'Formato A (braço)'}].forEach(v=>{
-    const dupe = list.some(o=> JSON.stringify(o.frets)===JSON.stringify(v.frets));
-    if(!dupe) list.push(v);
-  });
-  return list;
+  const add = (d)=>{ if(!list.some(o=>o.frets.join()===d.frets.join())) list.push(d); };
+  if(bassPc==null){
+    const ab = chordAbertos()[rootPc+'|'+info.iv.join(',')];
+    if(ab) add(chordDiagDe(ab, 'Posição aberta'));
+    const tk = TPL_POR_NOTAS[info.iv.join(',')];
+    if(tk!==undefined){
+      const e = buildFromTemplate(TEMPLATES[tk], rootPc, 4), a = buildFromTemplate(A_TEMPLATES[tk], rootPc, 9);
+      const pe = [{...e, label:'Pestana (formato E)'}, {...a, label:'Pestana (formato A)'}].sort((x,y)=>(x.barre||0)-(y.barre||0));
+      pe.forEach(d=>add({...d, approx:false}));
+    }
+  }
+  const gerados = chordVoicings(rootPc, info, bassPc);
+  const posUsadas = list.map(d=>{ const n = d.frets.filter(v=>v!=='x' && v>0); return n.length ? Math.min(...n) : 0; });
+  for(const g of gerados){
+    if(list.length >= 6) break;
+    if(posUsadas.some(pu=>Math.abs(pu - g.pos) < 2) && list.length >= 2) continue;
+    add(chordDiagDe(g.frets, g.pos ? g.pos+'ª casa' : 'Posição aberta'));
+    posUsadas.push(g.pos);
+  }
+  _chordVarCache.set(chave, list);
+  return list.map(o=>({...o}));
+}
+function getDiagram(rootSharpName, quality, bassPc){
+  const v = getVariations(rootSharpName, quality, bassPc);
+  return v[0] || {frets:['x','x','x','x','x','x'], base:1, barre:null, fingers:[null,null,null,null,null,null], approx:true};
 }
 const STRING_THICKNESS = [2.3,1.95,1.6,1.3,1.05,0.85]; // low E (thick) -> high e (thin)
 function chordDiagramSVG(frets, base, barre, orientation, mirror, fingers, capo){
@@ -2496,7 +2738,7 @@ function resolveConfirm(val){ const c=state.confirmDialog; state.confirmDialog=n
 function openVariantModal(chordName){
   const p = parseChord(chordName); if(!p) return;
   const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
-  const options = getVariations(rootSharp, p.quality);
+  const options = getVariations(rootSharp, p.quality, chordBassPc(p));
   const c = state.detailCache[state.cifraSelId];
   const currentOverride = c && c.chordOverrides && c.chordOverrides[chordName];
   let selectedIndex = 0;
@@ -2576,10 +2818,10 @@ let state = {
   recorderActive:false, recorderMediaRecorder:null, recordings:[],
   dictChordQuery:'',
   brachoTuningIdx:0, brachoFrets:12, brachoFlipH:false, brachoFlipV:false,
-  harmParentIdx:0, harmModeIdx:0, harmTom:0, harmShowAll:false, harmChordType:'triade',
+  harmParentIdx:0, harmModeIdx:0, harmTom:'C', harmShowAll:false, harmChordType:'triade',
   metronomeBpm:90, metronomeRunning:false, metronomeBeat:0, metronomeBeatsPerBar:4, metronomeTimbre:'basico',
   metronomeBeatStates:['accent','normal','normal','normal'],
-  earTraining:{mode:'note', current:null, answered:false, lastAnswer:null, score:{correct:0,total:0}},
+  earTraining:{mode:'chordname', current:null, answered:false, lastAnswer:null, score:{correct:0,total:0}},
   dictDrawMode:false, dictDrawFrets:null, dictDrawBase:1,
   tunerTuningIdx:0,
   topbarMenuOpen:false, mobileMenuOpen:false, mobileToolPanel:null, profAreaMenuOpen:false,
@@ -7103,7 +7345,7 @@ function flashBeatDot(){
 // amostras carregarem e agenda cada batida no relógio do áudio, com ~120 ms de
 // antecedência; o destaque do tempo e o piscar acompanham pelo
 // requestAnimationFrame, no instante em que o som sai.
-const METRO_SCHED = {timer:null, raf:null, next:0, beat:0, fila:[], srcs:[], token:0};
+const METRO_SCHED = {timer:null, raf:null, next:0, beat:0, fila:[], srcs:[], token:0, cont:0, ult:null};
 async function startMetronome(){
   stopMetronome();
   const S = METRO_SCHED; const token = ++S.token;
@@ -7111,7 +7353,7 @@ async function startMetronome(){
   try{ if(ctx.state !== 'running') await ctx.resume(); }catch(e){}
   try{ await carregarAmostrasMetronomo(); }catch(e){}
   if(token !== S.token || !state.metronomeRunning) return;
-  S.beat = 0; S.fila = []; S.srcs = [];
+  S.beat = 0; S.fila = []; S.srcs = []; S.cont = 0; S.ult = null;
   S.next = ctx.currentTime + 0.1;
   metroAgenda();
   S.timer = setInterval(metroAgenda, 25);
@@ -7127,7 +7369,7 @@ function metroAgenda(){
     const b = S.beat % n;
     const st = state.metronomeBeatStates[b];
     if(st !== 'mute'){ const src = playClick(st==='accent', S.next); if(src) S.srcs.push(src); }
-    S.fila.push({t:S.next, b});
+    S.fila.push({t:S.next, b, k:S.cont++});
     S.next += 60/state.metronomeBpm;
     S.beat = (b+1) % n;
   }
@@ -7138,7 +7380,8 @@ function metroAnima(){
   const agora = getToolCtx().currentTime;
   let ult = null;
   while(S.fila.length && S.fila[0].t <= agora + 0.01) ult = S.fila.shift();
-  if(ult){ state.metronomeBeat = ult.b; flashBeatDot(); highlightMetronomeBeat(); }
+  if(ult){ S.ult = ult; state.metronomeBeat = ult.b; flashBeatDot(); highlightMetronomeBeat(); }
+  metroPendulo(agora);
   S.raf = requestAnimationFrame(metroAnima);
 }
 function stopMetronome(){
@@ -7157,11 +7400,26 @@ function toggleMetronome(){
   if(state.metronomeRunning) startMetronome(); else stopMetronome();
   render();
 }
+// [Rodada 108] O pêndulo é desenhado pelo mesmo relógio do áudio: em cada
+// clique ele está numa das laterais (alternando esquerda/direita) e cruza o
+// meio entre um clique e outro, mais rápido no meio, como um pêndulo de verdade.
+// Antes era uma animação de CSS solta do som — o clique caía no meio do balanço.
+const METRO_ANGULO = 22;
+function metroPendulo(agora){
+  const arm = document.getElementById('metronomePendulumArm'); if(!arm) return;
+  const S = METRO_SCHED; const u = S.ult;
+  let ang = -METRO_ANGULO;
+  if(state.metronomeRunning && u){
+    const prox = S.fila.length ? S.fila[0].t : u.t + 60/state.metronomeBpm;
+    const fase = Math.max(0, Math.min(1, (agora - u.t) / Math.max(0.01, prox - u.t)));
+    const lado = u.k % 2 === 0 ? -1 : 1;
+    ang = METRO_ANGULO * lado * Math.cos(Math.PI * fase);
+  }
+  arm.style.transform = `translateX(-50%) rotate(${ang.toFixed(2)}deg)`;
+}
 function updateMetronomePendulum(){
-  const arm = document.getElementById('metronomePendulumArm');
-  if(!arm) return;
-  arm.style.animationDuration = (60/state.metronomeBpm)+'s';
-  arm.style.animationPlayState = state.metronomeRunning ? 'running' : 'paused';
+  if(!state.metronomeRunning) METRO_SCHED.ult = null;
+  metroPendulo(0);
 }
 function setMetronomeBpm(v){
   state.metronomeBpm = Math.max(30, Math.min(240, Math.round(v)||state.metronomeBpm));
@@ -7218,7 +7476,7 @@ function renderToolMetronome(app, themeSwitch){
     </div>
     <div class="tool-card" style="max-width:520px;text-align:center;">
       <div class="metronome-pendulum-wrap">
-        <div class="metronome-pendulum-arm" id="metronomePendulumArm" style="animation-duration:${(60/state.metronomeBpm)}s;animation-play-state:${state.metronomeRunning?'running':'paused'};">
+        <div class="metronome-pendulum-arm" id="metronomePendulumArm">
           <div class="metronome-pendulum-weight"></div>
         </div>
         <div class="metronome-pendulum-base"></div>
@@ -8279,7 +8537,8 @@ function renderToolRecorder(app, themeSwitch){
 // fixa, então tudo que aparece na lista é um acorde que o app sabe desenhar.
 const DICT_ROOTS = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
 // Ordem = ordem que aparece na lista (do mais comum pro mais raro).
-const DICT_QUALITIES = ['','m','7','m7','7M','6','m6','9','m9','sus2','sus4','add9','madd9','dim','dim7','aug','m7b5','mMaj7','11','13'];
+// [Rodada 108] notação brasileira; todos lidos por chordSuffixInfo() com as notas exatas
+const DICT_QUALITIES = ['','m','7','m7','7M','m7M','6','m6','6(9)','m6(9)','9','m9','7(9)','m7(9)','7M(9)','7(b9)','7(#9)','7(11)','m7(11)','7(#11)','7(13)','7(b13)','7(9/13)','sus2','sus4','7(4)','º','º7','m7(b5)','(#5)','7(#5)','7(b5)','7M(#5)','5'];
 function dictAllChordNames(){
   if(!dictAllChordNames._cache){
     const out = [];
@@ -8381,7 +8640,7 @@ function dictResultsHtml(){
   const p = parseChord(q);
   if(!p) return '<p class="hint">Não reconheci esse acorde. Tente algo como "G", "Am7" ou "D/F#".</p>';
   const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
-  const options = getVariations(rootSharp, p.quality);
+  const options = getVariations(rootSharp, p.quality, chordBassPc(p));
   return `
     <div class="chord-fullname" style="margin-bottom:10px;">${escapeHtml(chordFullNamePt(q))}</div>
     <div class="variant-grid">
@@ -8476,23 +8735,8 @@ function dictDrawEditorSvg(){
   s += '</svg>';
   return s;
 }
-const CHORD_FORMULAS = [
-  {suffix:'', intervals:[0,4,7]},
-  {suffix:'m', intervals:[0,3,7]},
-  {suffix:'7', intervals:[0,4,7,10]},
-  {suffix:'maj7', intervals:[0,4,7,11]},
-  {suffix:'m7', intervals:[0,3,7,10]},
-  {suffix:'dim', intervals:[0,3,6]},
-  {suffix:'aug', intervals:[0,4,8]},
-  {suffix:'sus2', intervals:[0,2,7]},
-  {suffix:'sus4', intervals:[0,5,7]},
-  {suffix:'6', intervals:[0,4,7,9]},
-  {suffix:'m6', intervals:[0,3,7,9]},
-  {suffix:'m7b5', intervals:[0,3,6,10]},
-  {suffix:'9', intervals:[0,2,4,7,10]},
-  {suffix:'add9', intervals:[0,2,4,7]},
-  {suffix:'m9', intervals:[0,2,3,7,10]},
-];
+// [Rodada 108] Descobre o nome do acorde desenhado comparando as notas tocadas com
+// todos os tipos do dicionário (mesmo leitor das cifras). A 5ª justa pode faltar.
 function detectChordFromFrets(frets){
   const openPc = [4,9,2,7,11,4]; // low E, A, D, G, B, high E
   const playedPcs = new Set();
@@ -8505,20 +8749,20 @@ function detectChordFromFrets(frets){
     if(bassPc===null) bassPc = pc;
   }
   if(playedPcs.size<2) return null;
-  const pcsArr = [...playedPcs];
   let best = null;
   for(let root=0; root<12; root++){
-    const relative = pcsArr.map(pc => ((pc-root)+12)%12).sort((a,b)=>a-b);
-    for(const formula of CHORD_FORMULAS){
-      const f = formula.intervals.slice().sort((a,b)=>a-b);
-      if(relative.length===f.length && relative.every((v,idx)=>v===f[idx])){
-        const rootName = SHARP_NAMES[root];
-        const isSlash = bassPc!==root;
-        const name = rootName + qualityDisplay(formula.suffix) + (isSlash?('/'+SHARP_NAMES[bassPc]):'');
-        const score = 20 - formula.intervals.length - (isSlash?2:0);
-        if(!best || score>best.score) best = {name, score};
-      }
-    }
+    if(!playedPcs.has(root)) continue;
+    DICT_QUALITIES.forEach((q, qi)=>{
+      const info = chordSuffixInfo(q); if(!info) return;
+      const notas = new Set(info.iv.map(v=>(root+v)%12));
+      const opc = new Set(info.opc.map(v=>(root+v)%12));
+      for(const pc of playedPcs) if(!notas.has(pc)) return;
+      for(const pc of notas) if(!playedPcs.has(pc) && !opc.has(pc)) return;
+      const isSlash = bassPc!==root;
+      const falta = [...notas].filter(pc=>!playedPcs.has(pc)).length;
+      const score = 100 - qi*0.5 - (isSlash?15:0) - falta*6;
+      if(!best || score>best.score) best = {name: SHARP_NAMES[root] + info.disp + (isSlash?('/'+SHARP_NAMES[bassPc]):''), score};
+    });
   }
   return best ? best.name : null;
 }
@@ -8815,7 +9059,55 @@ const HARM_PARENTS = [
 ];
 function setHarmParent(idx){ state.harmParentIdx = parseInt(idx,10); state.harmModeIdx = 0; render(); }
 function setHarmMode(idx){ state.harmModeIdx = parseInt(idx,10); render(); }
-function setHarmTom(idx){ state.harmTom = parseInt(idx,10); render(); }
+function setHarmTom(nome){ state.harmTom = String(nome); render(); }
+// [Rodada 108] Grafia correta (pedido do usuário): cada tom usa as 7 letras uma
+// vez só (C D E F G A B), cada uma com no máximo um # ou um b. Ex.: D#m natural =
+// D# E# F# G# A# B C#. Tons que precisariam de dobrado sustenido/bemol (ou repetir
+// uma letra) não existem nessa regra e saem da lista: G#, D# e A# maior; Dbm e Gbm…
+const HARM_LETRAS = ['C','D','E','F','G','A','B'];
+const HARM_TONS_USUAIS = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
+const HARM_NAT = [0,2,4,5,7,9,11];
+function harmIntervalosModo(parentIdx, modeIdx){
+  const pat = HARM_PARENTS[parentIdx].pattern, out = [];
+  for(let i=0;i<7;i++){ let v = pat[(modeIdx+i)%7] - pat[modeIdx]; if(v<0) v += 12; out.push(v); }
+  return out;
+}
+function harmNomeNota(letra, acc){ return HARM_LETRAS[letra] + (acc===1?'#':acc===-1?'b':''); }
+// Notas da escala com as letras em ordem; null se alguma precisar de ## ou bb.
+function harmSoletra(tonica, ivs){
+  const m = /^([A-G])(#|b)?$/.exec(tonica); if(!m) return null;
+  const li = HARM_LETRAS.indexOf(m[1]), acc0 = m[2]==='#'?1:m[2]==='b'?-1:0;
+  const pc0 = (HARM_NAT[li] + acc0 + 12) % 12;
+  const notas = [];
+  for(let k=0;k<7;k++){
+    const l = (li+k)%7, alvo = (pc0 + ivs[k]) % 12;
+    const acc = ((alvo - HARM_NAT[l] + 18) % 12) - 6;
+    if(acc < -1 || acc > 1) return null;
+    notas.push(harmNomeNota(l, acc));
+  }
+  return notas;
+}
+// Tons possíveis para a escala/modo escolhidos, em ordem cromática (C, C#, Db, D…)
+function harmTonicas(parentIdx, modeIdx){
+  // só as 17 grafias usadas na prática como tônica (sem Cb, Fb, E#, B# como tom)
+  const ivs = harmIntervalosModo(parentIdx, modeIdx);
+  return HARM_TONS_USUAIS.filter(t=>harmSoletra(t, ivs));
+}
+// Tons "do dia a dia" (as 17 grafias usadas na prática) que não dão nesta escala
+function harmTonsImpossiveis(parentIdx, modeIdx){
+  const ivs = harmIntervalosModo(parentIdx, modeIdx);
+  return HARM_TONS_USUAIS.filter(t=>!harmSoletra(t, ivs));
+}
+// Garante que o tom escolhido existe nesta escala (ao trocar de escala/modo):
+// se não existir, usa a outra grafia da mesma nota (D# maior → Eb maior).
+function harmTomValido(parentIdx, modeIdx, tom){
+  const lista = harmTonicas(parentIdx, modeIdx);
+  if(lista.includes(tom)) return tom;
+  const m = /^([A-G])(#|b)?$/.exec(tom||'C');
+  const pc = m ? (HARM_NAT[HARM_LETRAS.indexOf(m[1])] + (m[2]==='#'?1:m[2]==='b'?-1:0) + 12) % 12 : 0;
+  const mesma = lista.find(t=>{ const q = /^([A-G])(#|b)?$/.exec(t); return (HARM_NAT[HARM_LETRAS.indexOf(q[1])] + (q[2]==='#'?1:q[2]==='b'?-1:0) + 12) % 12 === pc; });
+  return mesma || lista[0];
+}
 function toggleHarmShowAll(){ state.harmShowAll = !state.harmShowAll; render(); }
 // Escolha entre mostrar só a tríade ou só a tétrade (acorde com sétima) de
 // cada grau — pedido do usuário em 14/09/2026 (rodada 30) pra deixar a
@@ -8829,7 +9121,7 @@ function setHarmChordType(t){ state.harmChordType = t; render(); }
 // terça 4 + quinta 7 = maior; terça 3 + quinta 6 = diminuta; etc.) — assim
 // funciona igual pra maior, menor harmônica, menor melódica e qualquer um dos
 // seus modos, sem precisar de uma tabela de acordes escrita à mão pra cada um.
-function harmComputeChords(parentIdx, modeIdx, rootSemi){
+function harmComputeChords(parentIdx, modeIdx, tonica){
   const parent = HARM_PARENTS[parentIdx];
   const pat = parent.pattern;
   const rotated = [];
@@ -8839,6 +9131,7 @@ function harmComputeChords(parentIdx, modeIdx, rootSemi){
     rotated.push(val);
   }
   const ext = rotated.concat(rotated.map(v=>v+12), rotated.map(v=>v+24));
+  const soletradas = harmSoletra(tonica, rotated) || [];
   const ROMAN = ['I','II','III','IV','V','VI','VII'];
   const chords = [];
   for(let i=0;i<7;i++){
@@ -8856,7 +9149,7 @@ function harmComputeChords(parentIdx, modeIdx, rootSemi){
     else if(triadeSuf==='dim') setimaSuf = setima===10?'m7b5':setima===9?'dim7':'dim';
     else if(triadeSuf==='aug') setimaSuf = setima===11?'maj7(#5)':setima===10?'7(#5)':'aug';
     else setimaSuf = '?';
-    const noteName = SHARP_NAMES[(rootSemi+root)%12];
+    const noteName = soletradas[i];
     // O numeral romano do grau vem sempre em caixa alta agora (pedido do
     // usuário em 14/09/2026 — antes ficava minúsculo pra graus menores, ex:
     // "ii", "vii°" — a diferença maior/menor já aparece no próprio nome do
@@ -8879,7 +9172,7 @@ function harmComputeChords(parentIdx, modeIdx, rootSemi){
 // diagrama em vez de "acorde não reconhecido"; o nome completo e correto
 // continua exibido normalmente na lista.
 function harmShowChord(name){
-  showChordPopup(parseChord(name) ? name : name.replace(/\([^)]*\)/g, ''));
+  showChordPopup(name);
 }
 // Uma "coluna" por grau (numeral romano em cima, sem caixinha atrás, e o
 // nome do acorde embaixo) — usado tanto lado a lado (só um tom) quanto, mais
@@ -8907,20 +9200,25 @@ function harmChordColsHtml(chords){
 // os 7 graus daquele tom lado a lado (mais compactos, esticando pra ocupar
 // toda a largura da linha — rodada 30) dentro da linha.
 function harmAllKeysHtml(parentIdx, modeIdx){
-  return `<div class="cifra-list">${SHARP_NAMES.map((tomName,i)=>{
-    const chords = harmComputeChords(parentIdx, modeIdx, i);
+  const fora = harmTonsImpossiveis(parentIdx, modeIdx);
+  const lista = `<div class="cifra-list">${harmTonicas(parentIdx, modeIdx).map(tom=>{
+    const chords = harmComputeChords(parentIdx, modeIdx, tom);
     return `
     <div class="cifra-row harm-chord-row harm-key-row">
-      <div class="harm-key-label">${escapeHtml(tomName)}</div>
+      <div class="harm-key-label">${escapeHtml(chords[0] ? chords[0].triade : tom)}</div>
       <div class="harm-cols harm-cols-compact">${chords.map(harmChordColHtml).join('')}</div>
     </div>`;
   }).join('')}</div>`;
+  // [Rodada 108] observação pedida pelo usuário, abaixo do campo harmônico completo
+  const nota = `<p class="harm-obs">Cada tom é escrito com as sete notas (C, D, E, F, G, A, B) uma única vez, cada uma com no máximo um sustenido ou um bemol — por isso aparecem notas como E# e B# em alguns tons.${fora.length ? ` Nesta escala não é possível formar ${fora.length===1?'o tom':'os tons'} <b>${fora.length>1 ? fora.slice(0,-1).map(escapeHtml).join(', ')+' e '+escapeHtml(fora[fora.length-1]) : escapeHtml(fora[0])}</b>: ${fora.length===1?'ele precisaria':'eles precisariam'} de dobrado sustenido/bemol ou de repetir uma nota (ex.: F e F#). Use a outra grafia da mesma nota.` : ''}</p>`;
+  return lista + nota;
 }
 // ---- Campo Harmônico (o aluno escolhe escala principal + modo + tom, e vê os
 // 7 acordes gerados; opção de ver todos os 12 tons de uma vez) — pedido do
 // usuário em 13/09/2026, substituindo a antiga ferramenta "Produtos". ----
 function renderToolHarmonicField(app, themeSwitch){
-  const parentIdx = state.harmParentIdx, modeIdx = state.harmModeIdx, tom = state.harmTom;
+  const parentIdx = state.harmParentIdx, modeIdx = state.harmModeIdx;
+  const tom = state.harmTom = harmTomValido(parentIdx, modeIdx, typeof state.harmTom==='string' ? state.harmTom : 'C');
   const parent = HARM_PARENTS[parentIdx];
   const body = state.harmShowAll
     ? harmAllKeysHtml(parentIdx, modeIdx)
@@ -8948,7 +9246,7 @@ function renderToolHarmonicField(app, themeSwitch){
       ${state.harmShowAll?'':`<div class="piano-control-group">
         <span class="rail-label">Tom</span>
         <select onchange="setHarmTom(this.value)">
-          ${SHARP_NAMES.map((n,i)=>`<option value="${i}" ${i===tom?'selected':''}>${escapeHtml(n)}</option>`).join('')}
+          ${harmTonicas(parentIdx, modeIdx).map(n=>`<option value="${escapeHtml(n)}" ${n===tom?'selected':''}>${escapeHtml(n)}</option>`).join('')}
         </select>
       </div>`}
       <div class="piano-control-group">
@@ -8979,7 +9277,9 @@ const EAR_INTERVALS = [
   {name:'4ª Justa', semitones:5},
   {name:'Trítono', semitones:6},
   {name:'5ª Justa', semitones:7},
+  {name:'6ª Menor', semitones:8},
   {name:'6ª Maior', semitones:9},
+  {name:'7ª Menor', semitones:10},
   {name:'7ª Maior', semitones:11},
   {name:'8ª (Oitava)', semitones:12},
 ];
@@ -8996,6 +9296,16 @@ const EAR_CHORDS = [
   {label:'Lá Menor (Am)', root:'A', quality:'menor'},
   {label:'Ré Menor (Dm)', root:'D', quality:'menor'},
   {label:'Mi Menor (Em)', root:'E', quality:'menor'},
+  {label:'Si Menor (Bm)', root:'B', quality:'menor'},
+  {label:'Sol Menor (Gm)', root:'G', quality:'menor'},
+  {label:'Dó Menor (Cm)', root:'C', quality:'menor'},
+];
+// [Rodada 108] 6 alternativas em todos os exercícios (pedido do usuário). No
+// "Maior ou menor?" entram também diminuto, aumentado e os suspensos.
+const EAR_N_OPCOES = 6;
+const EAR_TIPOS = [
+  {nome:'Maior', iv:[0,4,7]}, {nome:'Menor', iv:[0,3,7]}, {nome:'Diminuto', iv:[0,3,6]},
+  {nome:'Aumentado', iv:[0,4,8]}, {nome:'Suspenso (sus4)', iv:[0,5,7]}, {nome:'Suspenso (sus2)', iv:[0,2,7]},
 ];
 function earNoteFreq(letter, octave){
   const pc = noteIndex(letter,'');
@@ -9019,7 +9329,7 @@ function generateEarQuestion(mode){
   if(mode==='note'){
     const correct = pickAvoiding(EAR_NOTES_POOL, prevCorrect);
     let options = [correct];
-    while(options.length<4){ const n = EAR_NOTES_POOL[Math.floor(Math.random()*EAR_NOTES_POOL.length)]; if(!options.includes(n)) options.push(n); }
+    while(options.length<EAR_N_OPCOES){ const n = EAR_NOTES_POOL[Math.floor(Math.random()*EAR_NOTES_POOL.length)]; if(!options.includes(n)) options.push(n); }
     // Violão de verdade, região grave/média (mais ou menos as 5 primeiras
     // casas): a corda mais grave solta é Mi2 (E2, ~82Hz) e a 5ª casa da
     // primeira corda chega em Lá4 (A4, ~440Hz) — sorteando a oitava entre
@@ -9036,7 +9346,7 @@ function generateEarQuestion(mode){
   } else if(mode==='interval'){
     const interval = (function(){ const names = EAR_INTERVALS.map(i=>i.name); const chosen = pickAvoiding(names, prevCorrect); return EAR_INTERVALS.find(i=>i.name===chosen); })();
     let options = [interval.name];
-    while(options.length<4){ const o = EAR_INTERVALS[Math.floor(Math.random()*EAR_INTERVALS.length)].name; if(!options.includes(o)) options.push(o); }
+    while(options.length<EAR_N_OPCOES){ const o = EAR_INTERVALS[Math.floor(Math.random()*EAR_INTERVALS.length)].name; if(!options.includes(o)) options.push(o); }
     // Raiz sorteada entre Mi2 (E2, corda solta mais grave) e Mi3 (E3), pra
     // ficar na região grave/média do violão — antes era sempre em torno de
     // Dó4/Mi4 (uma oitava acima do que se costuma tocar nas primeiras casas).
@@ -9045,19 +9355,19 @@ function generateEarQuestion(mode){
     const rootMidi = 40 + Math.floor(Math.random()*13);
     state.earTraining.current = {type:'interval', correct:interval.name, options:shuffleArr(options), rootMidi, semitones:interval.semitones};
   } else if(mode==='chord'){
-    const correct = pickAvoiding(['Maior','Menor'], prevCorrect);
-    const isMajor = correct==='Maior';
+    const correct = pickAvoiding(EAR_TIPOS.map(t=>t.nome), prevCorrect);
+    const tipo = EAR_TIPOS.find(t=>t.nome===correct);
     // Raiz entre Sol2 (G2) e Mi3 (E3), região de acordes abertos no violão.
     // (Tentativa de descer mais uma oitava em 05/09/2026 foi revertida a
     // pedido do usuário em 06/09/2026 — ficou ruim.)
     const rootMidi = 43 + Math.floor(Math.random()*10);
-    state.earTraining.current = {type:'chord', correct, options:['Maior','Menor'], rootMidi, third:isMajor?4:3};
+    state.earTraining.current = {type:'chord', correct, options:EAR_TIPOS.map(t=>t.nome), rootMidi, iv:tipo.iv};
   } else {
     const chord = EAR_CHORDS[pickAvoiding(EAR_CHORDS.map((c,i)=>i), EAR_CHORDS.findIndex(c=>c.label===prevCorrect))];
     const rootMidi = 48 + noteIndex(chord.root,''); // acordes abertos, região grave (por volta de C3) — revertido em 06/09/2026, tentativa de descer mais uma oitava (05/09) ficou ruim
     const third = chord.quality==='maior'?4:3;
     let options = [chord.label];
-    while(options.length<4){ const o = EAR_CHORDS[Math.floor(Math.random()*EAR_CHORDS.length)].label; if(!options.includes(o)) options.push(o); }
+    while(options.length<EAR_N_OPCOES){ const o = EAR_CHORDS[Math.floor(Math.random()*EAR_CHORDS.length)].label; if(!options.includes(o)) options.push(o); }
     state.earTraining.current = {type:'chordname', correct:chord.label, options:shuffleArr(options), rootMidi, third};
   }
   state.earTraining.answered = false;
@@ -9085,7 +9395,7 @@ async function playEarQuestionSound(){
     // que tocar tudo exatamente junto.
     [0, c.third, 7, 12].forEach((iv,i)=> setTimeout(()=>playGuitarNote(440*Math.pow(2,(c.rootMidi+iv-69)/12)), i*70));
   } else {
-    [0, c.third, 7].forEach((iv,i)=> setTimeout(()=>playGuitarNote(440*Math.pow(2,(c.rootMidi+iv-69)/12)), i*40));
+    (c.iv || [0, c.third, 7]).forEach((iv,i)=> setTimeout(()=>playGuitarNote(440*Math.pow(2,(c.rootMidi+iv-69)/12)), i*40));
   }
 }
 function setEarMode(mode){
@@ -9123,10 +9433,10 @@ function renderToolEarTraining(app, themeSwitch){
       <div class="piano-control-group">
         <span class="rail-label">Exercício</span>
         <select onchange="setEarMode(this.value)">
-          <option value="note" ${et.mode==='note'?'selected':''}>Qual é a nota?</option>
-          <option value="interval" ${et.mode==='interval'?'selected':''}>Qual é o intervalo?</option>
-          <option value="chord" ${et.mode==='chord'?'selected':''}>Maior ou menor?</option>
           <option value="chordname" ${et.mode==='chordname'?'selected':''}>Qual é o acorde?</option>
+          <option value="chord" ${et.mode==='chord'?'selected':''}>Maior ou menor?</option>
+          <option value="interval" ${et.mode==='interval'?'selected':''}>Qual é o intervalo?</option>
+          <option value="note" ${et.mode==='note'?'selected':''}>Qual é a nota?</option>
         </select>
       </div>
       <div class="piano-control-group">
@@ -10996,7 +11306,7 @@ function drawChordDiagramPdf(doc, ox, oy, w, name, semis, preferFlat, overrides,
   const p = parseChord(name); if(!p) return 146*scale;
   const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
   const custom = overrides && overrides[name];
-  const d = custom || getDiagram(rootSharp, p.quality);
+  const d = custom || getDiagram(rootSharp, p.quality, chordBassPc(p));
   const f = d.frets, fg = d.fingers||[], base=d.base, barre=d.barre;
   const showCapo = !!capo && base===1;
   const yOff = showCapo ? 15*scale : 0;
@@ -12360,7 +12670,7 @@ function diagramsRowHtml(chordNames, orient, mirror, overrides, capo){
     const p = parseChord(name); if(!p) return '';
     const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
     const custom = overrides[name];
-    const d = custom || getDiagram(rootSharp, p.quality);
+    const d = custom || getDiagram(rootSharp, p.quality, chordBassPc(p));
     return `<div class="diagram-box">
       <div class="name">${escapeHtml(name)}</div>
       ${chordDiagramSVG(d.frets, d.base, d.barre, orient, mirror, d.fingers, capo)}
@@ -14109,7 +14419,7 @@ function dialogsHtml(){
       const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
       const c = state.detailCache[state.cifraSelId];
       const custom = c && c.chordOverrides && c.chordOverrides[name];
-      const d = custom || getDiagram(rootSharp, p.quality);
+      const d = custom || getDiagram(rootSharp, p.quality, chordBassPc(p));
       body = `
         <div class="chord-popup-svg">${chordDiagramSVG(d.frets, d.base, d.barre, 'v', false, d.fingers, c&&c.capo||0)}</div>
         <div class="chord-fullname" style="font-size:13px;">${escapeHtml(chordFullNamePt(name))}</div>
