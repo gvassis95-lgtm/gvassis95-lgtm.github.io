@@ -676,7 +676,18 @@
   .inv-link.ativo{color:var(--text);cursor:default;}
   .variant-name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;color:var(--accent);margin-bottom:4px;}
   /* [Rodada 110] vídeo da tablatura */
-  .te-opc.te-opc-baixar{width:170px;gap:2px;padding:10px 14px;}
+  .te-opc.te-opc-baixar{width:170px;gap:2px;padding:6px;}
+  .te-opc-baixar .te-opc-linha{padding:10px 12px;border-radius:8px;transition:background .25s;}
+  .te-opc-baixar .te-opc-linha:hover,.te-opc-baixar .te-opc-linha:focus-visible{background:var(--pill-bg);color:var(--accent);outline:none;}
+  .te-vel{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;}
+  .te-vel svg{position:absolute;left:12px;width:14px;height:14px;pointer-events:none;color:var(--muted);}
+  .te-vel .te-pill-sel{padding-left:33px;}
+  @media(max-width:640px){ .te-view .te-vel .te-pill-sel{padding-left:31px;} .te-vel svg{left:11px;} }
+  label.tvid-chk{text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;}
+  label.tvid-chk input{width:18px;height:18px;margin:0;accent-color:var(--accent);}
+  .tvid-modo{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
+  .tvid-modo .seg-toggle{display:flex;}.tvid-modo .seg-toggle button{flex:1;}
+  .tvid-modo small{font-size:11.5px;font-weight:500;color:var(--muted);line-height:1.4;}
   .tvid-box{max-width:420px;}
   .tvid-sub{font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.45;}
   .tvid-lin{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;font-size:13px;font-weight:600;}
@@ -3578,7 +3589,7 @@ function soloViewerAcoesHtml(){
   // [Rodada 110] professor: o botão de baixar abre a escolha PDF ou vídeo
   const menu = TEV.baixarMenu ? `<div class="te-opc te-opc-baixar" onpointerdown="event.stopPropagation()">
       <button type="button" class="te-opc-linha" onmousedown="event.preventDefault()" onclick="TEV.baixarMenu=false;soloBaixarRefresh();soloBaixarPdf()"><span>PDF</span></button>
-      <button type="button" class="te-opc-linha" onmousedown="event.preventDefault()" onclick="TEV.baixarMenu=false;soloBaixarRefresh();tvidAbrir()"><span>Vídeo (reels)</span></button>
+      <button type="button" class="te-opc-linha" onmousedown="event.preventDefault()" onclick="TEV.baixarMenu=false;soloBaixarRefresh();tvidAbrir()"><span>Vídeo</span></button>
     </div>` : '';
   return editar + `<div class="te-menu-wrap">${teBtn(TE_ICON.download, 'soloBaixarToggle()', {cls:'te-icon-btn', on:!!TEV.baixarMenu, title:'Baixar'})}${menu}</div>`;
 }
@@ -5944,7 +5955,7 @@ function teViewerToolbarHtml(){
   const play = `<div class="te-tb-left">
       ${teBtn(tocando?TE_ICON.stop+'<span>Parar</span>':TE_ICON.play+'<span>Tocar</span>', 'teViewTogglePlay()', {cls:'te-play', on:tocando, title:'Tocar / parar (Espaço)'})}
       ${teBtn(TE_ICON.loop, 'TEV.loop=!TEV.loop;teViewerRefresh()', {cls:'te-icon-btn', on:TEV.loop, title:'Repetir sem parar'})}
-      <select class="te-pill-sel" title="Velocidade" onchange="TEV.speed=Number(this.value);if(TE_AUDIO.on){teViewTogglePlay();teViewTogglePlay();}">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}" ${v===TEV.speed?'selected':''}>${Math.round(v*100)}%</option>`).join('')}</select>
+      <span class="te-vel" title="Velocidade (andamento)">${TE_ICON.metro}<select class="te-pill-sel" title="Velocidade" onchange="TEV.speed=Number(this.value);if(TE_AUDIO.on){teViewTogglePlay();teViewTogglePlay();}">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}" ${v===TEV.speed?'selected':''}>${Math.round(v*100)}%</option>`).join('')}</select></span>
     </div>`;
   return `<div class="te-tb">${play}
     <div class="te-tb-right">
@@ -6059,7 +6070,7 @@ function soloMontarImpressao(s){
 // ==== VÍDEO DA TABLATURA (rodada 110) ====
 // Só para o professor: gera um vídeo (MP4 quando o navegador deixa, senão WebM) com a tablatura
 // rolando na horizontal, em velocidade constante, passando por uma linha fixa de leitura, com o
-// som do solo. Serve para colocar embaixo de um vídeo de reels no editor.
+// som do solo. Serve para colocar embaixo de um vídeo no editor.
 // Como funciona: (1) a música inteira é desenhada numa tira só, com cada batida na posição
 // proporcional ao tempo (por isso a rolagem é constante); (2) o áudio é montado de uma vez
 // (OfflineAudioContext); (3) a tira é rolada num canvas em tempo real, gravado pelo MediaRecorder.
@@ -6067,7 +6078,7 @@ const TV_TEMAS = {
   escuro: {bg:'#000000', ink:'#f3efe6', line:'rgba(243,239,230,.45)', muted:'rgba(243,239,230,.6)', accent:'#e8803f'},
   claro:  {bg:'#f7f2e8', ink:'#1b1b1b', line:'rgba(27,27,27,.42)', muted:'rgba(27,27,27,.6)', accent:'#bf622c'}
 };
-const TVID = {tema:'escuro', vel:1, pent:false, gravando:false, cancelar:false};
+const TVID = {tema:'escuro', modo:'continuo', vel:1, pent:false, gravando:false, cancelar:false};
 const TV_ICONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5l5-3v9l-5-3z"/></svg>';
 function tvidProfessor(){ return !!(state.professorMode && !state.professorMode.email); }
 function tvidMime(){
@@ -6089,12 +6100,15 @@ function tvidAbrir(){
   el.onclick = (e)=>{ if(e.target===el && !TVID.gravando) tvidFechar(); };
   el.innerHTML = `<div class="mini-modal tvid-box">
     <h3 style="margin:0 0 6px;font-size:16px;">Baixar vídeo da tablatura</h3>
-    <p class="tvid-sub">A tablatura rola na horizontal, em velocidade constante, com o som do solo. Leva o mesmo tempo da música para gravar.</p>
+    <p class="tvid-sub">Vídeo da tablatura tocando, com o som do solo. Leva o mesmo tempo da música para gravar.</p>
     <div class="tvid-sec" id="tvidOpcoes">
       <div class="tvid-lin"><span>Fundo</span>
         <div class="seg-toggle" id="tvidTema"><button type="button" data-t="escuro" onclick="tvidTema('escuro')">Escuro</button><button type="button" data-t="claro" onclick="tvidTema('claro')">Claro</button></div></div>
       <div class="tvid-lin"><span>Velocidade</span>
-        <select class="te-pill-sel" id="tvidVel" onchange="TVID.vel=Number(this.value)">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}"${v===TVID.vel?' selected':''}>${Math.round(v*100)}%</option>`).join('')}</select></div>
+        <span class="te-vel">${TE_ICON.metro}<select class="te-pill-sel" id="tvidVel" onchange="TVID.vel=Number(this.value)">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}"${v===TVID.vel?' selected':''}>${Math.round(v*100)}%</option>`).join('')}</select></span></div>
+      <div class="tvid-modo"><span style="font-size:13px;font-weight:600;">Leitura</span>
+        <div class="seg-toggle" id="tvidModo"><button type="button" data-m="continuo" onclick="tvidModo('continuo')">Rolagem contínua</button><button type="button" data-m="trechos" onclick="tvidModo('trechos')">Por trechos</button></div>
+        <small id="tvidModoDica"></small></div>
       <label class="tvid-lin tvid-chk"><span>Mostrar pentagrama junto</span><input type="checkbox" id="tvidPent" onchange="TVID.pent=this.checked"></label>
       <p class="tvid-nota">${fmt ? 'Formato do arquivo: <b>'+fmt+'</b>.' : '<b>Este navegador não consegue gravar vídeo.</b> Use o Chrome no computador.'}${fmt==='WebM' ? ' (O Chrome mais novo grava em MP4; se o seu editor não abrir WebM, converta.)' : ''}</p>
       <p class="tvid-nota">Deixe esta aba aberta e visível até terminar — se ela ficar em segundo plano, o vídeo trava.</p>
@@ -6108,7 +6122,13 @@ function tvidAbrir(){
       <button type="button" class="btn" id="tvidOk" onclick="tvidGravar()"${fmt?'':' disabled'}>Gravar e baixar</button>
     </div></div>`;
   document.body.appendChild(el);
-  tvidTema(TVID.tema);
+  tvidTema(TVID.tema); tvidModo(TVID.modo);
+}
+function tvidModo(m){
+  TVID.modo = m;
+  document.querySelectorAll('#tvidModo button').forEach(b=> b.classList.toggle('active', b.dataset.m===m));
+  const d = document.getElementById('tvidModoDica');
+  if(d) d.textContent = m==='trechos' ? 'A tela fica parada e a agulha percorre um trecho; ao chegar no fim, passa para o trecho seguinte. Melhor para solos rápidos.' : 'A tablatura passa sem parar sob a agulha, em velocidade constante.';
 }
 function tvidTema(t){
   TVID.tema = t;
@@ -6254,7 +6274,11 @@ async function tvidGravar(){
     const ln0 = lay.lines[0], S0 = lay.M.S;
     const cY = doc.mostrarPartitura ? ((ln0.notTop - 3*S0) + (ln0.tabBottom + 8))/2 : (ln0.tabTop + ln0.tabBottom)/2;
     const meia = Math.max(cY - ln0.y0, ln0.y1 - cY, 40);
-    const W = 1080, sc = Math.min(2.6, 280/meia);
+    const W = 1080;
+    const trechos = TVID.modo==='trechos';
+    let sc = Math.min(2.6, 280/meia);
+    // por trechos: reduz o desenho, se preciso, para caber ~3,5 s de música em cada tela (solo rápido = trecho curto demais)
+    if(trechos) sc = Math.max(1.7, Math.min(sc, (W-110)/(k*3.5)));
     const H = Math.max(120, 2*Math.ceil(meia*sc));
     const yoff = Math.round(H/2 - cY*sc);
     const tiras = await tvidTiras(svgStr, lay.width, altU, sc, tema);
@@ -6268,25 +6292,57 @@ async function tvidGravar(){
     if(TVID.cancelar) throw new Error('cancelado');
     // canvas + gravação
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-    const g = cv.getContext('2d');
+    const g = cv.getContext('2d', {alpha:false});
     const xp = Math.round(W*0.3);
     const X0 = lay.pos[0].x0;
+    // trechos: cada tela mostra um pedaço fixo; a agulha anda nele e, no fim, passa para o seguinte
+    const paginas = [];
+    if(trechos){
+      const ln = lay.lines[0], cxs = lay.pos.map(p=>p.cx), nb = cxs.length;
+      const bars = ln.bars.map(b=>b.x).filter(x=>x>cxs[0] && x<cxs[nb-1]);
+      const meios = []; for(let i=0;i+1<nb;i++) meios.push((cxs[i]+cxs[i+1])/2);
+      const MEsq = 25, cap = (W-85)/sc, capFim = W/sc - MEsq - 12;
+      let ini = X0;
+      paginas.push({ini: -1e9, esq: 0});
+      while(ln.xEnd - ini > capFim){
+        const b = bars.filter(x=>x>ini+cap*0.5 && x<=ini+cap);
+        const m = meios.filter(x=>x>ini+1 && x<=ini+cap);
+        let prox = b.length ? b[b.length-1] : (m.length ? m[m.length-1] : ini+cap);
+        if(ln.xEnd - prox < cap*0.4){                          // evita uma última tela quase vazia: ela começa mais cedo, já com o final inteiro
+          const todos = bars.concat(meios).filter(x=>x>ini+cap*0.3 && x<=ini+cap && ln.xEnd - x <= capFim).sort((u,v)=>u-v);
+          if(todos.length) prox = todos[0];
+        }
+        paginas.push({ini: prox, esq: prox - MEsq});
+        ini = prox;
+      }
+    }
+    let pgAtual = 0;
     const desenha = (tv)=>{
       const tm = (tv - lead)*vel;
-      const xCur = (X0 + k*tm + off) * sc;                   // posição (em px da tira) que fica sob a linha
-      const esq = xCur - xp;                                  // borda esquerda da janela, em px da tira
+      let xCur = X0 + off + k*tm;                              // posição (em unidades do desenho) que fica sob a agulha
+      let esq, xAg;
+      if(trechos){
+        xCur = Math.max(xCur, X0 + off - 20);
+        while(pgAtual+1 < paginas.length && xCur >= paginas[pgAtual+1].ini) pgAtual++;
+        esq = Math.round(paginas[pgAtual].esq * sc);
+        xAg = (xCur*sc) - esq;
+      } else {
+        esq = Math.round(xCur*sc - xp);                        // pixels inteiros: rolagem nítida e leve
+        xAg = xp;
+      }
       g.fillStyle = tema.bg; g.fillRect(0, 0, W, H);
-      tiras.forEach(t=>{
+      for(const t of tiras){
         const ini = t.x0*sc;
-        if(ini + t.c.width < esq - 2 || ini > esq + W + 2) return;
-        g.drawImage(t.c, ini - esq, yoff);
-      });
-      // esmaecer as bordas
-      const fade = (x0, x1, a0, a1)=>{ const gr = g.createLinearGradient(x0,0,x1,0); gr.addColorStop(0, a0); gr.addColorStop(1, a1); g.fillStyle = gr; g.fillRect(Math.min(x0,x1), 0, Math.abs(x1-x0), H); };
-      const c0 = tema.bg, c1 = tema.bg + '00';
-      fade(0, 90, c0, c1); fade(W-90, W, c1, c0);
-      // linha de leitura
-      g.fillStyle = tema.accent; g.fillRect(xp-1.5, 0, 3, H);
+        const a = Math.max(esq, Math.round(ini)), b = Math.min(esq + W, Math.round(ini) + t.c.width);
+        if(b <= a) continue;
+        g.drawImage(t.c, a - Math.round(ini), 0, b - a, t.c.height, a - esq, yoff, b - a, t.c.height);
+      }
+      if(!trechos){                                           // esmaecer as bordas (só na rolagem contínua)
+        const fade = (x0, x1, a0, a1)=>{ const gr = g.createLinearGradient(x0,0,x1,0); gr.addColorStop(0, a0); gr.addColorStop(1, a1); g.fillStyle = gr; g.fillRect(Math.min(x0,x1), 0, Math.abs(x1-x0), H); };
+        const c0 = tema.bg, c1 = tema.bg + '00';
+        fade(0, 90, c0, c1); fade(W-90, W, c1, c0);
+      }
+      g.fillStyle = tema.accent; g.fillRect(Math.round(xAg)-1.5, 0, 3, H);   // linha de leitura
     };
     desenha(0);
     const ctx = teCtx();
@@ -6301,12 +6357,12 @@ async function tvidGravar(){
     const ATRASO = 0.2;                                      // o áudio começa 0,2 s depois, para a gravação já estar rodando
     srcAudio.start(ctx.currentTime + ATRASO);
     const tIni = performance.now();                           // relógio suave (o do áudio anda em saltos) para a rolagem não picotar
-    let ultSeg = -1;
+    let ultSeg = -1, nQuadros = 0;
     await new Promise(resolve=>{
       const quadro = ()=>{
         const tv = (performance.now() - tIni)/1000 - ATRASO;
         if(TVID.cancelar || tv >= total){ resolve(); return; }
-        desenha(Math.max(0, tv));
+        desenha(Math.max(0, tv)); nQuadros++;
         const seg = Math.max(0,Math.floor(tv));
         if(seg !== ultSeg){ ultSeg = seg; tvidMsg('Gravando… '+seg+' s de '+Math.ceil(total)+' s', 10 + 88*Math.max(0,tv)/total); }
         requestAnimationFrame(quadro);
@@ -6324,7 +6380,7 @@ async function tvidGravar(){
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 60000);
-    window.__tvidUltimo = {ext, bytes: blob.size, mime, W, H, total};
+    window.__tvidUltimo = {ext, bytes: blob.size, mime, W, H, total, fps: Math.round(nQuadros/total), paginas: paginas.map(p=>Math.round(p.ini)).join(","), sc, k, xEnd: lay.lines[0].xEnd, width: lay.width};
     showToast('Vídeo pronto: '+nome);
     tvidFechar();
   }catch(err){
