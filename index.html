@@ -675,6 +675,16 @@
   .inv-link{color:var(--accent);cursor:pointer;font-weight:600;}
   .inv-link.ativo{color:var(--text);cursor:default;}
   .variant-name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;color:var(--accent);margin-bottom:4px;}
+  /* [Rodada 110] vídeo da tablatura */
+  .tvid-box{max-width:420px;}
+  .tvid-sub{font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.45;}
+  .tvid-lin{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;font-size:13px;font-weight:600;}
+  .tvid-chk input{width:18px;height:18px;margin:0;accent-color:var(--accent);}
+  .tvid-nota{font-size:11.5px;color:var(--muted);margin:6px 0 0;line-height:1.4;}
+  .tvid-msg{font-size:13px;margin:6px 0 10px;}
+  .tvid-barra{height:8px;border-radius:99px;background:var(--pill-bg);overflow:hidden;}
+  .tvid-barra div{height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .3s linear;}
+  .tvid-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
   .variant-notes{font-size:10.5px;color:var(--muted);margin-top:3px;opacity:.85;}
   .variant-notes.aviso{color:var(--accent);opacity:1;}
   .chord-svg{width:136px;height:196px;display:block;margin:0 auto;}
@@ -3568,7 +3578,8 @@ function soloViewerAcoesHtml(){
 // [Rodada 101] Excluir fica dentro do menu ☰ (último botão da barra)
 function soloViewerMenuItensHtml(){
   const id = state.soloViewId; if(!id) return '';
-  return `<button type="button" class="te-opc-linha te-opc-perigo" onmousedown="event.preventDefault()" onclick="TEV.opcoes=false;deleteSoloFromViewer('${id}')">${TE_ICON.del}<span>Excluir solo</span></button>`;
+  const video = (typeof tvidProfessor==='function' && tvidProfessor()) ? `<button type="button" class="te-opc-linha" onmousedown="event.preventDefault()" onclick="TEV.opcoes=false;teViewerRefresh();tvidAbrir()">${TV_ICONE}<span>Baixar vídeo (reels)</span></button>` : '';
+  return video + `<button type="button" class="te-opc-linha te-opc-perigo" onmousedown="event.preventDefault()" onclick="TEV.opcoes=false;deleteSoloFromViewer('${id}')">${TE_ICON.del}<span>Excluir solo</span></button>`;
 }
 async function deleteSoloFromViewer(id){
   const ok = await customConfirm('Excluir este solo? Essa ação não pode ser desfeita.');
@@ -6033,6 +6044,271 @@ function soloMontarImpressao(s){
 // [Rodada 101] Baixar o solo em PDF (no lugar do botão Imprimir): mesmas páginas da
 // impressão — título + pautas, 1 ou 2 compassos por linha — desenhadas em A4.
 // Solo que já é PDF: baixa o próprio arquivo.
+// ==== VÍDEO DA TABLATURA (rodada 110) ====
+// Só para o professor: gera um vídeo (MP4 quando o navegador deixa, senão WebM) com a tablatura
+// rolando na horizontal, em velocidade constante, passando por uma linha fixa de leitura, com o
+// som do solo. Serve para colocar embaixo de um vídeo de reels no editor.
+// Como funciona: (1) a música inteira é desenhada numa tira só, com cada batida na posição
+// proporcional ao tempo (por isso a rolagem é constante); (2) o áudio é montado de uma vez
+// (OfflineAudioContext); (3) a tira é rolada num canvas em tempo real, gravado pelo MediaRecorder.
+const TV_TEMAS = {
+  escuro: {bg:'#141414', ink:'#f3efe6', line:'rgba(243,239,230,.45)', muted:'rgba(243,239,230,.6)', accent:'#e8803f'},
+  claro:  {bg:'#f7f2e8', ink:'#1b1b1b', line:'rgba(27,27,27,.42)', muted:'rgba(27,27,27,.6)', accent:'#bf622c'}
+};
+const TVID = {tema:'escuro', vel:1, pent:false, gravando:false, cancelar:false};
+const TV_ICONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5l5-3v9l-5-3z"/></svg>';
+function tvidProfessor(){ return !!(state.professorMode && !state.professorMode.email); }
+function tvidMime(){
+  if(typeof MediaRecorder==='undefined' || !HTMLCanvasElement.prototype.captureStream) return null;
+  const lista = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  return lista.find(t=>{ try{ return MediaRecorder.isTypeSupported(t); }catch(e){ return false; } }) || null;
+}
+function tvidAbrir(){
+  if(!tvidProfessor()) return;
+  const s = state.solosDetailCache[state.soloViewId];
+  if(!s || !s.tabV2){ showToast('Esse solo não está no editor de tablatura novo.', true); return; }
+  TVID.vel = [0.5,0.6,0.75,0.9,1].includes(TEV.speed) ? TEV.speed : 1;
+  TVID.pent = false; TVID.cancelar = false;
+  tvidFechar();
+  const mime = tvidMime();
+  const fmt = !mime ? '' : (mime.startsWith('video/mp4') ? 'MP4' : 'WebM');
+  const el = document.createElement('div');
+  el.id = 'tvidModal'; el.className = 'modal-bg';
+  el.onclick = (e)=>{ if(e.target===el && !TVID.gravando) tvidFechar(); };
+  el.innerHTML = `<div class="mini-modal tvid-box">
+    <h3 style="margin:0 0 6px;font-size:16px;">Baixar vídeo da tablatura</h3>
+    <p class="tvid-sub">A tablatura rola na horizontal, em velocidade constante, com o som do solo. Leva o mesmo tempo da música para gravar.</p>
+    <div class="tvid-sec" id="tvidOpcoes">
+      <div class="tvid-lin"><span>Fundo</span>
+        <div class="seg-toggle" id="tvidTema"><button type="button" data-t="escuro" onclick="tvidTema('escuro')">Escuro</button><button type="button" data-t="claro" onclick="tvidTema('claro')">Claro</button></div></div>
+      <div class="tvid-lin"><span>Velocidade</span>
+        <select class="te-pill-sel" id="tvidVel" onchange="TVID.vel=Number(this.value)">${[0.5,0.6,0.75,0.9,1].map(v=>`<option value="${v}"${v===TVID.vel?' selected':''}>${Math.round(v*100)}%</option>`).join('')}</select></div>
+      <label class="tvid-lin tvid-chk"><span>Mostrar pentagrama junto</span><input type="checkbox" id="tvidPent" onchange="TVID.pent=this.checked"></label>
+      <p class="tvid-nota">${fmt ? 'Formato do arquivo: <b>'+fmt+'</b>.' : '<b>Este navegador não consegue gravar vídeo.</b> Use o Chrome no computador.'}${fmt==='WebM' ? ' (O Chrome mais novo grava em MP4; se o seu editor não abrir WebM, converta.)' : ''}</p>
+      <p class="tvid-nota">Deixe esta aba aberta e visível até terminar — se ela ficar em segundo plano, o vídeo trava.</p>
+    </div>
+    <div class="tvid-sec" id="tvidProg" style="display:none">
+      <div class="tvid-msg" id="tvidMsg">Preparando…</div>
+      <div class="tvid-barra"><div id="tvidBarra"></div></div>
+    </div>
+    <div class="tvid-btns">
+      <button type="button" class="btn-ghost" id="tvidCancela" onclick="tvidCancelar()">Cancelar</button>
+      <button type="button" class="btn" id="tvidOk" onclick="tvidGravar()"${fmt?'':' disabled'}>Gravar e baixar</button>
+    </div></div>`;
+  document.body.appendChild(el);
+  tvidTema(TVID.tema);
+}
+function tvidTema(t){
+  TVID.tema = t;
+  document.querySelectorAll('#tvidTema button').forEach(b=> b.classList.toggle('active', b.dataset.t===t));
+}
+function tvidFechar(){ const el = document.getElementById('tvidModal'); if(el) el.remove(); }
+function tvidCancelar(){ if(TVID.gravando){ TVID.cancelar = true; } else tvidFechar(); }
+function tvidMsg(txt, pct){
+  const m = document.getElementById('tvidMsg'); if(m) m.textContent = txt;
+  const b = document.getElementById('tvidBarra'); if(b && pct!=null) b.style.width = Math.max(0, Math.min(100, pct))+'%';
+}
+// Fontes (Montserrat) já carregadas na página, para usar dentro do SVG que vira imagem
+function tvidFontesCss(pesos){
+  let css = '';
+  try{
+    for(const sh of document.styleSheets){
+      let regras; try{ regras = sh.cssRules; }catch(e){ continue; }
+      for(const r of regras){
+        if(r.type===CSSRule.FONT_FACE_RULE && /montserrat/i.test(r.style.getPropertyValue('font-family')) && pesos.includes(String(r.style.getPropertyValue('font-weight')).trim())){
+          css += '@font-face{font-family:Montserrat;font-weight:'+r.style.getPropertyValue('font-weight').trim()+';src:'+r.style.getPropertyValue('src')+';}';
+        }
+      }
+    }
+  }catch(e){}
+  return css;
+}
+// Desenha a tira inteira em pedaços (imagens) com as cores do tema escolhido
+async function tvidTiras(svgStr, larg, alt, sc, tema){
+  const host = document.createElement('div');
+  host.className = 'te-sheet';
+  host.style.cssText = `position:fixed;left:-30000px;top:0;width:${Math.ceil(larg)}px;--te-paper:${tema.bg};--te-ink:${tema.ink};--te-line:${tema.line};--muted:${tema.muted};--accent:${tema.accent};--text:${tema.ink};--danger:#e0533a;background:${tema.bg};`;
+  document.body.appendChild(host);
+  try{
+    host.innerHTML = svgStr;
+    const svg = host.querySelector('svg');
+    svg.querySelectorAll('.te-mnum,.te-playr,.te-startmk,.te-curcol,.te-curcell').forEach(e=>e.remove());
+    const props = ['fill','stroke','stroke-width','stroke-dasharray','stroke-linecap','stroke-linejoin','opacity','fill-opacity','stroke-opacity','font-size','font-family','font-weight','font-style','text-anchor','dominant-baseline','display','visibility','letter-spacing'];
+    const els = [...svg.querySelectorAll('*')];
+    const est = els.map(el=>{ const cs = getComputedStyle(el); return props.map(p=>p+':'+cs.getPropertyValue(p)).join(';'); });
+    els.forEach((el,i)=> el.setAttribute('style', est[i]));
+    svg.querySelectorAll('text').forEach(el=>{ el.style.fontFamily = 'Montserrat, Arial, Helvetica, sans-serif'; });
+    const fontes = tvidFontesCss(['600','700','800']);
+    const inner = svg.innerHTML;
+    const tw = Math.max(400, Math.floor(8000/sc));           // largura de cada pedaço, em unidades do desenho
+    const tiras = [];
+    for(let x0 = 0; x0 < larg; x0 += tw){
+      const w = Math.min(tw, larg - x0);
+      const xml = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(w*sc)}" height="${Math.ceil(alt*sc)}" viewBox="${x0} 0 ${w} ${alt}"><style>${fontes}</style>${inner}</svg>`;
+      const img = new Image();
+      await new Promise((ok, erro)=>{ img.onload = ok; img.onerror = ()=>erro(new Error('não foi possível desenhar a tablatura')); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml); });
+      const c = document.createElement('canvas'); c.width = Math.ceil(w*sc); c.height = Math.ceil(alt*sc);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      tiras.push({x0, w, c});
+    }
+    return tiras;
+  } finally { host.remove(); }
+}
+// Posiciona cada batida proporcionalmente ao tempo. Devolve {k (unidades por segundo), off, X0, lay}
+function tvidLayout(doc, tl){
+  const lay = teLayout(doc, 100000);
+  const M = lay.M, part = lay.part, n = doc.beats.length;
+  const ln = lay.lines[0];
+  const bw = lay.bw;
+  const tsW = 2.6*M.S + 8;
+  const durs = doc.beats.map((b,i)=> (i+1<n ? tl.times[i+1] : tl.total) - tl.times[i]);
+  let k = 110;
+  doc.beats.forEach((b,i)=>{
+    const maxLab = Math.max(0, ...b.notes.map(nt=>teFretLabel(nt).length));
+    let need = maxLab*M.fs*0.62 + 6;
+    if(b.acorde) need = Math.max(need, String(b.acorde).length*M.fs*0.66 + 8);
+    if(durs[i] > 0.01) k = Math.max(k, need/durs[i]);
+  });
+  k = Math.min(k, 320);
+  const X0 = lay.pos[0].x0;
+  const off = part ? 13*M.k : 15;
+  const medidas = lay.measures;
+  const mudou = new Set(); medidas.forEach(m=>{ if(m.mudou) mudou.add(m.a); });
+  for(let i=0;i<n;i++){
+    const x0 = X0 + k*tl.times[i], w = Math.max(6, k*durs[i]);
+    lay.pos[i] = {line:0, x0, w, cx: x0 + off + (mudou.has(i) && i>0 ? tsW : 0)};
+  }
+  ln.bars = []; ln.mnums = []; ln.tss = [];
+  ln.segs.forEach(sg=>{
+    const a = lay.pos[sg.a], z = lay.pos[sg.b-1];
+    if(sg.opens){
+      ln.mnums.push({x: a.x0 + 1, mi: sg.mi});
+      if(medidas[sg.mi].mudou) ln.tss.push({x: a.x0 + 2, sig: medidas[sg.mi].sig});
+    }
+    if(sg.closes) ln.bars.push({x: z.x0 + z.w, mi: sg.mi, over: medidas[sg.mi].over});
+  });
+  const ultimo = lay.pos[n-1];
+  ln.xEnd = ultimo.x0 + ultimo.w + 8;
+  lay.width = Math.ceil(ln.xEnd + 30);
+  return {lay, k, off, X0};
+}
+async function tvidAudio(doc, vel, lead, total){
+  const live = teCtx(); const sr = live.sampleRate;
+  const off = new OfflineAudioContext(2, Math.ceil(sr*total), sr);
+  const master = off.createGain(); master.gain.value = 0.9; master.connect(off.destination);
+  const tl = teTimeline(doc, vel);
+  const voz = {};
+  tl.ev.forEach(e=>{
+    const quando = lead + e.t;
+    e.notas.forEach(nt=>{
+      const v = voz[nt.s];
+      if(v && v.fim > quando){ try{ v.g.gain.cancelScheduledValues(quando); v.g.gain.setTargetAtTime(0.0001, quando, 0.012); }catch(er){} }
+      voz[nt.s] = teVoice(off, master, nt, quando);
+    });
+  });
+  return await off.startRendering();
+}
+async function tvidGravar(){
+  if(TVID.gravando) return;
+  const s = state.solosDetailCache[state.soloViewId];
+  const mime = tvidMime();
+  if(!s || !s.tabV2 || !mime){ showToast('Não foi possível gravar o vídeo aqui.', true); return; }
+  TVID.gravando = true; TVID.cancelar = false;
+  const ui = (on)=>{ const o = document.getElementById('tvidOpcoes'), p = document.getElementById('tvidProg'), ok = document.getElementById('tvidOk'), c = document.getElementById('tvidCancela');
+    if(o) o.style.display = on?'none':''; if(p) p.style.display = on?'':'none'; if(ok) ok.style.display = on?'none':''; if(c) c.textContent = on?'Cancelar gravação':'Cancelar'; };
+  ui(true);
+  let rec = null, srcAudio = null;
+  try{
+    const tema = TV_TEMAS[TVID.tema] || TV_TEMAS.escuro;
+    const vel = TVID.vel || 1;
+    const doc = Object.assign({}, teTrimTrailing(teNormalize(s.tabV2)), {mostrarPartitura: !!TVID.pent});
+    if(!doc.beats.length) throw new Error('o solo está vazio');
+    tvidMsg('Montando a tablatura…', 2);
+    await new Promise(r=>setTimeout(r, 30));
+    const tl1 = teTimeline(doc, 1);                          // tempo "musical" (velocidade 100%)
+    const {lay, k, off} = tvidLayout(doc, tl1);
+    const svgStr = teRenderSvg(doc, lay, {editable:false});
+    const altU = Math.ceil(lay.height);
+    const W = 1080, sc = Math.min(2.6, 560/altU);
+    const H = Math.max(120, 2*Math.ceil(altU*sc/2));
+    const tiras = await tvidTiras(svgStr, lay.width, altU, sc, tema);
+    if(TVID.cancelar) throw new Error('cancelado');
+    // tempos do vídeo
+    const lead = 2, tail = 2;
+    const durMusica = tl1.total/vel;
+    const total = lead + durMusica + tail;
+    tvidMsg('Montando o áudio…', 8);
+    const audio = await tvidAudio(doc, vel, lead, total);
+    if(TVID.cancelar) throw new Error('cancelado');
+    // canvas + gravação
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const g = cv.getContext('2d');
+    const xp = Math.round(W*0.3);
+    const X0 = lay.pos[0].x0;
+    const desenha = (tv)=>{
+      const tm = (tv - lead)*vel;
+      const xCur = (X0 + k*tm + off) * sc;                   // posição (em px da tira) que fica sob a linha
+      const esq = xCur - xp;                                  // borda esquerda da janela, em px da tira
+      g.fillStyle = tema.bg; g.fillRect(0, 0, W, H);
+      tiras.forEach(t=>{
+        const ini = t.x0*sc;
+        if(ini + t.c.width < esq || ini > esq + W) return;
+        g.drawImage(t.c, Math.round(ini - esq), 0);
+      });
+      // esmaecer as bordas
+      const fade = (x0, x1, a0, a1)=>{ const gr = g.createLinearGradient(x0,0,x1,0); gr.addColorStop(0, a0); gr.addColorStop(1, a1); g.fillStyle = gr; g.fillRect(Math.min(x0,x1), 0, Math.abs(x1-x0), H); };
+      const c0 = tema.bg, c1 = tema.bg + '00';
+      fade(0, 90, c0, c1); fade(W-90, W, c1, c0);
+      // linha de leitura
+      const gl = g.createLinearGradient(xp-46,0,xp+46,0);
+      gl.addColorStop(0, tema.accent+'00'); gl.addColorStop(.5, tema.accent+'33'); gl.addColorStop(1, tema.accent+'00');
+      g.fillStyle = gl; g.fillRect(xp-46, 0, 92, H);
+      g.fillStyle = tema.accent; g.fillRect(xp-1.5, 0, 3, H);
+    };
+    desenha(0);
+    const ctx = teCtx();
+    const dest = ctx.createMediaStreamDestination();
+    srcAudio = ctx.createBufferSource(); srcAudio.buffer = audio; srcAudio.connect(dest);
+    const stream = new MediaStream([...cv.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+    rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: 8000000, audioBitsPerSecond: 160000});
+    const partes = [];
+    rec.ondataavailable = (e)=>{ if(e.data && e.data.size) partes.push(e.data); };
+    const parou = new Promise(ok=>{ rec.onstop = ok; });
+    rec.start(500);
+    const t0 = ctx.currentTime + 0.2;
+    srcAudio.start(t0);
+    await new Promise(resolve=>{
+      const quadro = ()=>{
+        const tv = ctx.currentTime - t0;
+        if(TVID.cancelar || tv >= total){ resolve(); return; }
+        desenha(Math.max(0, tv));
+        tvidMsg('Gravando… '+Math.max(0,Math.floor(tv))+' s de '+Math.ceil(total)+' s', 10 + 88*Math.max(0,tv)/total);
+        requestAnimationFrame(quadro);
+      };
+      quadro();
+    });
+    if(rec.state!=='inactive') rec.stop();
+    await parou;
+    try{ srcAudio.stop(); }catch(e){}
+    if(TVID.cancelar) throw new Error('cancelado');
+    const ext = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+    const blob = new Blob(partes, {type: mime.split(';')[0]});
+    if(!blob.size) throw new Error('o navegador não gerou o arquivo');
+    const nome = ((s.titulo||'solo').replace(/[\\/:*?"<>|]+/g,'').trim() || 'solo') + ' - tablatura.' + ext;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 60000);
+    window.__tvidUltimo = {ext, bytes: blob.size, mime, W, H, total};
+    showToast('Vídeo pronto: '+nome);
+    tvidFechar();
+  }catch(err){
+    try{ if(rec && rec.state!=='inactive') rec.stop(); }catch(e){}
+    try{ if(srcAudio) srcAudio.stop(); }catch(e){}
+    if(!(err && err.message==='cancelado')){ console.error(err); showToast('Erro ao gerar o vídeo: '+(err && err.message ? err.message : err), true); }
+    ui(false);
+    if(TVID.cancelar) tvidFechar();
+  } finally { TVID.gravando = false; TVID.cancelar = false; }
+}
 async function soloBaixarPdf(){
   const s = state.solosDetailCache[state.soloViewId]; if(!s) return;
   const nomeArq = ((s.titulo||'solo').replace(/[\\/:*?"<>|]+/g, '').trim() || 'solo') + '.pdf';
