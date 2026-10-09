@@ -685,6 +685,13 @@
   @media(max-width:640px){ .te-view .te-vel .te-pill-sel{padding-left:31px;} .te-vel svg{left:11px;} }
   label.tvid-chk{text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;}
   label.tvid-chk input{width:18px;height:18px;margin:0;accent-color:var(--accent);}
+  .cv-modos{margin:2px 0 10px;}
+  .cv-body{padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--pill-bg);max-height:70vh;overflow:auto;user-select:none;-webkit-user-select:none;}
+  .cv-body .cv-chip{cursor:grab;border-radius:4px;touch-action:none;outline:none;transition:background .15s,box-shadow .15s;}
+  .cv-body .cv-chip:hover,.cv-body .cv-chip:focus-visible{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);}
+  .cv-body .cv-chip.arrasta{cursor:grabbing;background:var(--accent);color:#fff;box-shadow:0 0 0 3px var(--accent);}
+  .cv-body .cv-outro{color:var(--muted);}
+  .cv-body .cv-vazia{height:.9em;overflow:hidden;}
   .tvid-modo{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
   .tvid-modo .seg-toggle{display:flex;}.tvid-modo .seg-toggle button{flex:1;}
   .tvid-modo small{font-size:11.5px;font-weight:500;color:var(--muted);line-height:1.4;}
@@ -12412,6 +12419,95 @@ document.addEventListener('touchstart', function(e){
   e.preventDefault();
 }, {passive:false, capture:true});
 
+// ---- Mover acordes com o mouse ----
+// A cifra continua sendo só texto (acordes numa linha, letra embaixo, posição = espaços). Aqui cada acorde
+// vira uma peça arrastável: ao arrastar, os espaços antes dele (e depois, para os acordes seguintes não
+// saírem do lugar) são recalculados e gravados de volta no mesmo texto do campo "Texto".
+function setCifraModo(vis){
+  if(!state.draft) return;
+  const ta = document.getElementById('f_texto'); if(ta) state.draft.corpo = ta.value;
+  state.draft.modoVisual = !!vis;
+  render();
+}
+function cvTokens(line){
+  const toks = [], re = /(\s*)(\S+)/g; let m;
+  while((m = re.exec(line))) toks.push({gap: m[1].length, txt: m[2]});
+  return toks;
+}
+function cvLinhaHtml(toks, ativo){
+  return toks.map((t,k)=> ' '.repeat(t.gap) + `<span class="${parseChord(t.txt)?'chord':'cv-outro'} cv-chip${k===ativo?' arrasta':''}" data-k="${k}" tabindex="0">${escapeHtml(t.txt)}</span>`).join('');
+}
+function cifraVisualHtml(corpo){
+  return String(corpo||'').split('\n').map((line, i)=>{
+    if(line.trim()==='') return `<div class="cifra-line cv-vazia">&nbsp;</div>`;
+    if(isSectionLine(line)) return `<div class="cifra-line"><span class="section-line">${escapeHtml(line)}</span></div>`;
+    if(isChordLine(line)) return `<div class="cifra-line cv-acordes" data-i="${i}">${cvLinhaHtml(cvTokens(line))}</div>`;
+    return `<div class="cifra-line">${applyInlineFormatting(line)}</div>`;
+  }).join('');
+}
+// novos "espaços antes" de cada acorde ao mover o acorde k em delta espaços
+function cvMover(gaps, k, delta){
+  const g = gaps.slice();
+  const ng = Math.max(k===0 ? 0 : 1, g[k] + delta), d2 = ng - g[k];
+  g[k] = ng;
+  if(k+1 < g.length) g[k+1] = Math.max(1, g[k+1] - d2);   // os seguintes ficam onde estão (ou são empurrados)
+  return g;
+}
+function cvGravaLinha(i, toks, gaps){
+  const ta = document.getElementById('f_texto'); if(!ta) return;
+  const linhas = ta.value.split('\n');
+  linhas[i] = toks.map((t,k)=> ' '.repeat(gaps[k]) + t.txt).join('');
+  ta.value = linhas.join('\n');
+  if(state.draft) state.draft.corpo = ta.value;
+}
+function cvLarguraEspaco(linha){
+  const pr = document.createElement('span'); pr.style.cssText = 'white-space:pre;position:absolute;visibility:hidden;';
+  pr.textContent = ' '.repeat(40); linha.appendChild(pr);
+  const w = pr.getBoundingClientRect().width / 40; pr.remove();
+  return w > 0 ? w : 4;
+}
+let CVDRAG = null;
+function cvDown(e){
+  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip) return;
+  const linha = chip.closest('.cv-acordes'); if(!linha) return;
+  const ta = document.getElementById('f_texto'); if(!ta) return;
+  const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
+  const toks = cvTokens(ta.value.split('\n')[i] || '');
+  if(!toks[k]) return;
+  e.preventDefault();
+  chip.classList.add('arrasta');
+  try{ linha.setPointerCapture(e.pointerId); }catch(er){}
+  CVDRAG = {i, k, toks, linha, x0: e.clientX, g0: toks.map(t=>t.gap), sw: cvLarguraEspaco(linha), ult: 0, id: e.pointerId};
+  linha.onpointermove = cvMove; linha.onpointerup = linha.onpointercancel = cvUp;
+}
+function cvMove(e){
+  const D = CVDRAG; if(!D || e.pointerId !== D.id) return;
+  const delta = Math.round((e.clientX - D.x0) / D.sw);
+  if(delta === D.ult) return;
+  D.ult = delta;
+  const g = cvMover(D.g0, D.k, delta);
+  D.linha.innerHTML = cvLinhaHtml(D.toks.map((t,j)=>({gap:g[j], txt:t.txt})), D.k);
+  cvGravaLinha(D.i, D.toks, g);
+}
+function cvUp(e){
+  const D = CVDRAG; if(!D) return;
+  CVDRAG = null;
+  D.linha.onpointermove = D.linha.onpointerup = D.linha.onpointercancel = null;
+  try{ D.linha.releasePointerCapture(D.id); }catch(er){}
+  const c = D.linha.querySelector('.cv-chip.arrasta'); if(c) c.classList.remove('arrasta');
+}
+function cvKey(e){
+  if(e.key!=='ArrowLeft' && e.key!=='ArrowRight') return;
+  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip) return;
+  const linha = chip.closest('.cv-acordes'); const ta = document.getElementById('f_texto'); if(!linha || !ta) return;
+  e.preventDefault();
+  const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
+  const toks = cvTokens(ta.value.split('\n')[i] || ''); if(!toks[k]) return;
+  const g = cvMover(toks.map(t=>t.gap), k, (e.key==='ArrowLeft' ? -1 : 1) * (e.shiftKey ? 4 : 1));
+  linha.innerHTML = cvLinhaHtml(toks.map((t,j)=>({gap:g[j], txt:t.txt})), -1);
+  cvGravaLinha(i, toks, g);
+  const novo = linha.querySelector(`.cv-chip[data-k="${k}"]`); if(novo) novo.focus();
+}
 function checkFormatSelection(){
   const ta = document.getElementById('f_texto');
   const toolbar = document.getElementById('formatToolbar');
@@ -15116,7 +15212,13 @@ function draftModalHtml(){
         ${d.fonte==='texto' ? `
         <div class="field">
           <label>Cifra (letra + acordes)</label>
-          <div style="position:relative;">
+          <div class="cv-modos"><div class="seg-toggle">
+            <button type="button" class="${d.modoVisual?'':'active'}" onclick="setCifraModo(false)">Texto</button>
+            <button type="button" class="${d.modoVisual?'active':''}" onclick="setCifraModo(true)">↔ Mover acordes</button>
+          </div></div>
+          ${d.modoVisual ? `<div class="cifra-body cv-body" id="cvBody" onpointerdown="cvDown(event)" onkeydown="cvKey(event)">${cifraVisualHtml(d.corpo||'')}</div>
+          <div class="hint">Clique num acorde e arraste para os lados — ele anda sobre a letra, sem precisar digitar espaços. Com o acorde selecionado (clique ou Tab), as setas ← → também movem. Para editar a letra, volte para "Texto".</div>` : ''}
+          <div style="position:relative;${d.modoVisual?'display:none;':''}">
             <div id="formatToolbar" class="format-toolbar">
               <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Negrito"><b>B</b></button>
               <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Itálico"><i>I</i></button>
@@ -15126,7 +15228,7 @@ function draftModalHtml(){
             </div>
             <textarea id="f_texto" rows="14" onmouseup="checkFormatSelection()" onkeyup="checkFormatSelection()" onselect="checkFormatSelection()" placeholder="Cole ou digite a cifra aqui, com a linha de acordes exatamente acima da letra, como no CifraClub.">${escapeHtml(d.corpo||'')}</textarea>
           </div>
-          <div class="hint">A cifra aparece na tela exatamente como está escrita aqui — cada espaço na frente de um acorde é respeitado. Para mover um acorde, edite os espaços antes dele neste texto. Selecione um trecho da letra para negrito, itálico, sublinhado ou cor.</div>
+          <div class="hint"${d.modoVisual?' style="display:none"':''}>A cifra aparece na tela exatamente como está escrita aqui — cada espaço na frente de um acorde é respeitado. Para mover os acordes com o mouse, use "Mover acordes" acima. Selecione um trecho da letra para negrito, itálico, sublinhado ou cor.</div>
         </div>
         ` : `
         <div class="field">
