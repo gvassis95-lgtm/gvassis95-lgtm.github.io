@@ -12558,9 +12558,16 @@ function ceInput(e){
 function ceFocusOut(e){
   const t = e.target;
   if(t.classList && t.classList.contains('cv-chip') && t.dataset.edit){ ceFimRenomear(t); return; }
-  const el = t.closest && t.closest('.ce-t'); if(!el) return;
-  const i = Number(el.dataset.i);
-  if(CE.lines[i]!==undefined && ceKind(CE.lines[i]) !== el.dataset.kind) setTimeout(()=>{ if(document.getElementById('ceBody') && !document.activeElement.closest('.ce-t')) ceRender(); }, 0);
+  if(t.closest && t.closest('.ce-t')) setTimeout(ceReclassifica, 0);
+}
+// Linha digitada que agora é uma linha de acordes (ou deixou de ser): redesenha, mantendo o cursor onde o usuário clicou.
+function ceReclassifica(){
+  const b = document.getElementById('ceBody'); if(!b || CVDRAG) return;
+  const mudou = [...b.querySelectorAll('.ce-t')].some(el=>{ const i = Number(el.dataset.i); return CE.lines[i]!==undefined && ceKind(CE.lines[i]) !== el.dataset.kind; });
+  if(!mudou) return;
+  const ativo = document.activeElement, el = ativo && ativo.closest && ativo.closest('.ce-t');
+  if(el && b.contains(el)){ const i = Number(el.dataset.i), off = ceSelOffsets(el).s; ceRender({focus:i, off}); }
+  else ceRender();
 }
 function cePaste(e){
   const el = e.target.closest && e.target.closest('.ce-t'); if(!el) return;
@@ -12764,6 +12771,7 @@ function cvUp(e){
   try{ D.linha.releasePointerCapture(D.id); }catch(er){}
   if(D.ult===0 && D.pushed){ CE.hist.pop(); ceBarra(); }          // só clicou, não moveu: não conta como alteração
   const c = D.linha.querySelector(`.cv-chip[data-k="${D.k}"]`); if(c) c.focus({preventScroll:true});
+  setTimeout(ceReclassifica, 0);
 }
 
 // ---- formatação (negrito, itálico, sublinhado, cor) do trecho selecionado da letra ----
