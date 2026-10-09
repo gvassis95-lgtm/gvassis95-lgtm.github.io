@@ -700,12 +700,8 @@
   .ce-detalhes summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);padding:11px 0;}
   .ce-det-corpo{padding:4px 0 14px;}
   .ce-dica{font-size:12.5px;line-height:1.5;color:var(--muted);margin:0 0 10px;}
-  .ce-body{position:relative;padding:6px 4px 40px 34px;min-height:200px;}
+  .ce-body{position:relative;padding:6px 4px 40px 4px;min-height:200px;}
   .ce-row{position:relative;}
-  .ce-act{position:absolute;left:-30px;top:1px;width:24px;height:24px;border:none;border-radius:50%;background:var(--pill-bg);color:var(--muted);font-size:12px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s,color .15s;padding:0;display:flex;align-items:center;justify-content:center;}
-  .ce-row:hover .ce-act,.ce-row:focus-within .ce-act{opacity:1;}
-  .ce-act:hover{color:var(--accent);}
-  @media(hover:none){ .ce-act{opacity:.55;} }
   .ce-t{outline:none;min-height:1.5em;caret-color:var(--accent);border-radius:4px;}
   .ce-t:focus{background:color-mix(in srgb,var(--accent) 7%,transparent);}
   .ce-vazia{min-height:1.2em;}
@@ -719,7 +715,8 @@
   .ce-fmt.on{display:flex;}
   .ce-fmt button{background:var(--pill-bg);border:none;color:var(--text);width:28px;height:28px;border-radius:6px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;padding:0;}
   .ce-fmt button.format-color{width:18px;height:18px;border-radius:50%;}
-  @media(max-width:640px){ .ce-body{padding-left:30px;} .ce-bar{padding:8px 12px;} .ce-bar .btn{padding:8px 16px;} }
+  .ce-ur:disabled{opacity:.4;cursor:default;}
+  @media(max-width:640px){ .ce-ur span,.ce-bar-tit{display:none;} .ce-ur{font-size:17px;padding:6px 12px;} .ce-bar-in{gap:8px;} .ce-bar .ce-bar-in .btn-ghost:first-child{margin-right:auto;} .ce-bar{padding:8px 12px;} .ce-bar .btn{padding:8px 16px;} }
   .tvid-modo{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
   .tvid-modo .seg-toggle{display:flex;}.tvid-modo .seg-toggle button{flex:1;}
   .tvid-modo small{font-size:11.5px;font-weight:500;color:var(--muted);line-height:1.4;}
@@ -12453,13 +12450,13 @@ document.addEventListener('touchstart', function(e){
 // dedo), duplo clique renomeia/cria. Por baixo continua sendo o mesmo texto de sempre (linha de
 // acordes em cima da letra, posição = espaços), guardado em CE.lines e salvo por submitDraft().
 const CE_EDIT = (()=>{ try{ const d = document.createElement('div'); d.contentEditable = 'plaintext-only'; return d.contentEditable==='plaintext-only' ? 'plaintext-only' : 'true'; }catch(e){ return 'true'; } })();
-const CE = {draft:null, lines:[], hist:[], sig0:'', digitando:false, tDig:null};
+const CE = {draft:null, lines:[], hist:[], redo:[], sig0:'', digitando:false, tDig:null};
 function ceAtivo(){ return !!(state.draft && state.draft.fonte==='texto' && state.loaded && state.view!=='login'); }
 function ceInit(){
   if(CE.draft === state.draft) return;
   CE.draft = state.draft;
   CE.lines = String(state.draft.corpo||'').replace(/\r\n?/g,'\n').split('\n');
-  CE.hist = [];
+  CE.hist = []; CE.redo = [];
   CE.sig0 = ceSig();
 }
 function ceTexto(){ return CE.lines.join('\n'); }
@@ -12473,12 +12470,25 @@ function ceSnap(){
   const t = ceTexto();
   if(CE.hist.length && CE.hist[CE.hist.length-1]===t) return false;
   CE.hist.push(t); if(CE.hist.length>150) CE.hist.shift();
+  CE.redo = [];                                   // uma alteração nova encerra o "refazer"
   ceBarra(); return true;
 }
-function ceBarra(){ const b = document.getElementById('ceDesfazer'); if(b) b.disabled = !CE.hist.length; }
+function ceBarra(){
+  const d = document.getElementById('ceBtnDesfazer'); if(d) d.disabled = !CE.hist.length;
+  const r = document.getElementById('ceBtnRefazer'); if(r) r.disabled = !CE.redo.length;
+}
 function ceDesfazer(){
   if(!CE.hist.length) return;
+  CE.redo.push(ceTexto());
   CE.lines = CE.hist.pop().split('\n');
+  CE.digitando = false; clearTimeout(CE.tDig);
+  ceRender(); ceBarra();
+}
+function ceRefazer(){
+  if(!CE.redo.length) return;
+  CE.hist.push(ceTexto());
+  CE.lines = CE.redo.pop().split('\n');
+  CE.digitando = false; clearTimeout(CE.tDig);
   ceRender(); ceBarra();
 }
 async function ceCancelar(){
@@ -12501,9 +12511,8 @@ function ceKind(l){
 function ceBodyHtml(){
   return CE.lines.map((l,i)=>{
     const k = ceKind(l);
-    if(k==='c') return `<div class="ce-row"><button type="button" class="ce-act" tabindex="-1" title="Remover esta linha de acordes" onmousedown="event.preventDefault()" onclick="ceRemoveLine(${i})">✕</button><div class="cifra-line ce-acordes" data-i="${i}" data-kind="c">${cvLinhaHtml(cvTokens(l))}</div></div>`;
-    const add = k==='t' ? `<button type="button" class="ce-act" tabindex="-1" title="Adicionar acorde acima desta linha" onmousedown="event.preventDefault()" onclick="ceAddChordAbove(${i})">♪</button>` : '';
-    return `<div class="ce-row">${add}<div class="cifra-line ce-t${k==='s'?' section-line':''}${k==='v'?' ce-vazia':''}" data-i="${i}" data-kind="${k}" contenteditable="${CE_EDIT}" spellcheck="false">${escapeHtml(l)}</div></div>`;
+    if(k==='c') return `<div class="ce-row"><div class="cifra-line ce-acordes" data-i="${i}" data-kind="c">${cvLinhaHtml(cvTokens(l))}</div></div>`;
+    return `<div class="ce-row"><div class="cifra-line ce-t${k==='s'?' section-line':''}${k==='v'?' ce-vazia':''}" data-i="${i}" data-kind="${k}" contenteditable="${CE_EDIT}" spellcheck="false">${escapeHtml(l)}</div></div>`;
   }).join('');
 }
 function ceRender(o){
@@ -12568,8 +12577,6 @@ function cePaste(e){
   ceRender({focus:i+novas.length-1, off:partes[partes.length-1].length});
 }
 function ceKeydown(e){
-  const ctrl = e.ctrlKey || e.metaKey;
-  if(ctrl && (e.key==='z' || e.key==='Z') && !e.shiftKey){ e.preventDefault(); ceDesfazer(); return; }
   const t = e.target;
   // --- acordes
   if(t.classList && t.classList.contains('cv-chip')){
@@ -12599,7 +12606,10 @@ function ceKeydown(e){
   const el = t.closest && t.closest('.ce-t'); if(!el) return;
   const i = Number(el.dataset.i), len = (CE.lines[i]||'').length;
   const so = ceSelOffsets(el), colapsada = so.s===so.e;
-  if(e.key==='Enter'){
+  if(e.key==='Enter' && (e.ctrlKey || e.metaKey)){
+    e.preventDefault();
+    if(ceKind(CE.lines[i]||'')!=='v') ceAddChordAbove(i);
+  } else if(e.key==='Enter'){
     e.preventDefault();
     const txt = CE.lines[i]||'';
     ceSnap(); CE.lines[i] = txt.slice(0, so.s); CE.lines.splice(i+1, 0, txt.slice(so.e));
@@ -12785,10 +12795,18 @@ document.addEventListener('selectionchange', ()=>{
   tb.style.top = Math.max(64, rc.top - tb.offsetHeight - 8) + 'px';
 });
 document.addEventListener('keydown', (e)=>{
-  if((e.ctrlKey||e.metaKey) && (e.key==='s' || e.key==='S') && ceAtivo()){
+  if(!ceAtivo() || !(e.ctrlKey||e.metaKey) || e.altKey) return;
+  const k = (e.key||'').toLowerCase();
+  if(k==='s'){
     e.preventDefault();
     const f = document.getElementById('ceForm'); if(f && f.requestSubmit) f.requestSubmit();
+    return;
   }
+  if(k!=='z' && k!=='y') return;
+  const t = e.target, tag = t && t.tagName;
+  if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || (t && t.dataset && t.dataset.edit)) return;   // título/artista/vídeo e renomear acorde: desfazer do próprio navegador
+  e.preventDefault();
+  if(k==='y' || e.shiftKey) ceRefazer(); else ceDesfazer();
 });
 
 function renderCifraEditor(app){
@@ -12801,7 +12819,8 @@ function renderCifraEditor(app){
       <div class="ce-bar-in">
         <button type="button" class="btn-ghost btn-small" onclick="ceCancelar()">Cancelar</button>
         <span class="ce-bar-tit">${d.isNew?'Nova cifra':'Editando cifra'}</span>
-        <button type="button" class="btn-ghost btn-small" id="ceDesfazer" onclick="ceDesfazer()" ${CE.hist.length?'':'disabled'}>↶ Desfazer</button>
+        <button type="button" class="btn-ghost btn-small ce-ur" id="ceBtnDesfazer" title="Desfazer (Ctrl+Z)" onclick="ceDesfazer()" ${CE.hist.length?'':'disabled'}>↶ <span>Desfazer</span></button>
+        <button type="button" class="btn-ghost btn-small ce-ur" id="ceBtnRefazer" title="Refazer (Ctrl+Shift+Z ou Ctrl+Y)" onclick="ceRefazer()" ${CE.redo.length?'':'disabled'}>↷ <span>Refazer</span></button>
         <button type="submit" class="btn">Salvar</button>
       </div>
     </div>
@@ -12825,7 +12844,7 @@ function renderCifraEditor(app){
             </div>
           </div>
         </details>
-        <div class="ce-dica no-print">Clique no texto para editar a letra. <b>Arraste os acordes</b> para os lados; duplo clique num acorde renomeia, e numa área vazia da linha de acordes cria um novo. O <b>♪</b> à esquerda de cada linha de letra adiciona acordes.</div>
+        <div class="ce-dica no-print">Clique no texto para editar a letra. <b>Arraste os acordes</b> para os lados; duplo clique num acorde renomeia, e numa área vazia da linha de acordes cria um novo. Para criar acordes numa linha de letra, clique nela e use <b>Ctrl+Enter</b>.</div>
         <div class="cifra-body ce-body" id="ceBody" style="font-size:${fontSizePx}px" oninput="ceInput(event)" onkeydown="ceKeydown(event)" onpaste="cePaste(event)" onfocusout="ceFocusOut(event)" onpointerdown="cvDown(event)" ondblclick="ceDbl(event)">${ceBodyHtml()}</div>
       </div>
     </div>
