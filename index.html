@@ -685,13 +685,41 @@
   @media(max-width:640px){ .te-view .te-vel .te-pill-sel{padding-left:31px;} .te-vel svg{left:11px;} }
   label.tvid-chk{text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;}
   label.tvid-chk input{width:18px;height:18px;margin:0;accent-color:var(--accent);}
-  .cv-modos{margin:2px 0 10px;}
-  .cv-body{padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--pill-bg);max-height:70vh;overflow:auto;user-select:none;-webkit-user-select:none;}
-  .cv-body .cv-chip{cursor:grab;border-radius:4px;touch-action:none;outline:none;transition:background .15s,box-shadow .15s;}
-  .cv-body .cv-chip:hover,.cv-body .cv-chip:focus-visible{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);}
-  .cv-body .cv-chip.arrasta{cursor:grabbing;background:var(--accent);color:#fff;box-shadow:0 0 0 3px var(--accent);}
-  .cv-body .cv-outro{color:var(--muted);}
-  .cv-body .cv-vazia{height:.9em;overflow:hidden;}
+  .ce-modo .topbar{display:none;}
+  .ce-bar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;}
+  .ce-bar-in{max-width:1260px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .ce-bar-tit{flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ce-bar .btn{padding:8px 22px;}
+  .ce-page{padding-top:62px;}
+  .ce-title{margin-bottom:14px;}
+  .viewer-title input.ce-in{display:block;width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:1px dashed var(--border);border-radius:0;padding:3px 0;color:var(--text);font-family:'Montserrat',sans-serif;outline:none;transition:border-color .2s;}
+  .viewer-title input.ce-in:hover,.viewer-title input.ce-in:focus{border-bottom-color:var(--accent);}
+  .viewer-title input.ce-in-tit{font-size:25px;font-weight:800;margin:0 0 4px;}
+  .viewer-title input.ce-in-art{font-size:15px;color:var(--muted);}
+  .ce-detalhes{margin:0 0 14px;border:1px solid var(--border);border-radius:12px;padding:0 14px;}
+  .ce-detalhes summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);padding:11px 0;}
+  .ce-det-corpo{padding:4px 0 14px;}
+  .ce-dica{font-size:12.5px;line-height:1.5;color:var(--muted);margin:0 0 10px;}
+  .ce-body{position:relative;padding:6px 4px 40px 34px;min-height:200px;}
+  .ce-row{position:relative;}
+  .ce-act{position:absolute;left:-30px;top:1px;width:24px;height:24px;border:none;border-radius:50%;background:var(--pill-bg);color:var(--muted);font-size:12px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s,color .15s;padding:0;display:flex;align-items:center;justify-content:center;}
+  .ce-row:hover .ce-act,.ce-row:focus-within .ce-act{opacity:1;}
+  .ce-act:hover{color:var(--accent);}
+  @media(hover:none){ .ce-act{opacity:.55;} }
+  .ce-t{outline:none;min-height:1.5em;caret-color:var(--accent);border-radius:4px;}
+  .ce-t:focus{background:color-mix(in srgb,var(--accent) 7%,transparent);}
+  .ce-vazia{min-height:1.2em;}
+  .ce-acordes{min-height:1.5em;cursor:default;}
+  .ce-body .cv-chip{cursor:grab;border-radius:0;touch-action:none;outline:none;background:none;user-select:none;-webkit-user-select:none;}
+  .ce-body .cv-chip:hover,.ce-body .cv-chip:focus,.ce-body .cv-chip:focus-visible{background:none;box-shadow:none;}
+  .ce-body .cv-chip:active{cursor:grabbing;}
+  .ce-body .cv-chip[data-edit]{cursor:text;user-select:text;-webkit-user-select:text;border-bottom:2px solid var(--accent);}
+  .ce-body .cv-outro{color:var(--muted);}
+  .ce-fmt{position:fixed;z-index:70;display:none;align-items:center;gap:4px;background:var(--bg-panel);border-radius:10px;padding:6px 8px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+  .ce-fmt.on{display:flex;}
+  .ce-fmt button{background:var(--pill-bg);border:none;color:var(--text);width:28px;height:28px;border-radius:6px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;padding:0;}
+  .ce-fmt button.format-color{width:18px;height:18px;border-radius:50%;}
+  @media(max-width:640px){ .ce-body{padding-left:30px;} .ce-bar{padding:8px 12px;} .ce-bar .btn{padding:8px 16px;} }
   .tvid-modo{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
   .tvid-modo .seg-toggle{display:flex;}.tvid-modo .seg-toggle button{flex:1;}
   .tvid-modo small{font-size:11.5px;font-weight:500;color:var(--muted);line-height:1.4;}
@@ -12419,46 +12447,207 @@ document.addEventListener('touchstart', function(e){
   e.preventDefault();
 }, {passive:false, capture:true});
 
-// ---- Mover acordes com o mouse ----
-// A cifra continua sendo só texto (acordes numa linha, letra embaixo, posição = espaços). Aqui cada acorde
-// vira uma peça arrastável: ao arrastar, os espaços antes dele (e depois, para os acordes seguintes não
-// saírem do lugar) são recalculados e gravados de volta no mesmo texto do campo "Texto".
-function setCifraModo(vis){
-  if(!state.draft) return;
-  const ta = document.getElementById('f_texto'); if(ta) state.draft.corpo = ta.value;
-  state.draft.modoVisual = !!vis;
-  render();
+// ==== EDITOR DA CIFRA NA PRÓPRIA TELA (inicio) ====
+// [Rodada 113] Editar uma cifra de texto não abre mais um popup: a própria cifra, como é vista, fica
+// editável. A letra se edita clicando nela; os acordes se arrastam para os lados com o mouse (ou o
+// dedo), duplo clique renomeia/cria. Por baixo continua sendo o mesmo texto de sempre (linha de
+// acordes em cima da letra, posição = espaços), guardado em CE.lines e salvo por submitDraft().
+const CE_EDIT = (()=>{ try{ const d = document.createElement('div'); d.contentEditable = 'plaintext-only'; return d.contentEditable==='plaintext-only' ? 'plaintext-only' : 'true'; }catch(e){ return 'true'; } })();
+const CE = {draft:null, lines:[], hist:[], sig0:'', digitando:false, tDig:null};
+function ceAtivo(){ return !!(state.draft && state.draft.fonte==='texto' && state.loaded && state.view!=='login'); }
+function ceInit(){
+  if(CE.draft === state.draft) return;
+  CE.draft = state.draft;
+  CE.lines = String(state.draft.corpo||'').replace(/\r\n?/g,'\n').split('\n');
+  CE.hist = [];
+  CE.sig0 = ceSig();
 }
+function ceTexto(){ return CE.lines.join('\n'); }
+function ceSig(){ const d = state.draft || {}; return [d.titulo||'', d.artista||'', CE.lines.join('\n')].join('\u0001'); }
+function draftCorpoAtual(){
+  if(CE.draft===state.draft && ceAtivo()) return ceTexto();
+  const ta = document.getElementById('f_texto');
+  return ta ? ta.value : ((state.draft && state.draft.corpo) || '');
+}
+function ceSnap(){
+  const t = ceTexto();
+  if(CE.hist.length && CE.hist[CE.hist.length-1]===t) return false;
+  CE.hist.push(t); if(CE.hist.length>150) CE.hist.shift();
+  ceBarra(); return true;
+}
+function ceBarra(){ const b = document.getElementById('ceDesfazer'); if(b) b.disabled = !CE.hist.length; }
+function ceDesfazer(){
+  if(!CE.hist.length) return;
+  CE.lines = CE.hist.pop().split('\n');
+  ceRender(); ceBarra();
+}
+async function ceCancelar(){
+  const t = document.getElementById('f_titulo'), a = document.getElementById('f_artista');
+  if(t) state.draft.titulo = t.value; if(a) state.draft.artista = a.value;
+  if(ceSig() !== CE.sig0){
+    const ok = await customConfirm('Descartar as alterações desta cifra?');
+    if(!ok) return;
+  }
+  closeDraft();
+}
+function ceSalvar(ev){ return submitDraft(ev); }
+
+function ceKind(l){
+  if(l.trim()==='') return 'v';
+  if(isSectionLine(l)) return 's';
+  if(isChordLine(l)) return 'c';
+  return 't';
+}
+function ceBodyHtml(){
+  return CE.lines.map((l,i)=>{
+    const k = ceKind(l);
+    if(k==='c') return `<div class="ce-row"><button type="button" class="ce-act" tabindex="-1" title="Remover esta linha de acordes" onmousedown="event.preventDefault()" onclick="ceRemoveLine(${i})">✕</button><div class="cifra-line ce-acordes" data-i="${i}" data-kind="c">${cvLinhaHtml(cvTokens(l))}</div></div>`;
+    const add = k==='t' ? `<button type="button" class="ce-act" tabindex="-1" title="Adicionar acorde acima desta linha" onmousedown="event.preventDefault()" onclick="ceAddChordAbove(${i})">♪</button>` : '';
+    return `<div class="ce-row">${add}<div class="cifra-line ce-t${k==='s'?' section-line':''}${k==='v'?' ce-vazia':''}" data-i="${i}" data-kind="${k}" contenteditable="${CE_EDIT}" spellcheck="false">${escapeHtml(l)}</div></div>`;
+  }).join('');
+}
+function ceRender(o){
+  const b = document.getElementById('ceBody'); if(!b) return;
+  b.innerHTML = ceBodyHtml();
+  if(!o) return;
+  if(o.focus!=null){
+    const el = b.querySelector(`.ce-t[data-i="${o.focus}"]`);
+    if(el){ el.focus(); ceSetCaret(el, o.off==null ? el.textContent.length : o.off); }
+  }
+  if(o.chip){
+    const c = b.querySelector(`.ce-acordes[data-i="${o.chip.i}"] .cv-chip[data-k="${o.chip.k}"]`);
+    if(c){ if(o.chip.rename) ceRenomear(c, o.chip.novo); else c.focus(); }
+  }
+}
+function ceSetCaret(el, off){
+  const sel = window.getSelection(); if(!sel) return;
+  const r = document.createRange();
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let n, resto = off, ok = false;
+  while((n = w.nextNode())){
+    if(resto <= n.length){ r.setStart(n, resto); ok = true; break; }
+    resto -= n.length;
+  }
+  if(!ok){ r.selectNodeContents(el); r.collapse(false); } else r.collapse(true);
+  sel.removeAllRanges(); sel.addRange(r);
+}
+function ceSelOffsets(el){
+  const sel = window.getSelection(); if(!sel || !sel.rangeCount) return {s:0, e:0};
+  const r = sel.getRangeAt(0);
+  const pre = document.createRange(); pre.selectNodeContents(el); pre.setEnd(r.startContainer, r.startOffset);
+  const s = pre.toString().length;
+  return {s, e: s + r.toString().length};
+}
+
+// ---- digitação nas linhas de letra ----
+function ceInput(e){
+  const el = e.target.closest && e.target.closest('.ce-t'); if(!el) return;
+  if(!CE.digitando) ceSnap();
+  CE.digitando = true; clearTimeout(CE.tDig); CE.tDig = setTimeout(()=>{ CE.digitando = false; }, 1200);
+  CE.lines[Number(el.dataset.i)] = el.textContent.replace(/[\r\n]+/g,'');
+}
+function ceFocusOut(e){
+  const t = e.target;
+  if(t.classList && t.classList.contains('cv-chip') && t.dataset.edit){ ceFimRenomear(t); return; }
+  const el = t.closest && t.closest('.ce-t'); if(!el) return;
+  const i = Number(el.dataset.i);
+  if(CE.lines[i]!==undefined && ceKind(CE.lines[i]) !== el.dataset.kind) setTimeout(()=>{ if(document.getElementById('ceBody') && !document.activeElement.closest('.ce-t')) ceRender(); }, 0);
+}
+function cePaste(e){
+  const el = e.target.closest && e.target.closest('.ce-t'); if(!el) return;
+  e.preventDefault();
+  let t = ((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r\n?/g,'\n').replace(/\t/g,'    ');
+  if(!t) return;
+  if(t.includes('\n')) t = dedupeEchoedLyrics(t);              // cifras coladas com a letra repetida a cada acorde
+  const i = Number(el.dataset.i), so = ceSelOffsets(el), txt = CE.lines[i]||'';
+  const a = txt.slice(0, so.s), b = txt.slice(so.e), partes = t.split('\n');
+  ceSnap();
+  if(partes.length===1){ CE.lines[i] = a + partes[0] + b; ceRender({focus:i, off:(a+partes[0]).length}); return; }
+  const novas = [a + partes[0], ...partes.slice(1,-1), partes[partes.length-1] + b];
+  CE.lines.splice(i, 1, ...novas);
+  ceRender({focus:i+novas.length-1, off:partes[partes.length-1].length});
+}
+function ceKeydown(e){
+  const ctrl = e.ctrlKey || e.metaKey;
+  if(ctrl && (e.key==='z' || e.key==='Z') && !e.shiftKey){ e.preventDefault(); ceDesfazer(); return; }
+  const t = e.target;
+  // --- acordes
+  if(t.classList && t.classList.contains('cv-chip')){
+    if(t.dataset.edit){
+      if(e.key==='Enter'){ e.preventDefault(); t.blur(); }
+      else if(e.key==='Escape'){ e.preventDefault(); t.dataset.cancel = '1'; t.blur(); }
+      return;
+    }
+    const linha = t.closest('.ce-acordes'); if(!linha) return;
+    const i = Number(linha.dataset.i), k = Number(t.dataset.k);
+    if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
+      e.preventDefault();
+      const toks = cvTokens(CE.lines[i]||''); if(!toks[k]) return;
+      ceSnapUmaVez();
+      const g = cvMover(toks.map(x=>x.gap), k, (e.key==='ArrowLeft' ? -1 : 1) * (e.shiftKey ? 4 : 1));
+      CE.lines[i] = toks.map((x,j)=> ' '.repeat(g[j]) + x.txt).join('');
+      linha.innerHTML = cvLinhaHtml(toks.map((x,j)=>({gap:g[j], txt:x.txt})));
+      const novo = linha.querySelector(`.cv-chip[data-k="${k}"]`); if(novo) novo.focus();
+    } else if(e.key==='Delete' || e.key==='Backspace'){
+      e.preventDefault(); ceRemoveChip(i, k);
+    } else if(e.key==='Enter' || e.key==='F2'){
+      e.preventDefault(); ceRenomear(t, false);
+    }
+    return;
+  }
+  // --- letra
+  const el = t.closest && t.closest('.ce-t'); if(!el) return;
+  const i = Number(el.dataset.i), len = (CE.lines[i]||'').length;
+  const so = ceSelOffsets(el), colapsada = so.s===so.e;
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const txt = CE.lines[i]||'';
+    ceSnap(); CE.lines[i] = txt.slice(0, so.s); CE.lines.splice(i+1, 0, txt.slice(so.e));
+    ceRender({focus:i+1, off:0});
+  } else if(e.key==='Backspace' && colapsada && so.s===0 && i>0){
+    e.preventDefault();
+    const ant = CE.lines[i-1], antK = ceKind(ant);
+    if(antK==='c'){
+      if(len===0){ ceSnap(); CE.lines.splice(i,1); ceRender(); }
+      return;
+    }
+    ceSnap(); CE.lines[i-1] = ant + (CE.lines[i]||''); CE.lines.splice(i,1);
+    ceRender({focus:i-1, off:ant.length});
+  } else if(e.key==='Delete' && colapsada && so.s===len && i+1<CE.lines.length){
+    e.preventDefault();
+    if(ceKind(CE.lines[i+1])==='c') return;
+    ceSnap(); const base = CE.lines[i]||''; CE.lines[i] = base + CE.lines[i+1]; CE.lines.splice(i+1,1);
+    ceRender({focus:i, off:base.length});
+  } else if((e.key==='ArrowUp' || e.key==='ArrowDown') && colapsada && !e.shiftKey){
+    const up = e.key==='ArrowUp';
+    const sel = window.getSelection(); const rects = sel.rangeCount ? sel.getRangeAt(0).getClientRects() : [];
+    const er = el.getBoundingClientRect(), cr = rects.length ? rects[0] : er;
+    const lh = parseFloat(getComputedStyle(el).lineHeight) || 22;
+    const naBorda = up ? (cr.top - er.top < lh*0.6) : (er.bottom - cr.bottom < lh*0.6);
+    if(!naBorda) return;
+    const todos = [...document.querySelectorAll('#ceBody .ce-t')];
+    const alvo = todos[todos.indexOf(el) + (up ? -1 : 1)]; if(!alvo) return;
+    e.preventDefault(); alvo.focus(); ceSetCaret(alvo, Math.min(so.s, alvo.textContent.length));
+  }
+}
+function ceSnapUmaVez(){ if(!CE.digitando) ceSnap(); CE.digitando = true; clearTimeout(CE.tDig); CE.tDig = setTimeout(()=>{ CE.digitando = false; }, 700); }
+
+// ---- acordes: mover, renomear, criar, remover ----
 function cvTokens(line){
   const toks = [], re = /(\s*)(\S+)/g; let m;
   while((m = re.exec(line))) toks.push({gap: m[1].length, txt: m[2]});
   return toks;
 }
-function cvLinhaHtml(toks, ativo){
-  return toks.map((t,k)=> ' '.repeat(t.gap) + `<span class="${parseChord(t.txt)?'chord':'cv-outro'} cv-chip${k===ativo?' arrasta':''}" data-k="${k}" tabindex="0">${escapeHtml(t.txt)}</span>`).join('');
+function cvLinhaHtml(toks){
+  return toks.map((t,k)=> ' '.repeat(t.gap) + `<span class="${parseChord(t.txt)?'chord':'cv-outro'} cv-chip" data-k="${k}" tabindex="0">${escapeHtml(t.txt)}</span>`).join('');
 }
-function cifraVisualHtml(corpo){
-  return String(corpo||'').split('\n').map((line, i)=>{
-    if(line.trim()==='') return `<div class="cifra-line cv-vazia">&nbsp;</div>`;
-    if(isSectionLine(line)) return `<div class="cifra-line"><span class="section-line">${escapeHtml(line)}</span></div>`;
-    if(isChordLine(line)) return `<div class="cifra-line cv-acordes" data-i="${i}">${cvLinhaHtml(cvTokens(line))}</div>`;
-    return `<div class="cifra-line">${applyInlineFormatting(line)}</div>`;
-  }).join('');
-}
-// novos "espaços antes" de cada acorde ao mover o acorde k em delta espaços
+// novos "espaços antes" de cada item ao mover o item k em delta espaços (os seguintes ficam onde estão, ou são empurrados)
 function cvMover(gaps, k, delta){
   const g = gaps.slice();
   const ng = Math.max(k===0 ? 0 : 1, g[k] + delta), d2 = ng - g[k];
   g[k] = ng;
-  if(k+1 < g.length) g[k+1] = Math.max(1, g[k+1] - d2);   // os seguintes ficam onde estão (ou são empurrados)
+  if(k+1 < g.length) g[k+1] = Math.max(1, g[k+1] - d2);
   return g;
-}
-function cvGravaLinha(i, toks, gaps){
-  const ta = document.getElementById('f_texto'); if(!ta) return;
-  const linhas = ta.value.split('\n');
-  linhas[i] = toks.map((t,k)=> ' '.repeat(gaps[k]) + t.txt).join('');
-  ta.value = linhas.join('\n');
-  if(state.draft) state.draft.corpo = ta.value;
 }
 function cvLarguraEspaco(linha){
   const pr = document.createElement('span'); pr.style.cssText = 'white-space:pre;position:absolute;visibility:hidden;';
@@ -12466,18 +12655,87 @@ function cvLarguraEspaco(linha){
   const w = pr.getBoundingClientRect().width / 40; pr.remove();
   return w > 0 ? w : 4;
 }
+function ceSetTokens(i, toks){
+  if(!toks.length){ CE.lines.splice(i,1); return; }
+  CE.lines[i] = toks.map(t=> ' '.repeat(t.gap) + t.txt).join('');
+}
+function ceRemoveChip(i, k){
+  const toks = cvTokens(CE.lines[i]||''); if(!toks[k]) return;
+  ceSnap();
+  const [rem] = toks.splice(k,1);
+  if(toks[k]) toks[k].gap += rem.gap + Math.round(rem.txt.length*2.1);   // os seguintes não saem do lugar
+  ceSetTokens(i, toks);
+  const resto = toks.length;
+  ceRender(resto ? {chip:{i, k:Math.min(k, resto-1)}} : null);
+}
+function ceRemoveLine(i){ ceSnap(); CE.lines.splice(i,1); ceRender(); }
+function ceAddChordAbove(i){
+  ceSnap();
+  if(i>0 && ceKind(CE.lines[i-1])==='c'){
+    const toks = cvTokens(CE.lines[i-1]); toks.push({gap:4, txt:'C'});
+    ceSetTokens(i-1, toks);
+    ceRender({chip:{i:i-1, k:toks.length-1, rename:true, novo:true}});
+  } else {
+    CE.lines.splice(i, 0, 'C');
+    ceRender({chip:{i, k:0, rename:true, novo:true}});
+  }
+}
+function ceAddChordAt(linha, x){
+  const i = Number(linha.dataset.i), toks = cvTokens(CE.lines[i]||''); if(!toks.length) return;
+  const chips = [...linha.querySelectorAll('.cv-chip')], sw = cvLarguraEspaco(linha), esq = linha.getBoundingClientRect().left;
+  let k = -1; chips.forEach((c,j)=>{ if(c.getBoundingClientRect().right <= x) k = j; });
+  let gap;
+  if(k===-1) gap = Math.max(0, Math.round((x - esq)/sw));
+  else gap = Math.max(1, Math.round((x - chips[k].getBoundingClientRect().right)/sw));
+  const prox = toks[k+1];
+  if(prox) prox.gap = Math.max(1, prox.gap - gap - 2);
+  toks.splice(k+1, 0, {gap, txt:'C'});
+  ceSnap(); ceSetTokens(i, toks);
+  ceRender({chip:{i, k:k+1, rename:true, novo:true}});
+}
+function ceRenomear(chip, novo){
+  chip.dataset.edit = '1'; if(novo) chip.dataset.novo = '1';
+  chip.contentEditable = CE_EDIT;
+  chip.focus();
+  const r = document.createRange(); r.selectNodeContents(chip);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+}
+function ceFimRenomear(chip){
+  const linha = chip.closest('.ce-acordes'); if(!linha) return;
+  const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
+  const toks = cvTokens(CE.lines[i]||''); if(!toks[k]) return;
+  const txt = chip.textContent.replace(/\s+/g,''), cancelou = !!chip.dataset.cancel, novo = !!chip.dataset.novo;
+  delete chip.dataset.edit; delete chip.dataset.cancel; delete chip.dataset.novo;
+  chip.removeAttribute('contenteditable');
+  if(cancelou && novo || (!txt && !cancelou)){ ceRemoveChip(i, k); return; }
+  if(cancelou || txt===toks[k].txt){ ceRender({chip:{i,k}}); return; }
+  if(!novo) ceSnap();
+  const delta = Math.round((txt.length - toks[k].txt.length)*2.1);
+  toks[k].txt = txt;
+  if(toks[k+1]) toks[k+1].gap = Math.max(1, toks[k+1].gap - delta);
+  ceSetTokens(i, toks);
+  ceRender({chip:{i,k}});
+}
+function ceDbl(e){
+  const sob = document.elementFromPoint(e.clientX, e.clientY);     // o arraste "captura" o ponteiro na linha: o alvo do evento não é o acorde
+  const chip = sob && sob.closest && sob.closest('.cv-chip');
+  if(chip){ e.preventDefault(); if(!chip.dataset.edit) ceRenomear(chip, false); return; }
+  const linha = e.target.closest && e.target.closest('.ce-acordes');
+  if(linha){ e.preventDefault(); ceAddChordAt(linha, e.clientX); }
+}
+
+// ---- arrastar acordes ----
 let CVDRAG = null;
 function cvDown(e){
-  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip) return;
-  const linha = chip.closest('.cv-acordes'); if(!linha) return;
-  const ta = document.getElementById('f_texto'); if(!ta) return;
+  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip || chip.dataset.edit) return;
+  const linha = chip.closest('.ce-acordes'); if(!linha) return;
   const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
-  const toks = cvTokens(ta.value.split('\n')[i] || '');
-  if(!toks[k]) return;
+  const toks = cvTokens(CE.lines[i]||''); if(!toks[k]) return;
   e.preventDefault();
-  chip.classList.add('arrasta');
+  chip.focus({preventScroll:true});
+  const pushed = ceSnap();
   try{ linha.setPointerCapture(e.pointerId); }catch(er){}
-  CVDRAG = {i, k, toks, linha, x0: e.clientX, g0: toks.map(t=>t.gap), sw: cvLarguraEspaco(linha), ult: 0, id: e.pointerId};
+  CVDRAG = {i, k, toks, linha, x0: e.clientX, g0: toks.map(t=>t.gap), sw: cvLarguraEspaco(linha), ult: 0, id: e.pointerId, pushed};
   linha.onpointermove = cvMove; linha.onpointerup = linha.onpointercancel = cvUp;
 }
 function cvMove(e){
@@ -12486,28 +12744,102 @@ function cvMove(e){
   if(delta === D.ult) return;
   D.ult = delta;
   const g = cvMover(D.g0, D.k, delta);
-  D.linha.innerHTML = cvLinhaHtml(D.toks.map((t,j)=>({gap:g[j], txt:t.txt})), D.k);
-  cvGravaLinha(D.i, D.toks, g);
+  D.linha.innerHTML = cvLinhaHtml(D.toks.map((t,j)=>({gap:g[j], txt:t.txt})));
+  CE.lines[D.i] = D.toks.map((t,j)=> ' '.repeat(g[j]) + t.txt).join('');
 }
 function cvUp(e){
   const D = CVDRAG; if(!D) return;
   CVDRAG = null;
   D.linha.onpointermove = D.linha.onpointerup = D.linha.onpointercancel = null;
   try{ D.linha.releasePointerCapture(D.id); }catch(er){}
-  const c = D.linha.querySelector('.cv-chip.arrasta'); if(c) c.classList.remove('arrasta');
+  if(D.ult===0 && D.pushed){ CE.hist.pop(); ceBarra(); }          // só clicou, não moveu: não conta como alteração
+  const c = D.linha.querySelector(`.cv-chip[data-k="${D.k}"]`); if(c) c.focus({preventScroll:true});
 }
-function cvKey(e){
-  if(e.key!=='ArrowLeft' && e.key!=='ArrowRight') return;
-  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip) return;
-  const linha = chip.closest('.cv-acordes'); const ta = document.getElementById('f_texto'); if(!linha || !ta) return;
-  e.preventDefault();
-  const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
-  const toks = cvTokens(ta.value.split('\n')[i] || ''); if(!toks[k]) return;
-  const g = cvMover(toks.map(t=>t.gap), k, (e.key==='ArrowLeft' ? -1 : 1) * (e.shiftKey ? 4 : 1));
-  linha.innerHTML = cvLinhaHtml(toks.map((t,j)=>({gap:g[j], txt:t.txt})), -1);
-  cvGravaLinha(i, toks, g);
-  const novo = linha.querySelector(`.cv-chip[data-k="${k}"]`); if(novo) novo.focus();
+
+// ---- formatação (negrito, itálico, sublinhado, cor) do trecho selecionado da letra ----
+function ceFormat(tipo, cor){
+  const sel = window.getSelection(); if(!sel || !sel.rangeCount || sel.isCollapsed) return;
+  const n = sel.anchorNode, el = (n && (n.nodeType===3 ? n.parentElement : n)).closest('.ce-t'); if(!el) return;
+  const i = Number(el.dataset.i), so = ceSelOffsets(el), txt = CE.lines[i]||'';
+  const trecho = txt.slice(so.s, so.e); if(!trecho) return;
+  let w;
+  if(tipo==='bold') w = '**'+trecho+'**';
+  else if(tipo==='italic') w = '//'+trecho+'//';
+  else if(tipo==='underline') w = '__'+trecho+'__';
+  else if(tipo==='color') w = '{{c'+cor+':'+trecho+'}}';
+  else return;
+  ceSnap();
+  CE.lines[i] = txt.slice(0, so.s) + w + txt.slice(so.e);
+  ceRender({focus:i, off:so.s + w.length});
+  const tb = document.getElementById('ceFmt'); if(tb) tb.classList.remove('on');
 }
+document.addEventListener('selectionchange', ()=>{
+  const tb = document.getElementById('ceFmt'); if(!tb) return;
+  const sel = window.getSelection(), body = document.getElementById('ceBody');
+  if(!sel || !sel.rangeCount || sel.isCollapsed || !body){ tb.classList.remove('on'); return; }
+  const n = sel.anchorNode, el = n && (n.nodeType===3 ? n.parentElement : n).closest ? (n.nodeType===3 ? n.parentElement : n).closest('.ce-t') : null;
+  if(!el || !body.contains(el) || !el.contains(sel.focusNode)){ tb.classList.remove('on'); return; }
+  const rc = sel.getRangeAt(0).getBoundingClientRect();
+  tb.classList.add('on');
+  tb.style.left = Math.max(8, Math.min(window.innerWidth - tb.offsetWidth - 8, rc.left + rc.width/2 - tb.offsetWidth/2)) + 'px';
+  tb.style.top = Math.max(64, rc.top - tb.offsetHeight - 8) + 'px';
+});
+document.addEventListener('keydown', (e)=>{
+  if((e.ctrlKey||e.metaKey) && (e.key==='s' || e.key==='S') && ceAtivo()){
+    e.preventDefault();
+    const f = document.getElementById('ceForm'); if(f && f.requestSubmit) f.requestSubmit();
+  }
+});
+
+function renderCifraEditor(app){
+  ceInit();
+  const d = state.draft;
+  const fontSizePx = (15.5*state.fontScale).toFixed(1);
+  app.innerHTML = `
+  <form id="ceForm" onsubmit="ceSalvar(event)">
+    <div class="ce-bar no-print">
+      <div class="ce-bar-in">
+        <button type="button" class="btn-ghost btn-small" onclick="ceCancelar()">Cancelar</button>
+        <span class="ce-bar-tit">${d.isNew?'Nova cifra':'Editando cifra'}</span>
+        <button type="button" class="btn-ghost btn-small" id="ceDesfazer" onclick="ceDesfazer()" ${CE.hist.length?'':'disabled'}>↶ Desfazer</button>
+        <button type="submit" class="btn">Salvar</button>
+      </div>
+    </div>
+    <div class="ce-page">
+      <div class="cifra-col ce-col">
+        <div class="viewer-title ce-title">
+          <input id="f_titulo" class="ce-in ce-in-tit" placeholder="Nome da música" value="${escapeHtml(d.titulo||'')}" oninput="state.draft.titulo=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('f_artista').focus();}">
+          <input id="f_artista" class="ce-in ce-in-art" placeholder="Artista ou banda" value="${escapeHtml(d.artista||'')}" oninput="state.draft.artista=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();}">
+        </div>
+        <details class="ce-detalhes" ${d.detAberto?'open':''} ontoggle="if(state.draft) state.draft.detAberto=this.open">
+          <summary>Detalhes da música (ritmos, vídeo, importar PDF)</summary>
+          <div class="ce-det-corpo">
+            ${draftRitmosHtml(d)}
+            ${draftYoutubeHtml(d)}
+            <div class="field">
+              <label>Importar de um PDF</label>
+              <div class="file-drop ${d.pdfData?'has-file':''}" onclick="document.getElementById('f_pdf').click()" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handlePdfDrop(event, this)">
+                ${d.pdfLoading? ICON_HOURGLASS+' Carregando arquivo…' : 'Clique para escolher ou arraste um PDF — o texto dele vira a cifra'}
+              </div>
+              <input type="file" id="f_pdf" accept="application/pdf" style="display:none" onchange="handlePdfFile(this)">
+            </div>
+          </div>
+        </details>
+        <div class="ce-dica no-print">Clique no texto para editar a letra. <b>Arraste os acordes</b> para os lados; duplo clique num acorde renomeia, e numa área vazia da linha de acordes cria um novo. O <b>♪</b> à esquerda de cada linha de letra adiciona acordes.</div>
+        <div class="cifra-body ce-body" id="ceBody" style="font-size:${fontSizePx}px" oninput="ceInput(event)" onkeydown="ceKeydown(event)" onpaste="cePaste(event)" onfocusout="ceFocusOut(event)" onpointerdown="cvDown(event)" ondblclick="ceDbl(event)">${ceBodyHtml()}</div>
+      </div>
+    </div>
+    <div id="ceFmt" class="ce-fmt no-print">
+      <button type="button" onmousedown="event.preventDefault()" onclick="ceFormat('bold')" title="Negrito"><b>B</b></button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="ceFormat('italic')" title="Itálico"><i>I</i></button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="ceFormat('underline')" title="Sublinhado"><u>S</u></button>
+      <span class="format-divider"></span>
+      ${FORMAT_COLORS.map((cor,i)=>`<button type="button" class="format-color" style="background:${cor}" onmousedown="event.preventDefault()" onclick="ceFormat('color', ${i+1})" title="Cor"></button>`).join('')}
+    </div>
+  </form>`;
+}
+// ==== EDITOR DA CIFRA NA PRÓPRIA TELA (fim) ====
+
 function checkFormatSelection(){
   const ta = document.getElementById('f_texto');
   const toolbar = document.getElementById('formatToolbar');
@@ -12644,6 +12976,7 @@ function choosePdfAsOriginal(){
 function choosePdfAsText(){
   const m = state.pdfChoiceModal; if(!m) return;
   state.draft.corpo = m.texto;
+  CE.draft = null;                       // o editor relê o texto novo
   state.draft.fonte = 'texto';
   state.draft.pdfData = null;
   state.pdfChoiceModal = null;
@@ -12825,6 +13158,7 @@ async function submitDraft(ev){
   ev.preventDefault();
   logDebug('Salvar clicado');
   const btn = ev.target.querySelector('button[type="submit"]');
+  const btnTxt0 = btn ? btn.textContent : 'Salvar cifra';
   const setBtn = (txt, disabled)=>{ if(btn){ btn.textContent=txt; btn.disabled=!!disabled; } };
   try{
     const titulo = document.getElementById('f_titulo').value.trim();
@@ -12891,7 +13225,7 @@ async function submitDraft(ev){
       full = {id, titulo, artista, tom:'', ritmos, criadoEm, tipo:'pdf', pdfData:d.pdfData, pdfName:d.pdfName, memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, chordOverrides: d.chordOverrides||{}, capo:0, destinatarios, youtubeUrl, criadoPorAluno};
       meta = {id, titulo, artista, tom:'', ritmos, criadoEm, tipo:'pdf', memorizada: d.memorizada||false, tiradaDeOuvido: d.tiradaDeOuvido||false, dificuldade: d.dificuldade||0, capo:0, destinatarios, criadoPorAluno};
     } else {
-      const corpo = dedupeEchoedLyrics(document.getElementById('f_texto').value);
+      const corpo = (CE.draft===state.draft && ceAtivo()) ? draftCorpoAtual() : dedupeEchoedLyrics(draftCorpoAtual());   // o editor da tela já mostra o resultado final: não reescreve
       const tom = detectTomFromText(corpo);
       // O capotraste não é mais definido aqui — fica só no menu lateral da própria
       // cifra (rail-compact-row "Capotraste", chamando setCapo()), então preserva
@@ -12923,7 +13257,7 @@ async function submitDraft(ev){
     logDebug('ERRO: '+(err&&err.message?err.message:err));
     showToast('Ocorreu um erro inesperado ao salvar: ' + (err && err.message ? err.message : err), true);
   }finally{
-    setBtn('Salvar cifra', false);
+    setBtn(btnTxt0, false);
   }
 }
 async function deleteCifra(id, ev){
@@ -13673,6 +14007,7 @@ function syncDraftFieldsFromDom(){
   const tEl = document.getElementById('f_titulo'); if(tEl) state.draft.titulo = tEl.value;
   const aEl = document.getElementById('f_artista'); if(aEl) state.draft.artista = aEl.value;
   const cEl = document.getElementById('f_texto'); if(cEl) state.draft.corpo = cEl.value;
+  if(CE.draft===state.draft && ceAtivo()) state.draft.corpo = ceTexto();
   const ritmoChks = document.querySelectorAll('.ritmo-chk');
   if(ritmoChks.length) state.draft.ritmos = Array.from(document.querySelectorAll('.ritmo-chk:checked')).map(el=>el.value);
   const outroChk = document.getElementById('ritmoOutroChk');
@@ -14109,7 +14444,9 @@ function renderApp(){
   const app = document.getElementById('app');
   if(!state.loaded){ app.innerHTML = `<div class="hint" style="padding:50px;text-align:center;">Carregando…</div>`; return; }
   if(!state.session && !state.professorMode && state.view!=='login' && state.view!=='professorArea'){ state.view = 'login'; }
-  app.classList.toggle('wide-view', state.view==='cifraViewer');
+  app.classList.toggle('wide-view', state.view==='cifraViewer' || ceAtivo());
+  app.classList.toggle('ce-modo', ceAtivo());
+  if(ceAtivo()){ renderCifraEditor(app); return; }
   app.classList.toggle('login-view', state.view==='login');
 
   // Play the card/row entrance animation only when the user actually navigates to a
@@ -15168,19 +15505,8 @@ function sectionEditModalHtml(){
     </div>
   </div>`;
 }
-function draftModalHtml(){
-  const d = state.draft;
-  if(!d) return '';
+function draftRitmosHtml(d){
   return `
-  <div class="modal-bg" onclick="if(event.target===this) closeDraft()">
-    <div class="modal">
-      <h3 style="margin-top:0;">${d.isNew?'Nova cifra':'Editar cifra'}</h3>
-      <form onsubmit="submitDraft(event)">
-        <div class="row2">
-          <div class="field"><label>Nome da música</label><input id="f_titulo" value="${escapeHtml(d.titulo||'')}" oninput="state.draft.titulo=this.value"></div>
-          <div class="field"><label>Artista ou banda</label><input id="f_artista" value="${escapeHtml(d.artista||'')}" oninput="state.draft.artista=this.value"></div>
-        </div>
-
         <div class="field">
           <label>Ritmo(s)</label>
           <div class="ritmo-dropdown">
@@ -15202,6 +15528,33 @@ function draftModalHtml(){
             </div>
           </div>
         </div>
+  `;
+}
+function draftYoutubeHtml(d){
+  return `
+        ${state.professorMode ? `
+        <div class="field">
+          <label>Vídeo do YouTube (opcional)</label>
+          <input id="f_youtube" type="url" placeholder="Cole aqui o link do vídeo no YouTube" value="${escapeHtml(d.youtubeUrl||'')}" oninput="updateYoutubePreview(this.value)">
+          <div class="hint">Se você adicionar um link, o vídeo aparece de forma flutuante para o aluno enquanto ele estuda essa música. Deixe em branco para não mostrar nenhum vídeo.</div>
+          <div class="yt-preview-box" id="ytPreviewBox">${ytPreviewBoxHtml(d.youtubeUrl)}</div>
+        </div>` : ''}
+  `;
+}
+function draftModalHtml(){
+  const d = state.draft;
+  if(!d || ceAtivo()) return '';
+  return `
+  <div class="modal-bg" onclick="if(event.target===this) closeDraft()">
+    <div class="modal">
+      <h3 style="margin-top:0;">${d.isNew?'Nova cifra':'Editar cifra'}</h3>
+      <form onsubmit="submitDraft(event)">
+        <div class="row2">
+          <div class="field"><label>Nome da música</label><input id="f_titulo" value="${escapeHtml(d.titulo||'')}" oninput="state.draft.titulo=this.value"></div>
+          <div class="field"><label>Artista ou banda</label><input id="f_artista" value="${escapeHtml(d.artista||'')}" oninput="state.draft.artista=this.value"></div>
+        </div>
+
+        ${draftRitmosHtml(d)}
 
                 <label>Fonte da cifra</label>
         <div class="source-toggle">
@@ -15209,28 +15562,6 @@ function draftModalHtml(){
           <button type="button" class="${d.fonte==='pdf'?'active':''}" onclick="setFonte('pdf')">${ICON_FILE} Upload de PDF</button>
         </div>
 
-        ${d.fonte==='texto' ? `
-        <div class="field">
-          <label>Cifra (letra + acordes)</label>
-          <div class="cv-modos"><div class="seg-toggle">
-            <button type="button" class="${d.modoVisual?'':'active'}" onclick="setCifraModo(false)">Texto</button>
-            <button type="button" class="${d.modoVisual?'active':''}" onclick="setCifraModo(true)">↔ Mover acordes</button>
-          </div></div>
-          ${d.modoVisual ? `<div class="cifra-body cv-body" id="cvBody" onpointerdown="cvDown(event)" onkeydown="cvKey(event)">${cifraVisualHtml(d.corpo||'')}</div>
-          <div class="hint">Clique num acorde e arraste para os lados — ele anda sobre a letra, sem precisar digitar espaços. Com o acorde selecionado (clique ou Tab), as setas ← → também movem. Para editar a letra, volte para "Texto".</div>` : ''}
-          <div style="position:relative;${d.modoVisual?'display:none;':''}">
-            <div id="formatToolbar" class="format-toolbar">
-              <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Negrito"><b>B</b></button>
-              <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Itálico"><i>I</i></button>
-              <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Sublinhado"><u>S</u></button>
-              <span class="format-divider"></span>
-              ${FORMAT_COLORS.map((color,i)=>`<button type="button" class="format-color" style="background:${color}" onmousedown="event.preventDefault()" onclick="applyFormat('color', ${i+1})" title="Cor"></button>`).join('')}
-            </div>
-            <textarea id="f_texto" rows="14" onmouseup="checkFormatSelection()" onkeyup="checkFormatSelection()" onselect="checkFormatSelection()" placeholder="Cole ou digite a cifra aqui, com a linha de acordes exatamente acima da letra, como no CifraClub.">${escapeHtml(d.corpo||'')}</textarea>
-          </div>
-          <div class="hint"${d.modoVisual?' style="display:none"':''}>A cifra aparece na tela exatamente como está escrita aqui — cada espaço na frente de um acorde é respeitado. Para mover os acordes com o mouse, use "Mover acordes" acima. Selecione um trecho da letra para negrito, itálico, sublinhado ou cor.</div>
-        </div>
-        ` : `
         <div class="field">
           <label>Arquivo PDF</label>
           <div class="file-drop ${d.pdfData?'has-file':''}" onclick="document.getElementById('f_pdf').click()" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handlePdfDrop(event, this)">
@@ -15239,16 +15570,8 @@ function draftModalHtml(){
           <input type="file" id="f_pdf" accept="application/pdf" style="display:none" onchange="handlePdfFile(this)">
           <div class="hint">Tamanho máximo: cerca de ${Math.round(maxPdfBytes()/1024/1024)}MB. O PDF é convertido automaticamente em cifra de texto (com tom e diagramas) — revise o resultado antes de salvar. Se o PDF for uma imagem escaneada, ele fica salvo como arquivo, sem essas opções.</div>
         </div>
-        `}
 
-        ${state.professorMode ? `
-        <div class="field">
-          <label>Vídeo do YouTube (opcional)</label>
-          <input id="f_youtube" type="url" placeholder="Cole aqui o link do vídeo no YouTube" value="${escapeHtml(d.youtubeUrl||'')}" oninput="updateYoutubePreview(this.value)">
-          <div class="hint">Se você adicionar um link, o vídeo aparece de forma flutuante para o aluno enquanto ele estuda essa música. Deixe em branco para não mostrar nenhum vídeo.</div>
-          <div class="yt-preview-box" id="ytPreviewBox">${ytPreviewBoxHtml(d.youtubeUrl)}</div>
-        </div>
-        ` : ''}
+        ${draftYoutubeHtml(d)}
 
         <div class="form-actions">
           <button type="button" class="btn-ghost" onclick="closeDraft()">Cancelar</button>
