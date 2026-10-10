@@ -705,11 +705,20 @@
   .ce-t{outline:none;min-height:1.5em;caret-color:var(--accent);border-radius:4px;}
   .ce-t:focus{background:color-mix(in srgb,var(--accent) 7%,transparent);}
   .ce-vazia{min-height:1.2em;}
+  .cv-modos{margin:2px 0 10px;}
+  .cv-body{padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--pill-bg);max-height:70vh;overflow:auto;user-select:none;-webkit-user-select:none;}
+  .cv-body .cv-chip{cursor:grab;touch-action:none;outline:none;}
+  .cv-body .cv-chip:active{cursor:grabbing;}
+  .cv-body .cv-outro{color:var(--muted);}
+  .cv-body .cv-vazia{height:.9em;overflow:hidden;}
   .ce-acordes{min-height:1.5em;cursor:default;}
   .ce-body .cv-chip{cursor:grab;border-radius:0;touch-action:none;outline:none;background:none;user-select:none;-webkit-user-select:none;}
   .ce-body .cv-chip:hover,.ce-body .cv-chip:focus,.ce-body .cv-chip:focus-visible{background:none;box-shadow:none;}
   .ce-body .cv-chip:active{cursor:grabbing;}
-  .ce-body .cv-chip[data-edit]{cursor:text;user-select:text;-webkit-user-select:text;border-bottom:2px solid var(--accent);}
+  .ce-cbox{position:fixed;z-index:500;}
+  .ce-cbox-in{width:100%;box-sizing:border-box;padding:8px 11px;border-radius:10px;border:2px solid var(--accent);background:var(--bg-panel);color:var(--text);font:600 14px 'Montserrat',sans-serif;outline:none;box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  .ce-cbox .dict-suggest{max-height:230px;}
+  .ce-cbox.acima .dict-suggest{top:auto;bottom:calc(100% + 6px);}
   .ce-body .cv-outro{color:var(--muted);}
   .ce-fmt{position:fixed;z-index:70;display:none;align-items:center;gap:4px;background:var(--bg-panel);border-radius:10px;padding:6px 8px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
   .ce-fmt.on{display:flex;}
@@ -12451,7 +12460,7 @@ document.addEventListener('touchstart', function(e){
 // acordes em cima da letra, posição = espaços), guardado em CE.lines e salvo por submitDraft().
 const CE_EDIT = (()=>{ try{ const d = document.createElement('div'); d.contentEditable = 'plaintext-only'; return d.contentEditable==='plaintext-only' ? 'plaintext-only' : 'true'; }catch(e){ return 'true'; } })();
 const CE = {draft:null, lines:[], hist:[], redo:[], sig0:'', digitando:false, tDig:null};
-function ceAtivo(){ return !!(state.draft && state.draft.fonte==='texto' && state.loaded && state.view!=='login'); }
+function ceAtivo(){ return !!(state.draft && !state.draft.isNew && state.draft.fonte==='texto' && state.loaded && state.view!=='login'); }
 function ceInit(){
   if(CE.draft === state.draft) return;
   CE.draft = state.draft;
@@ -12525,7 +12534,7 @@ function ceRender(o){
   }
   if(o.chip){
     const c = b.querySelector(`.ce-acordes[data-i="${o.chip.i}"] .cv-chip[data-k="${o.chip.k}"]`);
-    if(c){ if(o.chip.rename) ceRenomear(c, o.chip.novo); else c.focus(); }
+    if(c) c.focus({preventScroll:true});
   }
 }
 function ceSetCaret(el, off){
@@ -12557,7 +12566,6 @@ function ceInput(e){
 }
 function ceFocusOut(e){
   const t = e.target;
-  if(t.classList && t.classList.contains('cv-chip') && t.dataset.edit){ ceFimRenomear(t); return; }
   if(t.closest && t.closest('.ce-t')) setTimeout(ceReclassifica, 0);
 }
 // Linha digitada que agora é uma linha de acordes (ou deixou de ser): redesenha, mantendo o cursor onde o usuário clicou.
@@ -12587,11 +12595,6 @@ function ceKeydown(e){
   const t = e.target;
   // --- acordes
   if(t.classList && t.classList.contains('cv-chip')){
-    if(t.dataset.edit){
-      if(e.key==='Enter'){ e.preventDefault(); t.blur(); }
-      else if(e.key==='Escape'){ e.preventDefault(); t.dataset.cancel = '1'; t.blur(); }
-      return;
-    }
     const linha = t.closest('.ce-acordes'); if(!linha) return;
     const i = Number(linha.dataset.i), k = Number(t.dataset.k);
     if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
@@ -12605,7 +12608,7 @@ function ceKeydown(e){
     } else if(e.key==='Delete' || e.key==='Backspace'){
       e.preventDefault(); ceRemoveChip(i, k);
     } else if(e.key==='Enter' || e.key==='F2'){
-      e.preventDefault(); ceRenomear(t, false);
+      e.preventDefault(); ceRenomear(t);
     }
     return;
   }
@@ -12687,56 +12690,177 @@ function ceRemoveChip(i, k){
 }
 function ceRemoveLine(i){ ceSnap(); CE.lines.splice(i,1); ceRender(); }
 function ceAddChordAbove(i){
-  ceSnap();
-  if(i>0 && ceKind(CE.lines[i-1])==='c'){
-    const toks = cvTokens(CE.lines[i-1]); toks.push({gap:4, txt:'C'});
-    ceSetTokens(i-1, toks);
-    ceRender({chip:{i:i-1, k:toks.length-1, rename:true, novo:true}});
-  } else {
-    CE.lines.splice(i, 0, 'C');
-    ceRender({chip:{i, k:0, rename:true, novo:true}});
+  const el = document.querySelector(`#ceBody .ce-t[data-i="${i}"]`); if(!el) return;
+  const r = el.getBoundingClientRect();
+  let x = r.left;
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount){
+    const rg = sel.getRangeAt(0), rc = rg.getClientRects()[0] || rg.getBoundingClientRect();
+    if(rc && (rc.width || rc.height) && el.contains(rg.startContainer)) x = rc.left;
   }
+  ceBoxAbrir({ancora:{x, top:r.top, bottom:r.bottom}, valor:'', onOk:(txt)=>{
+    if(!txt) return ceFocaLetra(i);
+    if(i>0 && ceKind(CE.lines[i-1])==='c'){ ceInserirAcordeX(i-1, x, txt); return; }
+    const gap = Math.max(0, Math.round((x - r.left) / ceLarguraEspaco(el)));
+    ceSnap();
+    CE.lines.splice(i, 0, ' '.repeat(gap) + txt);
+    ceRender({chip:{i, k:0}});
+  }, onCancel:()=>ceFocaLetra(i)});
 }
-function ceAddChordAt(linha, x){
-  const i = Number(linha.dataset.i), toks = cvTokens(CE.lines[i]||''); if(!toks.length) return;
-  const chips = [...linha.querySelectorAll('.cv-chip')], sw = cvLarguraEspaco(linha), esq = linha.getBoundingClientRect().left;
-  let k = -1; chips.forEach((c,j)=>{ if(c.getBoundingClientRect().right <= x) k = j; });
+function ceFocaLetra(i){
+  const el = document.querySelector(`#ceBody .ce-t[data-i="${i}"]`);
+  if(el){ el.focus(); ceSetCaret(el, el.textContent.length); }
+}
+// largura de um espaço (em px) na fonte do elemento
+function ceLarguraEspaco(ref){
+  const cs = getComputedStyle(ref);
+  const pr = document.createElement('span');
+  pr.style.cssText = `white-space:pre;position:fixed;left:-9999px;top:0;visibility:hidden;font:${cs.font};letter-spacing:${cs.letterSpacing};`;
+  pr.textContent = ' '.repeat(40); document.body.appendChild(pr);
+  const w = pr.getBoundingClientRect().width / 40; pr.remove();
+  return w > 0 ? w : 4;
+}
+// cria um acorde na linha de acordes i, na posição horizontal x (px da tela)
+function ceInserirAcordeX(i, x, txt){
+  const linha = document.querySelector(`#ceBody .ce-acordes[data-i="${i}"]`); if(!linha) return;
+  const toks = cvTokens(CE.lines[i]||''); if(!toks.length) return;
+  const chips = [...linha.querySelectorAll('.cv-chip')], sw = ceLarguraEspaco(linha), esq = linha.getBoundingClientRect().left;
+  let k = -1; chips.forEach((c,j)=>{ if(c.getBoundingClientRect().left <= x) k = j; });
   let gap;
   if(k===-1) gap = Math.max(0, Math.round((x - esq)/sw));
   else gap = Math.max(1, Math.round((x - chips[k].getBoundingClientRect().right)/sw));
   const prox = toks[k+1];
-  if(prox) prox.gap = Math.max(1, prox.gap - gap - 2);
-  toks.splice(k+1, 0, {gap, txt:'C'});
+  if(prox) prox.gap = Math.max(1, prox.gap - gap - Math.round(txt.length*2.1));
+  toks.splice(k+1, 0, {gap, txt});
   ceSnap(); ceSetTokens(i, toks);
-  ceRender({chip:{i, k:k+1, rename:true, novo:true}});
+  ceRender({chip:{i, k:k+1}});
 }
-function ceRenomear(chip, novo){
-  chip.dataset.edit = '1'; if(novo) chip.dataset.novo = '1';
-  chip.contentEditable = CE_EDIT;
-  chip.focus();
-  const r = document.createRange(); r.selectNodeContents(chip);
-  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+// duplo clique numa área vazia da linha de acordes: caixinha para digitar o novo acorde
+function ceAddChordAt(linha, x){
+  const i = Number(linha.dataset.i); if(!(cvTokens(CE.lines[i]||'')).length) return;
+  const r = linha.getBoundingClientRect();
+  ceBoxAbrir({ancora:{x, top:r.top, bottom:r.bottom}, valor:'', onOk:(txt)=>{ if(txt) ceInserirAcordeX(i, x, txt); }});
 }
-function ceFimRenomear(chip){
+// duplo clique num acorde: caixinha com o nome atual
+function ceRenomear(chip){
   const linha = chip.closest('.ce-acordes'); if(!linha) return;
   const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
   const toks = cvTokens(CE.lines[i]||''); if(!toks[k]) return;
-  const txt = chip.textContent.replace(/\s+/g,''), cancelou = !!chip.dataset.cancel, novo = !!chip.dataset.novo;
-  delete chip.dataset.edit; delete chip.dataset.cancel; delete chip.dataset.novo;
-  chip.removeAttribute('contenteditable');
-  if(cancelou && novo || (!txt && !cancelou)){ ceRemoveChip(i, k); return; }
-  if(cancelou || txt===toks[k].txt){ ceRender({chip:{i,k}}); return; }
-  if(!novo) ceSnap();
-  const delta = Math.round((txt.length - toks[k].txt.length)*2.1);
-  toks[k].txt = txt;
-  if(toks[k+1]) toks[k+1].gap = Math.max(1, toks[k+1].gap - delta);
-  ceSetTokens(i, toks);
-  ceRender({chip:{i,k}});
+  const r = chip.getBoundingClientRect();
+  const volta = ()=>{ const c = document.querySelector(`#ceBody .ce-acordes[data-i="${i}"] .cv-chip[data-k="${k}"]`); if(c) c.focus({preventScroll:true}); };
+  ceBoxAbrir({ancora:{x:r.left, top:r.top, bottom:r.bottom}, valor:toks[k].txt, onOk:(txt)=>{
+    const t2 = cvTokens(CE.lines[i]||'');
+    if(!t2[k] || !txt || txt===t2[k].txt){ volta(); return; }
+    ceSnap();
+    const delta = Math.round((txt.length - t2[k].txt.length)*2.1);
+    t2[k].txt = txt;
+    if(t2[k+1]) t2[k+1].gap = Math.max(1, t2[k+1].gap - delta);
+    ceSetTokens(i, t2);
+    ceRender({chip:{i,k}});
+  }, onCancel:volta});
+}
+
+// ---- caixinha para digitar o acorde, com sugestões (as mesmas do Dicionário de Acordes) ----
+let CEBOX = null;
+function ceBoxFechar(){
+  if(!CEBOX) return;
+  const B = CEBOX; CEBOX = null; B.el.remove();
+}
+function ceBoxAbrir(o){
+  ceMenuFechar(); ceBoxFechar();
+  const el = document.createElement('div'); el.className = 'ce-cbox'; el.id = 'ceCBox';
+  el.innerHTML = '<input type="text" class="ce-cbox-in" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" placeholder="Digite o acorde (ex: Am7)"><div class="dict-suggest ce-cbox-lista" hidden></div>';
+  document.body.appendChild(el);
+  const inp = el.querySelector('input'), lista = el.querySelector('.ce-cbox-lista');
+  const a = o.ancora, W = 210, vw = window.innerWidth, vh = window.innerHeight;
+  el.style.width = W + 'px';
+  el.style.left = Math.max(8, Math.min(vw - W - 8, a.x - 24)) + 'px';
+  const acima = (a.bottom + 50 + 230 > vh) && (a.top > 280);
+  if(acima){ el.classList.add('acima'); el.style.top = Math.max(8, a.top - 46) + 'px'; }
+  else el.style.top = Math.min(vh - 50, a.bottom + 4) + 'px';
+  CEBOX = {el, inp, lista, idx:-1, itens:[], o};
+  inp.value = o.valor || '';
+  inp.addEventListener('input', ()=>{ CEBOX.idx = -1; ceBoxSugere(); });
+  inp.addEventListener('keydown', ceBoxKey);
+  inp.addEventListener('blur', ()=>{ setTimeout(()=>{ if(CEBOX && CEBOX.inp===inp) ceBoxFim(false); }, 0); });
+  lista.addEventListener('mousedown', (ev)=> ev.preventDefault());
+  lista.addEventListener('click', (ev)=>{ const b = ev.target.closest('.dict-suggest-item'); if(b) ceBoxFim(false, b.dataset.n); });
+  inp.focus(); inp.select();
+  if(inp.value) ceBoxSugere();
+}
+function ceBoxSugere(){
+  const B = CEBOX; if(!B) return;
+  B.itens = dictSuggestions(B.inp.value);
+  if(!B.itens.length){ B.lista.hidden = true; B.lista.innerHTML = ''; return; }
+  B.lista.hidden = false;
+  B.lista.innerHTML = B.itens.map((n,i)=> `<button type="button" tabindex="-1" data-n="${escapeHtml(n)}" class="dict-suggest-item${i===B.idx?' active':''}">${escapeHtml(n)}</button>`).join('');
+}
+function ceBoxKey(e){
+  const B = CEBOX; if(!B) return;
+  e.stopPropagation();
+  if(e.key==='ArrowDown' || e.key==='ArrowUp'){
+    if(!B.itens.length) return;
+    e.preventDefault();
+    const n = B.itens.length, d = e.key==='ArrowDown' ? 1 : -1;
+    B.idx = B.idx<0 ? (d>0 ? 0 : n-1) : (B.idx + d + n) % n;
+    ceBoxSugere();
+    const it = B.lista.querySelector('.dict-suggest-item.active'); if(it && it.scrollIntoView) it.scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter' || e.key==='Tab'){
+    e.preventDefault(); ceBoxFim(false);
+  } else if(e.key==='Escape'){
+    e.preventDefault(); ceBoxFim(true);
+  }
+}
+function ceBoxFim(cancelar, escolhido){
+  const B = CEBOX; if(!B) return;
+  let txt = '';
+  if(!cancelar){
+    if(escolhido) txt = escolhido;
+    else if(B.idx>=0 && B.itens[B.idx]) txt = B.itens[B.idx];
+    else {
+      txt = B.inp.value.replace(/\s+/g,'');
+      const n = dictNormalizeQuery(txt);
+      if(txt){ if(parseChord(n)) txt = n; else if(B.itens[0]) txt = B.itens[0]; }
+    }
+  }
+  CEBOX = null; B.el.remove();
+  if(cancelar){ if(B.o.onCancel) B.o.onCancel(); return; }
+  B.o.onOk(txt);
+}
+
+// ---- botão direito num acorde: excluir ----
+function ceMenuFechar(){
+  const m = document.getElementById('ceCtx'); if(m) m.remove();
+  document.removeEventListener('mousedown', ceMenuFora, true);
+  document.removeEventListener('keydown', ceMenuTecla, true);
+  window.removeEventListener('scroll', ceMenuFechar, true);
+  window.removeEventListener('resize', ceMenuFechar);
+}
+function ceMenuFora(e){ if(!e.target.closest || !e.target.closest('#ceCtx')) ceMenuFechar(); }
+function ceMenuTecla(e){ if(e.key==='Escape'){ e.preventDefault(); ceMenuFechar(); } }
+function ceCtx(e){
+  const sob = document.elementFromPoint(e.clientX, e.clientY);
+  const chip = sob && sob.closest && sob.closest('.cv-chip');
+  const linha = chip && chip.closest('.ce-acordes');
+  if(!linha) return;                                   // fora de um acorde: menu normal do navegador
+  e.preventDefault();
+  const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
+  ceBoxFechar(); ceMenuFechar();
+  const m = document.createElement('div'); m.className = 'ctx-menu'; m.id = 'ceCtx';
+  m.innerHTML = '<button type="button" class="ctx-menu-danger">✕ Excluir acorde</button>';
+  m.style.left = Math.max(8, Math.min(window.innerWidth - 210, e.clientX)) + 'px';
+  m.style.top = Math.max(8, Math.min(window.innerHeight - 56, e.clientY)) + 'px';
+  document.body.appendChild(m);
+  m.querySelector('button').addEventListener('click', ()=>{ ceMenuFechar(); ceRemoveChip(i, k); });
+  document.addEventListener('mousedown', ceMenuFora, true);
+  document.addEventListener('keydown', ceMenuTecla, true);
+  window.addEventListener('scroll', ceMenuFechar, true);
+  window.addEventListener('resize', ceMenuFechar);
 }
 function ceDbl(e){
   const sob = document.elementFromPoint(e.clientX, e.clientY);     // o arraste "captura" o ponteiro na linha: o alvo do evento não é o acorde
   const chip = sob && sob.closest && sob.closest('.cv-chip');
-  if(chip){ e.preventDefault(); if(!chip.dataset.edit) ceRenomear(chip, false); return; }
+  if(chip){ e.preventDefault(); ceRenomear(chip); return; }
   const linha = e.target.closest && e.target.closest('.ce-acordes');
   if(linha){ e.preventDefault(); ceAddChordAt(linha, e.clientX); }
 }
@@ -12744,7 +12868,8 @@ function ceDbl(e){
 // ---- arrastar acordes ----
 let CVDRAG = null;
 function cvDown(e){
-  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip || chip.dataset.edit) return;
+  if(e.button!==undefined && e.button!==0) return;
+  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip) return;
   const linha = chip.closest('.ce-acordes'); if(!linha) return;
   const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
   const toks = cvTokens(CE.lines[i]||''); if(!toks[k]) return;
@@ -12812,7 +12937,7 @@ document.addEventListener('keydown', (e)=>{
   }
   if(k!=='z' && k!=='y') return;
   const t = e.target, tag = t && t.tagName;
-  if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || (t && t.dataset && t.dataset.edit)) return;   // título/artista/vídeo e renomear acorde: desfazer do próprio navegador
+  if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT') return;   // título/artista/vídeo e caixinha do acorde: desfazer do próprio navegador
   e.preventDefault();
   if(k==='y' || e.shiftKey) ceRefazer(); else ceDesfazer();
 });
@@ -12852,8 +12977,8 @@ function renderCifraEditor(app){
             </div>
           </div>
         </details>
-        <div class="ce-dica no-print">Clique no texto para editar a letra. <b>Arraste os acordes</b> para os lados; duplo clique num acorde renomeia, e numa área vazia da linha de acordes cria um novo. Para criar acordes numa linha de letra, clique nela e use <b>Ctrl+Enter</b>.</div>
-        <div class="cifra-body ce-body" id="ceBody" style="font-size:${fontSizePx}px" oninput="ceInput(event)" onkeydown="ceKeydown(event)" onpaste="cePaste(event)" onfocusout="ceFocusOut(event)" onpointerdown="cvDown(event)" ondblclick="ceDbl(event)">${ceBodyHtml()}</div>
+        <div class="ce-dica no-print">Clique no texto para editar a letra. <b>Arraste os acordes</b> para os lados; duplo clique num acorde renomeia, e numa área vazia da linha de acordes cria um novo (uma caixinha com sugestões abre para você digitar). Botão direito num acorde: excluir. Para criar acordes numa linha de letra, clique nela e use <b>Ctrl+Enter</b>.</div>
+        <div class="cifra-body ce-body" id="ceBody" style="font-size:${fontSizePx}px" oninput="ceInput(event)" onkeydown="ceKeydown(event)" onpaste="cePaste(event)" onfocusout="ceFocusOut(event)" onpointerdown="cvDown(event)" ondblclick="ceDbl(event)" oncontextmenu="ceCtx(event)">${ceBodyHtml()}</div>
       </div>
     </div>
     <div id="ceFmt" class="ce-fmt no-print">
@@ -12866,6 +12991,72 @@ function renderCifraEditor(app){
   </form>`;
 }
 // ==== EDITOR DA CIFRA NA PRÓPRIA TELA (fim) ====
+
+// ==== Modal "Nova cifra": modo "Mover acordes" (restaurado) ====
+// Os acordes são arrastados na pré-visualização e os espaços são recalculados e gravados de volta no campo "Texto".
+function setCifraModo(vis){
+  if(!state.draft) return;
+  const ta = document.getElementById('f_texto'); if(ta) state.draft.corpo = ta.value;
+  state.draft.modoVisual = !!vis;
+  render();
+}
+function cifraVisualHtml(corpo){
+  return String(corpo||'').split('\n').map((line, i)=>{
+    if(line.trim()==='') return `<div class="cifra-line cv-vazia">&nbsp;</div>`;
+    if(isSectionLine(line)) return `<div class="cifra-line"><span class="section-line">${escapeHtml(line)}</span></div>`;
+    if(isChordLine(line)) return `<div class="cifra-line cv-acordes" data-i="${i}">${cvLinhaHtml(cvTokens(line))}</div>`;
+    return `<div class="cifra-line">${applyInlineFormatting(line)}</div>`;
+  }).join('');
+}
+function mdGravaLinha(i, toks, gaps){
+  const ta = document.getElementById('f_texto'); if(!ta) return;
+  const linhas = ta.value.split('\n');
+  linhas[i] = toks.map((t,k)=> ' '.repeat(gaps[k]) + t.txt).join('');
+  ta.value = linhas.join('\n');
+  if(state.draft) state.draft.corpo = ta.value;
+}
+let MDDRAG = null;
+function mdDown(e){
+  if(e.button!==undefined && e.button!==0) return;
+  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip) return;
+  const linha = chip.closest('.cv-acordes'); if(!linha) return;
+  const ta = document.getElementById('f_texto'); if(!ta) return;
+  const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
+  const toks = cvTokens(ta.value.split('\n')[i] || '');
+  if(!toks[k]) return;
+  e.preventDefault();
+  chip.focus({preventScroll:true});
+  try{ linha.setPointerCapture(e.pointerId); }catch(er){}
+  MDDRAG = {i, k, toks, linha, x0: e.clientX, g0: toks.map(t=>t.gap), sw: cvLarguraEspaco(linha), ult: 0, id: e.pointerId};
+  linha.onpointermove = mdMove; linha.onpointerup = linha.onpointercancel = mdUp;
+}
+function mdMove(e){
+  const D = MDDRAG; if(!D || e.pointerId !== D.id) return;
+  const delta = Math.round((e.clientX - D.x0) / D.sw);
+  if(delta === D.ult) return;
+  D.ult = delta;
+  const g = cvMover(D.g0, D.k, delta);
+  D.linha.innerHTML = cvLinhaHtml(D.toks.map((t,j)=>({gap:g[j], txt:t.txt})));
+  mdGravaLinha(D.i, D.toks, g);
+}
+function mdUp(e){
+  const D = MDDRAG; if(!D) return;
+  MDDRAG = null;
+  D.linha.onpointermove = D.linha.onpointerup = D.linha.onpointercancel = null;
+  try{ D.linha.releasePointerCapture(D.id); }catch(er){}
+}
+function mdKey(e){
+  if(e.key!=='ArrowLeft' && e.key!=='ArrowRight') return;
+  const chip = e.target.closest && e.target.closest('.cv-chip'); if(!chip) return;
+  const linha = chip.closest('.cv-acordes'); const ta = document.getElementById('f_texto'); if(!linha || !ta) return;
+  e.preventDefault();
+  const i = Number(linha.dataset.i), k = Number(chip.dataset.k);
+  const toks = cvTokens(ta.value.split('\n')[i] || ''); if(!toks[k]) return;
+  const g = cvMover(toks.map(t=>t.gap), k, (e.key==='ArrowLeft' ? -1 : 1) * (e.shiftKey ? 4 : 1));
+  linha.innerHTML = cvLinhaHtml(toks.map((t,j)=>({gap:g[j], txt:t.txt})));
+  mdGravaLinha(i, toks, g);
+  const novo = linha.querySelector(`.cv-chip[data-k="${k}"]`); if(novo) novo.focus();
+}
 
 function checkFormatSelection(){
   const ta = document.getElementById('f_texto');
@@ -15589,6 +15780,28 @@ function draftModalHtml(){
           <button type="button" class="${d.fonte==='pdf'?'active':''}" onclick="setFonte('pdf')">${ICON_FILE} Upload de PDF</button>
         </div>
 
+        ${d.fonte==='texto' ? `
+        <div class="field">
+          <label>Cifra (letra + acordes)</label>
+          <div class="cv-modos"><div class="seg-toggle">
+            <button type="button" class="${d.modoVisual?'':'active'}" onclick="setCifraModo(false)">Texto</button>
+            <button type="button" class="${d.modoVisual?'active':''}" onclick="setCifraModo(true)">↔ Mover acordes</button>
+          </div></div>
+          ${d.modoVisual ? `<div class="cifra-body cv-body" id="cvBody" onpointerdown="mdDown(event)" onkeydown="mdKey(event)">${cifraVisualHtml(d.corpo||'')}</div>
+          <div class="hint">Clique num acorde e arraste para os lados — ele anda sobre a letra, sem precisar digitar espaços. Com o acorde selecionado (clique ou Tab), as setas ← → também movem. Para editar a letra, volte para "Texto".</div>` : ''}
+          <div style="position:relative;${d.modoVisual?'display:none;':''}">
+            <div id="formatToolbar" class="format-toolbar">
+              <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Negrito"><b>B</b></button>
+              <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Itálico"><i>I</i></button>
+              <button type="button" onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Sublinhado"><u>S</u></button>
+              <span class="format-divider"></span>
+              ${FORMAT_COLORS.map((color,i)=>`<button type="button" class="format-color" style="background:${color}" onmousedown="event.preventDefault()" onclick="applyFormat('color', ${i+1})" title="Cor"></button>`).join('')}
+            </div>
+            <textarea id="f_texto" rows="14" onmouseup="checkFormatSelection()" onkeyup="checkFormatSelection()" onselect="checkFormatSelection()" placeholder="Cole ou digite a cifra aqui, com a linha de acordes exatamente acima da letra, como no CifraClub.">${escapeHtml(d.corpo||'')}</textarea>
+          </div>
+          <div class="hint"${d.modoVisual?' style="display:none"':''}>A cifra aparece na tela exatamente como está escrita aqui — cada espaço na frente de um acorde é respeitado. Para mover os acordes com o mouse, use "Mover acordes" acima. Selecione um trecho da letra para negrito, itálico, sublinhado ou cor.</div>
+        </div>
+        ` : `
         <div class="field">
           <label>Arquivo PDF</label>
           <div class="file-drop ${d.pdfData?'has-file':''}" onclick="document.getElementById('f_pdf').click()" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handlePdfDrop(event, this)">
@@ -15597,6 +15810,7 @@ function draftModalHtml(){
           <input type="file" id="f_pdf" accept="application/pdf" style="display:none" onchange="handlePdfFile(this)">
           <div class="hint">Tamanho máximo: cerca de ${Math.round(maxPdfBytes()/1024/1024)}MB. O PDF é convertido automaticamente em cifra de texto (com tom e diagramas) — revise o resultado antes de salvar. Se o PDF for uma imagem escaneada, ele fica salvo como arquivo, sem essas opções.</div>
         </div>
+        `}
 
         ${draftYoutubeHtml(d)}
 
