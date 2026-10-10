@@ -2053,11 +2053,11 @@ function chordVoicings(rootPc, info, bassPc, maxPos){
       let mudasMeio = 0; for(let k=primeira;k<=ultima;k++) if(fr[k]==='x') mudasMeio++;
       if(mudasMeio > 1) return;
       const presas = tocadas.filter(k=>fr[k]>0);
-      let dedos = 0, pestana = null;
+      let dedos = 0, pestana = null, an = null;
       if(presas.length){
         const fs = presas.map(k=>fr[k]); const mx = Math.max(...fs);
         // [Rodada 117] só entra desenho que dá para tocar pelas regras dos dedos (analisaDedos)
-        const an = analisaDedos(fr); if(!an) return;
+        an = analisaDedos(fr); if(!an) return;
         pestana = an.barre; dedos = new Set(an.fingers.filter(Boolean)).size;
         // corda solta só junto de casas baixas (acorde aberto): solta + casa 7, 8… fica estranho de tocar
         if(mx > 4 && tocadas.some(k=>fr[k]===0)) return;
@@ -2073,8 +2073,12 @@ function chordVoicings(rootPc, info, bassPc, maxPos){
       nota -= dedos*0.4;
       if(fsP.length) nota -= (Math.max(...fsP) - mnP)*1.0; // abertura da mão
       // nota mais aguda sendo a tônica ou a 3ª fica mais "redonda"
+      // [Rodada 118] PONTUAÇÃO: 100 = formato tradicional (tríade/tétrade em cordas seguidas, "drop 3", pestanas CAGED) com um dedo por casa;
+      // 70 = digitação válida mas menos comum (dedo esticado, corda abafada no meio, saltos).
+      const seguidas = mudasMeio===0, drop3 = tocadas.length===4 && mudasMeio===1 && tocadas[1]===tocadas[0]+2 && tocadas[0]<=1;
+      const score = (!an || an.natural) && ((seguidas && tocadas.length>=3) || drop3) ? 100 : 70;
       const chave = fr.join(',');
-      if(!achados.has(chave)) achados.set(chave, {frets:fr, nota, pestana, pos:mnP});
+      if(!achados.has(chave)) achados.set(chave, {frets:fr, nota: score*100 + nota, pestana, pos:mnP, score});
     };
     dfs(0);
   }
@@ -2626,74 +2630,93 @@ const A_TEMPLATES = {
   // caía no shape de A maior por engano.
   'aug':   ['x',0,3,2,2,1],
 };
-// [Rodada 117] REGRAS DOS DEDOS (valem para todos os acordes do app):
-//  1) só o dedo 1 pode apertar mais de uma corda (pestana) e, mesmo assim, só dentro da MESMA casa;
-//  2) os dedos 2, 3 e 4 apertam uma corda cada, e cada dedo é usado uma única vez;
-//  3) o número do dedo cresce com a casa (dedo 1 na casa mais baixa, 4 na mais alta);
-//  4) a mão alcança no máximo 4 casas (da casa do dedo 1 até a do dedo 4), e o dedo N não vai além de (N-1) casas acima do dedo 1;
-//  5) pestana não passa por cima de corda solta.
-// analisaDedos devolve {fingers, barre} ou null quando o desenho não é possível de tocar com essas regras.
+// [Rodada 118] MOTOR DE DIGITAÇÃO — regras de biomecânica aplicadas a TODO acorde do app.
+// Um desenho que viole qualquer regra "dura" é descartado (nunca aparece para o aluno).
+//  1) ALCANCE: da casa mais grave à mais aguda pressionadas, no máximo 4 casas de diferença; com pestana, os outros dedos
+//     ficam a no máximo 3 casas dela; da casa 12 em diante o alcance cai para 3. Entre dois dedos seguintes (ex.: 3 e 4) no máximo 3 casas.
+//  2) ORDEM: o número do dedo cresce com a casa (1 na mais baixa… 4 na mais alta); sem cruzamento. O dedo 4 não fica na 6ª/5ª corda
+//     enquanto o 1 ou o 2 apertam cordas mais agudas em casas anteriores.
+//  3) PESTANA: só o dedo 1, na casa mais baixa, sobre cordas contíguas e todas tocadas (sem X nem corda solta no meio). Dedos 2, 3 e 4 = uma corda cada.
+//  4) Preferência (não é descarte): um dedo por casa (posição base). Dedo "esticado" fora disso rende nota menor no ranking.
+function checaDedos(frets, fingers){
+  const pres = []; frets.forEach((v,i)=>{ if(v!=='x' && v>0) pres.push({i, v, f:fingers[i]||0}); });
+  for(let i=0;i<frets.length;i++){ const v = frets[i]; if((v==='x' || v===0) && fingers[i]) return null; }
+  if(!pres.length) return {natural:true, barre:null};
+  if(pres.some(o=>!(o.f>=1 && o.f<=4))) return null;
+  const mn = Math.min(...pres.map(o=>o.v)), mx = Math.max(...pres.map(o=>o.v));
+  // --- pestana: dedo 1 em mais de uma corda
+  const um = pres.filter(o=>o.f===1);
+  let barre = null;
+  if(um.length>1){
+    if(um.some(o=>o.v!==um[0].v) || um[0].v!==mn) return null;
+    barre = mn;
+    for(let k=um[0].i; k<=um[um.length-1].i; k++){ const v = frets[k]; if(v==='x' || v===0 || v<mn) return null; }
+  }
+  // --- dedos 2,3,4: uma corda cada
+  for(let f=2; f<=4; f++) if(pres.filter(o=>o.f===f).length>1) return null;
+  // --- alcance
+  const dif = mx - mn;
+  let lim = barre!==null ? 3 : 4;
+  if(mx>=12) lim = Math.min(lim, 3);
+  if(dif > lim) return null;
+  // --- ordem anatômica: casa menor => dedo menor
+  for(const p of pres) for(const q of pres) if(p.v<q.v && !(p.f<q.f)) return null;
+  // --- entre dois dedos seguintes (na ordem 1,2,3,4) no máximo 3 casas
+  const usados = [1,2,3,4].filter(f=>pres.some(o=>o.f===f));
+  const casaDe = (f)=> Math.max(...pres.filter(o=>o.f===f).map(o=>o.v));
+  for(let k=1;k<usados.length;k++){ if(casaDe(usados[k]) - casaDe(usados[k-1]) > 3) return null; }
+  // --- dedo 4 nunca nas cordas 6/5 com dedo 1 ou 2 em cordas mais agudas, em casas anteriores
+  const d4 = pres.find(o=>o.f===4);
+  if(d4 && d4.i<=1 && pres.some(o=>(o.f===1 || o.f===2) && o.i>d4.i && o.v<d4.v)) return null;
+  // --- naturalidade: um dedo por casa (dedo N na casa mn+N-1 no máximo)
+  const natural = pres.every(o=> (o.v-mn) <= (o.f-1));
+  return {natural, barre};
+}
+// Escolhe a melhor digitação possível; null = o desenho é impossível pelas regras acima.
 function analisaDedos(frets){
   const pres = []; frets.forEach((v,i)=>{ if(v!=='x' && v>0) pres.push({i, v}); });
-  const fingers = frets.map(()=>null);
-  if(!pres.length) return {fingers, barre:null};
+  const vazio = frets.map(()=>null);
+  if(!pres.length) return {fingers:vazio, barre:null, natural:true, custo:0};
   const mn = Math.min(...pres.map(o=>o.v)), mx = Math.max(...pres.map(o=>o.v));
-  if(mx - mn > 3) return null;
-  const atMin = pres.filter(o=>o.v===mn);
-  let barreOk = false;
-  if(atMin.length>=2){
-    barreOk = true;
-    for(let k=atMin[0].i; k<=atMin[atMin.length-1].i; k++){ if(frets[k]===0){ barreOk = false; break; } }
-  }
-  const ordem = (x,y)=> x.v-y.v || x.i-y.i;
-  const atribui = (lista, ultimo)=>{
-    let prev = ultimo;
-    for(const o of lista.slice().sort(ordem)){
-      const f = Math.max(prev+1, o.v-mn+1);
-      if(f>4) return false;
-      fingers[o.i] = f; prev = f;
-    }
-    return true;
+  if(mx - mn > 4) return null;
+  const ordenadas = pres.slice().sort((x,y)=> x.v-y.v || x.i-y.i);
+  const atMin = ordenadas.filter(o=>o.v===mn);
+  let melhor = null;
+  const tenta = (fixos, livres, dedosLivres, vies)=>{
+    const usados = new Array(5).fill(false);
+    const cur = vazio.slice();
+    fixos.forEach(o=>{ cur[o.i] = 1; });
+    const rec = (k)=>{
+      if(k===livres.length){
+        const r = checaDedos(frets, cur); if(!r) return;
+        let custo = vies + (r.natural ? 0 : 1000);
+        pres.forEach(o=>{ custo += Math.abs(cur[o.i] - (o.v-mn+1)); });
+        if(!melhor || custo < melhor.custo) melhor = {fingers:cur.slice(), barre:r.barre, natural:r.natural, custo};
+        return;
+      }
+      for(const f of dedosLivres){
+        if(usados[f]) continue;
+        usados[f] = true; cur[livres[k].i] = f;
+        rec(k+1);
+        usados[f] = false; cur[livres[k].i] = null;
+      }
+    };
+    if(livres.length>dedosLivres.length) return;
+    rec(0);
   };
-  const individual = ()=> atribui(pres, 0);
-  const comPestana = ()=>{
-    atMin.forEach(o=>{ fingers[o.i] = 1; });
-    return atribui(pres.filter(o=>o.v>mn), 1);
-  };
-  const limpa = ()=> fingers.fill(null);
-  const prefPestana = barreOk && (atMin.length>=3 || pres.length>4);
-  if(prefPestana){ if(comPestana()) return {fingers, barre:mn}; limpa(); }
-  else {
-    if(pres.length<=4 && individual()) return {fingers, barre:null};
-    limpa();
-    if(barreOk){ if(comPestana()) return {fingers, barre:mn}; limpa(); }
-  }
-  return null;
+  const prefPestana = atMin.length>=3 || pres.length>4;
+  if(atMin.length>=2) tenta(atMin, ordenadas.filter(o=>o.v>mn), [2,3,4], prefPestana ? 0 : 500);
+  tenta([], ordenadas, [1,2,3,4], prefPestana ? 500 : 0);
+  return melhor;
 }
-// Confere se um desenho + dedos obedece às regras (usado para os modelos que já vêm com dedos, como os do PDF).
-function dedosValidos(frets, fingers){
-  const pres = []; frets.forEach((v,i)=>{ if(v!=='x' && v>0) pres.push({i, v, f:fingers[i]}); });
-  for(let i=0;i<frets.length;i++){ const v = frets[i]; if((v==='x' || v===0) && fingers[i]) return false; }
-  if(!pres.length) return true;
-  if(pres.some(o=>!(o.f>=1 && o.f<=4))) return false;
-  const mn = Math.min(...pres.map(o=>o.v)), mx = Math.max(...pres.map(o=>o.v));
-  if(mx - mn > 3) return false;
-  for(let f=1; f<=4; f++){
-    const doDedo = pres.filter(o=>o.f===f); if(!doDedo.length) continue;
-    if(f>1 && doDedo.length>1) return false;
-    if(doDedo.some(o=>o.v!==doDedo[0].v)) return false;
-    if(doDedo.some(o=>o.v-mn > f-1)) return false;
-    if(f===1 && doDedo.length>1){ for(let k=doDedo[0].i; k<=doDedo[doDedo.length-1].i; k++){ if(frets[k]===0) return false; } }
-  }
-  for(const p of pres) for(const q of pres) if(p.v<q.v && !(p.f<q.f)) return false;
-  return true;
-}
-// Desenho escolhido antes (salvo na cifra) cujos dedos quebram as regras: os dedos são refeitos na hora.
+// Confere se um desenho + dedos obedece às regras (modelos que já vêm com dedos, como os do PDF, e desenhos salvos).
+function dedosValidos(frets, fingers){ return !!checaDedos(frets, fingers||[]); }
+// Desenho escolhido antes (salvo na cifra): se os dedos quebram as regras eles são refeitos; se o desenho é impossível, volta ao padrão (null).
 function saneiaCustom(c){
   if(!c || !c.frets) return c;
   if(c.fingers && dedosValidos(c.frets, c.fingers)) return c;
   const an = analisaDedos(c.frets);
-  return an ? {...c, fingers:an.fingers, barre:an.barre} : c;
+  return an ? {...c, fingers:an.fingers, barre:an.barre} : null;
 }
 function barreDe(frets, fingers){
   const um = frets.map((v,i)=>({v,i})).filter(o=>o.v!=='x' && o.v>0 && fingers[o.i]===1);
@@ -2754,6 +2777,9 @@ function pdfAcordesMapa(){
       _pdfMapa.set(k, PDF_ACORDES[suf][r].map(t=>{
         const [f,b,g] = t.split(',');
         const frets = f.split('').map(c=> c==='x'?'x':parseInt(c,16));
+        // [Rodada 118] modelo com nota que não pertence ao acorde (da definição do app) fica de fora
+        const AFp=[4,9,2,7,11,4], permitidas = new Set(info.iv.map(v=>(rootPc+v)%12));
+        if(frets.some((fr,i)=> fr!=='x' && !permitidas.has((AFp[i]+fr)%12))) return null;
         let dedos = g ? g.split('').map(c=> +c>0 ? +c : null) : null;
         // [Rodada 117] dedos do PDF que quebram as regras são refeitos; se não houver solução, o modelo sai
         if(!dedos || !dedosValidos(frets, dedos)){ const an = analisaDedos(frets); if(!an) return null; dedos = an.fingers; }
@@ -2774,7 +2800,9 @@ function getVariations(rootSharpName, quality, bassPc, todas){
   const chave = rootPc+'|'+info.iv.join(',')+'|'+(bassPc==null?'':bassPc)+(todas?'|T':'');
   if(_chordVarCache.has(chave)) return _chordVarCache.get(chave).map(o=>({...o}));
   const list = [];
-  const add = (d)=>{ if(!d || !dedosValidos(d.frets, d.fingers)) return; if(!list.some(o=>o.frets.join()===d.frets.join())) list.push(d); };
+  const add = (d)=>{ if(!d || !dedosValidos(d.frets, d.fingers)) return;
+    { const nm = d.frets.filter(v=>v!=='x'); if(nm.some(v=>v===0) && Math.max(...nm)>4) return; }   // corda solta só junto de casas baixas
+    if(!list.some(o=>o.frets.join()===d.frets.join())) list.push(d); };
   // [Rodada 109] REGRA: o baixo (nota mais grave que toca) é sempre a tônica do acorde — ou a nota
   // depois da barra, em acordes como A/C#. Nunca aparece inversão nem acorde sem fundamental
   // quando o acorde é pedido sem barra.
