@@ -2055,18 +2055,10 @@ function chordVoicings(rootPc, info, bassPc, maxPos){
       const presas = tocadas.filter(k=>fr[k]>0);
       let dedos = 0, pestana = null;
       if(presas.length){
-        const fs = presas.map(k=>fr[k]); const mn = Math.min(...fs), mx = Math.max(...fs);
-        if(mx - mn > 3) return;
-        const naMin = presas.filter(k=>fr[k]===mn);
-        let podePestana = false;
-        if(naMin.length>=2){
-          const a = naMin[0], b = naMin[naMin.length-1];
-          podePestana = true;
-          for(let k=a;k<=b;k++){ if(fr[k]==='x' || fr[k]===0 || fr[k] < mn){ podePestana = false; break; } }
-        }
-        if(podePestana){ pestana = mn; dedos = 1 + presas.filter(k=>fr[k]>mn).length; }
-        else dedos = presas.length;
-        if(dedos > 4) return;
+        const fs = presas.map(k=>fr[k]); const mx = Math.max(...fs);
+        // [Rodada 117] só entra desenho que dá para tocar pelas regras dos dedos (analisaDedos)
+        const an = analisaDedos(fr); if(!an) return;
+        pestana = an.barre; dedos = new Set(an.fingers.filter(Boolean)).size;
         // corda solta só junto de casas baixas (acorde aberto): solta + casa 7, 8… fica estranho de tocar
         if(mx > 4 && tocadas.some(k=>fr[k]===0)) return;
       }
@@ -2634,26 +2626,86 @@ const A_TEMPLATES = {
   // caía no shape de A maior por engano.
   'aug':   ['x',0,3,2,2,1],
 };
-// Suggests a plausible finger (1-4) per string from fret numbers alone: lowest fretted position
-// becomes finger 1, higher positions get 2/3/4 in order. Not authoritative sheet-music fingering,
-// just a sensible, consistent default so beginners have somewhere to start.
-function assignFingersHeuristic(frets){
-  const fretted = frets.map((v,i)=>({v,i})).filter(o=>o.v!=='x' && o.v>0);
-  if(fretted.length===0) return frets.map(()=>null);
+// [Rodada 117] REGRAS DOS DEDOS (valem para todos os acordes do app):
+//  1) só o dedo 1 pode apertar mais de uma corda (pestana) e, mesmo assim, só dentro da MESMA casa;
+//  2) os dedos 2, 3 e 4 apertam uma corda cada, e cada dedo é usado uma única vez;
+//  3) o número do dedo cresce com a casa (dedo 1 na casa mais baixa, 4 na mais alta);
+//  4) a mão alcança no máximo 4 casas (da casa do dedo 1 até a do dedo 4), e o dedo N não vai além de (N-1) casas acima do dedo 1;
+//  5) pestana não passa por cima de corda solta.
+// analisaDedos devolve {fingers, barre} ou null quando o desenho não é possível de tocar com essas regras.
+function analisaDedos(frets){
+  const pres = []; frets.forEach((v,i)=>{ if(v!=='x' && v>0) pres.push({i, v}); });
   const fingers = frets.map(()=>null);
-  const minFret = Math.min(...fretted.map(o=>o.v));
-  const atMin = fretted.filter(o=>o.v===minFret);
-  if(atMin.length>=3){
-    // three or more strings sharing the lowest fret is a strong barre signal (e.g. F, B7-shapes)
-    atMin.forEach(o=> fingers[o.i]=1);
-    const rest = fretted.filter(o=>o.v>minFret).sort((a,b)=> a.v-b.v || a.i-b.i);
-    const seq=[2,3,4];
-    rest.forEach((o,idx)=>{ fingers[o.i]=seq[Math.min(idx,2)]; });
-  } else {
-    // otherwise each fretted note gets its own finger, in playing order (lowest fret first)
-    const sorted = fretted.slice().sort((a,b)=> a.v-b.v || a.i-b.i);
-    sorted.forEach((o,idx)=>{ fingers[o.i]=Math.min(idx+1,4); });
+  if(!pres.length) return {fingers, barre:null};
+  const mn = Math.min(...pres.map(o=>o.v)), mx = Math.max(...pres.map(o=>o.v));
+  if(mx - mn > 3) return null;
+  const atMin = pres.filter(o=>o.v===mn);
+  let barreOk = false;
+  if(atMin.length>=2){
+    barreOk = true;
+    for(let k=atMin[0].i; k<=atMin[atMin.length-1].i; k++){ if(frets[k]===0){ barreOk = false; break; } }
   }
+  const ordem = (x,y)=> x.v-y.v || x.i-y.i;
+  const atribui = (lista, ultimo)=>{
+    let prev = ultimo;
+    for(const o of lista.slice().sort(ordem)){
+      const f = Math.max(prev+1, o.v-mn+1);
+      if(f>4) return false;
+      fingers[o.i] = f; prev = f;
+    }
+    return true;
+  };
+  const individual = ()=> atribui(pres, 0);
+  const comPestana = ()=>{
+    atMin.forEach(o=>{ fingers[o.i] = 1; });
+    return atribui(pres.filter(o=>o.v>mn), 1);
+  };
+  const limpa = ()=> fingers.fill(null);
+  const prefPestana = barreOk && (atMin.length>=3 || pres.length>4);
+  if(prefPestana){ if(comPestana()) return {fingers, barre:mn}; limpa(); }
+  else {
+    if(pres.length<=4 && individual()) return {fingers, barre:null};
+    limpa();
+    if(barreOk){ if(comPestana()) return {fingers, barre:mn}; limpa(); }
+  }
+  return null;
+}
+// Confere se um desenho + dedos obedece às regras (usado para os modelos que já vêm com dedos, como os do PDF).
+function dedosValidos(frets, fingers){
+  const pres = []; frets.forEach((v,i)=>{ if(v!=='x' && v>0) pres.push({i, v, f:fingers[i]}); });
+  for(let i=0;i<frets.length;i++){ const v = frets[i]; if((v==='x' || v===0) && fingers[i]) return false; }
+  if(!pres.length) return true;
+  if(pres.some(o=>!(o.f>=1 && o.f<=4))) return false;
+  const mn = Math.min(...pres.map(o=>o.v)), mx = Math.max(...pres.map(o=>o.v));
+  if(mx - mn > 3) return false;
+  for(let f=1; f<=4; f++){
+    const doDedo = pres.filter(o=>o.f===f); if(!doDedo.length) continue;
+    if(f>1 && doDedo.length>1) return false;
+    if(doDedo.some(o=>o.v!==doDedo[0].v)) return false;
+    if(doDedo.some(o=>o.v-mn > f-1)) return false;
+    if(f===1 && doDedo.length>1){ for(let k=doDedo[0].i; k<=doDedo[doDedo.length-1].i; k++){ if(frets[k]===0) return false; } }
+  }
+  for(const p of pres) for(const q of pres) if(p.v<q.v && !(p.f<q.f)) return false;
+  return true;
+}
+// Desenho escolhido antes (salvo na cifra) cujos dedos quebram as regras: os dedos são refeitos na hora.
+function saneiaCustom(c){
+  if(!c || !c.frets) return c;
+  if(c.fingers && dedosValidos(c.frets, c.fingers)) return c;
+  const an = analisaDedos(c.frets);
+  return an ? {...c, fingers:an.fingers, barre:an.barre} : c;
+}
+function barreDe(frets, fingers){
+  const um = frets.map((v,i)=>({v,i})).filter(o=>o.v!=='x' && o.v>0 && fingers[o.i]===1);
+  return um.length>=2 ? um[0].v : null;
+}
+// Sugere os dedos pelo desenho; se o desenho não tem solução pelas regras acima, devolve uma sugestão simples (só para acordes digitados à mão).
+function assignFingersHeuristic(frets){
+  const r = analisaDedos(frets);
+  if(r) return r.fingers;
+  const fretted = frets.map((v,i)=>({v,i})).filter(o=>o.v!=='x' && o.v>0);
+  const fingers = frets.map(()=>null);
+  fretted.sort((a,b)=> a.v-b.v || a.i-b.i).forEach((o,idx)=>{ fingers[o.i]=Math.min(idx+1,4); });
   return fingers;
 }
 function buildFromTemplate(tmpl, rootIdx, baseNoteIdx){
@@ -2661,20 +2713,10 @@ function buildFromTemplate(tmpl, rootIdx, baseNoteIdx){
   const frets=tmpl.map(v=> v==='x'?'x':v+barreFret);
   const numeric=frets.filter(v=>v!=='x'); const maxF=numeric.length?Math.max(...numeric):0;
   const base=(maxF>5 && barreFret>0)?barreFret:1;
-  return {frets, base, barre:barreFret>0?barreFret:null, fingers:assignFingersHeuristic(frets), approx:false};
+  const an = analisaDedos(frets); if(!an) return null;
+  return {frets, base, barre:an.barre, fingers:an.fingers, approx:false};
 }
-function detectBarre(frets){
-  const fretted = frets.map((v,i)=>({v,i})).filter(o=>o.v!=='x' && o.v>0);
-  if(fretted.length<2) return null;
-  const minFret = Math.min(...fretted.map(o=>o.v));
-  const atMin = fretted.filter(o=>o.v===minFret);
-  // [Rodada 109] Pestana não passa por cima de corda solta (ex.: 1.2.0.1.0.1 não tem pestana)
-  const primeira = atMin.length ? atMin[0].i : 0, ultima = atMin.length ? atMin[atMin.length-1].i : 0;
-  for(let k=primeira+1;k<ultima;k++){ if(frets[k]===0) return null; }
-  if(atMin.length>=3) return minFret;
-  if(atMin.length===2 && atMin[1].i===atMin[0].i+1) return minFret;
-  return null;
-}
+function detectBarre(frets){ const r = analisaDedos(frets); return r ? r.barre : null; }
 // [Rodada 108] Desenhos de cada acorde, sempre com exatamente as notas da cifra.
 // Ordem: acorde aberto clássico (OPEN_CHORDS) → pestanas nos formatos de E e de A
 // (para maior, menor, 7, m7, 7M e sus4) → posições calculadas por chordVoicings().
@@ -2687,9 +2729,10 @@ function chordAbertos(){
   return _chordAbertos;
 }
 function chordDiagDe(frets, label){
+  const an = analisaDedos(frets); if(!an) return null;
   const num = frets.filter(v=>v!=='x' && v>0);
   const mn = num.length ? Math.min(...num) : 0, mx = num.length ? Math.max(...num) : 0;
-  return {frets, base: mx>5 ? mn : 1, barre: detectBarre(frets), fingers: assignFingersHeuristic(frets), approx:false, label};
+  return {frets, base: mx>5 ? mn : 1, barre: an.barre, fingers: an.fingers, approx:false, label};
 }
 // [Rodada 109] Modelos de acordes copiados do "Dicionário de Acordes para Violão e Guitarra"
 // (PDF do Instituto Universo Musical). Cada texto = "cordas,casa inicial,dedos": cordas da 6ª para a 1ª
@@ -2711,12 +2754,14 @@ function pdfAcordesMapa(){
       _pdfMapa.set(k, PDF_ACORDES[suf][r].map(t=>{
         const [f,b,g] = t.split(',');
         const frets = f.split('').map(c=> c==='x'?'x':parseInt(c,16));
-        const dedos = g ? g.split('').map(c=> +c>0 ? +c : null) : assignFingersHeuristic(frets);
+        let dedos = g ? g.split('').map(c=> +c>0 ? +c : null) : null;
+        // [Rodada 117] dedos do PDF que quebram as regras são refeitos; se não houver solução, o modelo sai
+        if(!dedos || !dedosValidos(frets, dedos)){ const an = analisaDedos(frets); if(!an) return null; dedos = an.fingers; }
         const base = +b;
         const abertas = frets.some(v=>v===0);
-        return {frets, base, barre: detectBarre(frets), fingers: dedos, approx:false,
+        return {frets, base, barre: barreDe(frets, dedos), fingers: dedos, approx:false,
                 label: abertas ? 'Posição aberta' : (Math.min(...frets.filter(v=>v!=='x'&&v>0))||base)+'ª casa'};
-      }));
+      }).filter(Boolean));
     });
   });
   return _pdfMapa;
@@ -2729,7 +2774,7 @@ function getVariations(rootSharpName, quality, bassPc, todas){
   const chave = rootPc+'|'+info.iv.join(',')+'|'+(bassPc==null?'':bassPc)+(todas?'|T':'');
   if(_chordVarCache.has(chave)) return _chordVarCache.get(chave).map(o=>({...o}));
   const list = [];
-  const add = (d)=>{ if(!list.some(o=>o.frets.join()===d.frets.join())) list.push(d); };
+  const add = (d)=>{ if(!d || !dedosValidos(d.frets, d.fingers)) return; if(!list.some(o=>o.frets.join()===d.frets.join())) list.push(d); };
   // [Rodada 109] REGRA: o baixo (nota mais grave que toca) é sempre a tônica do acorde — ou a nota
   // depois da barra, em acordes como A/C#. Nunca aparece inversão nem acorde sem fundamental
   // quando o acorde é pedido sem barra.
@@ -2743,7 +2788,7 @@ function getVariations(rootSharpName, quality, bassPc, todas){
     const tk = TPL_POR_NOTAS[info.iv.join(',')];
     if(tk!==undefined){
       const e = buildFromTemplate(TEMPLATES[tk], rootPc, 4), a = buildFromTemplate(A_TEMPLATES[tk], rootPc, 9);
-      const pe = [{...e, label:'Pestana (formato E)'}, {...a, label:'Pestana (formato A)'}].sort((x,y)=>(x.barre||0)-(y.barre||0));
+      const pe = [e && {...e, label:'Pestana (formato E)'}, a && {...a, label:'Pestana (formato A)'}].filter(Boolean).sort((x,y)=>(x.barre||0)-(y.barre||0));
       pe.forEach(d=>add({...d, approx:false}));
     }
   }
@@ -11798,7 +11843,7 @@ function drawChordDiagramPdf(doc, ox, oy, w, name, semis, preferFlat, overrides,
   const scale = w/100; // same 100x148 coordinate system as the on-screen SVG diagrams
   const p = parseChord(name); if(!p) return 146*scale;
   const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
-  const custom = overrides && overrides[name];
+  const custom = saneiaCustom(overrides && overrides[name]);
   const d = custom || getDiagram(rootSharp, p.quality, chordBassPc(p));
   const f = d.frets, fg = d.fingers||[], base=d.base, barre=d.barre;
   const showCapo = !!capo && base===1;
@@ -13769,7 +13814,7 @@ function diagramsRowHtml(chordNames, orient, mirror, overrides, capo){
   return '<div class="diagrams-row">' + chordNames.map(name=>{
     const p = parseChord(name); if(!p) return '';
     const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
-    const custom = overrides[name];
+    const custom = saneiaCustom(overrides[name]);
     const d = custom || getDiagram(rootSharp, p.quality, chordBassPc(p));
     return `<div class="diagram-box">
       <div class="name">${escapeHtml(name)}</div>
@@ -15521,7 +15566,7 @@ function dialogsHtml(){
     if(p){
       const rootSharp = SHARP_NAMES[noteIndex(p.root,p.acc)];
       const c = state.detailCache[state.cifraSelId];
-      const custom = c && c.chordOverrides && c.chordOverrides[name];
+      const custom = saneiaCustom(c && c.chordOverrides && c.chordOverrides[name]);
       const d = custom || getDiagram(rootSharp, p.quality, chordBassPc(p));
       body = `
         <div class="chord-popup-svg">${chordDiagramSVG(d.frets, d.base, d.barre, 'v', false, d.fingers, c&&c.capo||0)}</div>
