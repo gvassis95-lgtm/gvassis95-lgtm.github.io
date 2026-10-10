@@ -2077,7 +2077,7 @@ function chordVoicings(rootPc, info, bassPc, maxPos, estica){
       // [Rodada 118] PONTUAÇÃO: 100 = formato tradicional (tríade/tétrade em cordas seguidas, "drop 3", pestanas CAGED) com um dedo por casa;
       // 70 = digitação válida mas menos comum (dedo esticado, corda abafada no meio, saltos).
       const seguidas = mudasMeio===0, drop3 = tocadas.length===4 && mudasMeio===1 && tocadas[1]===tocadas[0]+2 && tocadas[0]<=1;
-      const score = (!an || an.leve) && ((seguidas && tocadas.length>=3) || drop3) ? 100 : 70;
+      const score = ((seguidas && tocadas.length>=3) || drop3) ? ((!an || an.natural || (an.barre!==null && an.leve)) ? 100 : 85) : 70;
       const chave = fr.join(',');
       if(!achados.has(chave)) achados.set(chave, {frets:fr, nota: score*100 + nota, pestana, pos:mnP, score});
     };
@@ -2675,9 +2675,9 @@ function checaDedos(frets, fingers){
       if(tocadasI.some(i=>i<q.i) && tocadasI.some(i=>i>q.i)) return null;
     }
   }
-  // --- dedo 4 nunca nas cordas 6/5 com dedo 1 ou 2 em cordas mais agudas, em casas anteriores
+  // --- dedo 4 nunca na 6ª corda com dedo 1 ou 2 em cordas mais agudas, em casas anteriores (na 5ª corda ele é parte do modelo de C)
   const d4 = pres.find(o=>o.f===4);
-  if(d4 && d4.i<=1 && pres.some(o=>(o.f===1 || o.f===2) && o.i>d4.i && o.v<d4.v)) return null;
+  if(d4 && d4.i===0 && pres.some(o=>(o.f===1 || o.f===2) && o.i>d4.i && o.v<d4.v)) return null;
   // --- naturalidade: um dedo por casa (dedo N na casa mn+N-1 no máximo)
   const natural = pres.every(o=> (o.v-mn) <= (o.f-1));
   const leve = pres.every(o=> (o.v-mn) <= o.f);      // no máximo 1 casa de "esticada" (ex.: A com pestana: dedos 2, 3 e 4 na mesma casa)
@@ -2852,7 +2852,22 @@ function variationsNucleo(rootPc, info, bassPc, todas, estica){
       pe.forEach(d=>add({...d, approx:false}));
     }
   }
-  const gerados = chordVoicings(rootPc, info, bassPc, 12, estica);
+  const geradosTodos = chordVoicings(rootPc, info, bassPc, 12, estica);
+  // [Rodada 120] SHAPE COMPLETO (CAGED): um desenho que poderia ganhar mais cordas na mesma posição da mão, sem quebrar nenhuma regra,
+  // é "capenga" e sai (ex.: Fá no modelo de A, x8-10-10-10-x, vira x8-10-10-10-8, com a pestana até a 1ª corda).
+  const subpadroes = new Set();
+  geradosTodos.forEach(g=>{
+    const idx = []; g.frets.forEach((v,i)=>{ if(v!=='x') idx.push(i); });
+    const n = idx.length;
+    // só "corta" cordas agudas: o baixo (corda mais grave) tem que ser o mesmo, senão é outro modelo (ex.: D e E no mesmo trecho)
+    for(let ficam=n-1; ficam>=2; ficam--){
+      const fr = g.frets.map(()=>'x'); for(let b=0;b<ficam;b++) fr[idx[b]] = g.frets[idx[b]];
+      subpadroes.add(fr.join(','));
+    }
+  });
+  const dominado = (fr)=> subpadroes.has(fr.join(','));
+  for(let k=list.length-1;k>=0;k--) if(dominado(list[k].frets)) list.splice(k,1);
+  const gerados = geradosTodos.filter(g=>!dominado(g.frets));
   const posUsadas = list.map(d=>{ const n = d.frets.filter(v=>v!=='x' && v>0); return n.length ? Math.min(...n) : 0; });
   const limite = todas ? 12 : (doPdf.length>=3 ? 4 : 6);
   for(const g of gerados){
@@ -2897,11 +2912,11 @@ function chordDiagramSVG(frets, base, barre, orientation, mirror, fingers, capo)
     for(let fr=0; fr<=nf; fr++){ const x=fx+fr*gap; const th=(base===1&&fr===0)?3:1; s+=`<line x1="${x}" y1="${6+yOff}" x2="${x}" y2="${94+yOff}" stroke="${text}" stroke-width="${th}"/>`; }
     if(base>1) s+=`<text x="${fx-4}" y="${-2+yOff}" font-size="8" fill="${text}">${base}ª</text>`;
     if(showCapo){ s+=`<rect x="${fx-24}" y="0" width="${gap*nf+24}" height="13" rx="6.5" fill="${accent}"/><text x="${fx-12+gap*nf/2}" y="9.3" font-size="9" fill="#fff" font-weight="700" text-anchor="middle" letter-spacing="1">Capo ${capo}</text>`; }
-    // [Rodada 119] pestana = UMA barra sólida contínua com um único "1" no meio dela
+    // [Rodada 119/120] pestana = UMA barra sólida contínua e fina, sem número (o "1" fica subentendido)
     const barreIdx = new Set();
     if(barre){ const idxs=f.map((v,i)=>(v===barre && fg[i]===1)?i:-1).filter(i=>i>=0);
       if(idxs.length>1 && barre>=base && barre<=base+nf-1){ const x=fx+(barre-base+0.5)*gap, y1=ys[Math.min(...idxs)]+yOff, y2=ys[Math.max(...idxs)]+yOff; idxs.forEach(i=>barreIdx.add(i));
-        s+=`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${accent}" stroke-width="14" stroke-linecap="round"/><text x="${x}" y="${(y1+y2)/2+3.3}" font-size="9" fill="#fff" font-weight="700" text-anchor="middle">1</text>`; } }
+        s+=`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${accent}" stroke-width="7" stroke-linecap="round"/>`; } }
     f.forEach((v,i)=>{ const y=ys[i]+yOff;
       // topo da corda: × só para corda abafada, ○ só para corda solta; corda pressionada fica limpa
       if(v==='x'){ s+=`<text x="${fx-16}" y="${y}" font-size="16" fill="${text}" font-weight="700" text-anchor="middle" dominant-baseline="central">×</text>`; }
@@ -2927,11 +2942,11 @@ function chordDiagramSVG(frets, base, barre, orientation, mirror, fingers, capo)
   for(let fr=0; fr<=nf; fr++){ const y=fy+fr*gap; const th=(base===1&&fr===0)?3:1; s+=`<line x1="10" y1="${y}" x2="90" y2="${y}" stroke="${text}" stroke-width="${th}"/>`; }
   if(base>1) s+=`<text x="2" y="${fy+gap*0.7}" font-size="9" fill="${text}" text-anchor="end">${base}ª</text>`;
   if(showCapo){ s+=`<rect x="7" y="0" width="86" height="15" rx="7.5" fill="${accent}"/><text x="50" y="10.5" font-size="10" fill="#fff" font-weight="700" text-anchor="middle" letter-spacing="1">Capo ${capo}</text>`; }
-  // [Rodada 119] pestana = UMA barra sólida contínua com um único "1" no meio dela
+  // [Rodada 119/120] pestana = UMA barra sólida contínua e fina, sem número (o "1" fica subentendido)
   const barreIdx = new Set();
   if(barre){ const idxs=f.map((v,i)=>(v===barre && fg[i]===1)?i:-1).filter(i=>i>=0);
     if(idxs.length>1 && barre>=base && barre<=base+nf-1){ const y=fy+(barre-base+0.5)*gap, x1=xs[Math.min(...idxs)], x2=xs[Math.max(...idxs)]; idxs.forEach(i=>barreIdx.add(i));
-      s+=`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${accent}" stroke-width="14" stroke-linecap="round"/><text x="${(x1+x2)/2}" y="${y+3.3}" font-size="9" fill="#fff" font-weight="700" text-anchor="middle">1</text>`; } }
+      s+=`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${accent}" stroke-width="7" stroke-linecap="round"/>`; } }
   f.forEach((v,i)=>{ const x=xs[i];
     // topo da corda: × só para corda abafada, ○ só para corda solta; corda pressionada fica limpa
     if(v==='x'){ s+=`<text x="${x}" y="${fy-12}" font-size="16" fill="${text}" font-weight="700" text-anchor="middle" dominant-baseline="central">×</text>`; }
@@ -11940,8 +11955,7 @@ function drawChordDiagramPdf(doc, ox, oy, w, name, semis, preferFlat, overrides,
       const y=fy+(barre-base+0.5)*gap, x1=xs[Math.min(...idxs)], x2=xs[Math.max(...idxs)];
       idxs.forEach(i=>barreIdx.add(i));
       doc.setFillColor(191,98,44);
-      doc.roundedRect(x1-6.2*scale, y-6.2*scale, (x2-x1)+12.4*scale, 12.4*scale, 6.2*scale, 6.2*scale, 'F');
-      doc.setFont(fontName,'bold'); doc.setFontSize(13); doc.setTextColor(255,255,255); doc.text('1', (x1+x2)/2, y, {align:'center', baseline:'middle'});
+      doc.roundedRect(x1-3.5*scale, y-3.5*scale, (x2-x1)+7*scale, 7*scale, 3.5*scale, 3.5*scale, 'F');
     }
   }
   let bassIdx=-1; for(let i=0;i<f.length;i++){ if(f[i]!=='x'){ bassIdx=i; break; } }
