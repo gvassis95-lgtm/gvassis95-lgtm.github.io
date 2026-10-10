@@ -2079,7 +2079,7 @@ function chordVoicings(rootPc, info, bassPc, maxPos, estica){
       const seguidas = mudasMeio===0, drop3 = tocadas.length===4 && mudasMeio===1 && tocadas[1]===tocadas[0]+2 && tocadas[0]<=1;
       const score = ((seguidas && tocadas.length>=3) || drop3) ? ((!an || an.natural || (an.barre!==null && an.leve)) ? 100 : 85) : 70;
       const chave = fr.join(',');
-      if(!achados.has(chave)) achados.set(chave, {frets:fr, nota: score*100 + nota, pestana, pos:mnP, score});
+      if(!achados.has(chave)) achados.set(chave, {frets:fr, nota: score*100 + nota, pestana, pos:mnP, score, n:tocadas.length});
     };
     dfs(0);
   }
@@ -2663,6 +2663,10 @@ function checaDedos(frets, fingers){
   if(dif > lim) return null;
   // --- ordem anatômica: casa menor => dedo menor
   for(const p of pres) for(const q of pres) if(p.v<q.v && !(p.f<q.f)) return null;
+  // --- sem "pinça": dois dedos diferentes na mesma casa com outro dedo, numa casa mais alta, passando entre eles (ex.: F9 com 1 e 2 na casa 1 e o 3 no meio)
+  for(const p of pres) for(const q of pres){
+    if(p.i<q.i && p.v===q.v && p.f!==q.f && pres.some(r=>r.i>p.i && r.i<q.i && r.v>p.v)) return null;
+  }
   // --- sem "vão vazio": entre duas casas pressionadas seguidas, no máximo 2 casas de diferença
   const casas = [...new Set(pres.map(o=>o.v))].sort((a,b)=>a-b);
   for(let k=1;k<casas.length;k++){ if(casas[k]-casas[k-1] > 2) return null; }
@@ -2825,10 +2829,12 @@ function getVariations(rootSharpName, quality, bassPc, todas){
   // [Rodada 119] primeiro só digitação com um dedo por casa; só se não sobrar nenhuma é que aceita um dedo esticado
   let list = variationsNucleo(rootPc, info, bassPc, todas, false);
   if(!list.length) list = variationsNucleo(rootPc, info, bassPc, todas, true);
+  if(!list.length) list = variationsNucleo(rootPc, info, bassPc, todas, false, true);   // último recurso: formas de 5-6 cordas já validadas
+  if(!list.length) list = variationsNucleo(rootPc, info, bassPc, todas, true, true);
   _chordVarCache.set(chave, list);
   return list.map(o=>({...o}));
 }
-function variationsNucleo(rootPc, info, bassPc, todas, estica){
+function variationsNucleo(rootPc, info, bassPc, todas, estica, amplo){
   const list = [];
   const add = (d)=>{ if(!d || !dedosValidos(d.frets, d.fingers)) return;
     if(!formaTradicional(d.frets)) return;
@@ -2842,9 +2848,19 @@ function variationsNucleo(rootPc, info, bassPc, todas, estica){
   const baixoCerto = (bassPc==null ? rootPc : bassPc);
   const doPdf = bassPc==null ? (pdfAcordesMapa().get(rootPc+'|'+info.iv.join(',')) || []).filter(d=>baixoDe(d.frets)===baixoCerto) : [];
   doPdf.forEach(d=>add({...d}));
+  // [Rodada 121] SÓ SHAPES CONSAGRADOS: os modelos do CAGED (acorde aberto de C, A, G, E e D levado pelo braço com pestana),
+  // os modelos do dicionário em PDF e, para completar, tríades e tétrades em cordas seguidas ("drop 2"/"drop 3").
+  if(bassPc==null){
+    const sufixo = '|'+info.iv.join(','), ab = chordAbertos();
+    Object.keys(ab).forEach(chaveAb=>{
+      if(!chaveAb.endsWith(sufixo)) return;
+      const r0 = parseInt(chaveAb), k = (rootPc - r0 + 12) % 12;
+      const fr = ab[chaveAb].map(v=> v==='x' ? 'x' : v + k);
+      if(Math.max(...fr.filter(v=>v!=='x')) > 12) return;
+      add(chordDiagDe(fr, k===0 ? 'Posição aberta' : ''));
+    });
+  }
   if(bassPc==null && list.length<3){
-    const ab = chordAbertos()[rootPc+'|'+info.iv.join(',')];
-    if(ab) add(chordDiagDe(ab, 'Posição aberta'));
     const tk = TPL_POR_NOTAS[info.iv.join(',')];
     if(tk!==undefined){
       const e = buildFromTemplate(TEMPLATES[tk], rootPc, 4), a = buildFromTemplate(A_TEMPLATES[tk], rootPc, 9);
@@ -2856,7 +2872,9 @@ function variationsNucleo(rootPc, info, bassPc, todas, estica){
   // [Rodada 120] SHAPE COMPLETO (CAGED): um desenho que poderia ganhar mais cordas na mesma posição da mão, sem quebrar nenhuma regra,
   // é "capenga" e sai (ex.: Fá no modelo de A, x8-10-10-10-x, vira x8-10-10-10-8, com a pestana até a 1ª corda).
   const subpadroes = new Set();
-  geradosTodos.forEach(g=>{
+  const geradosPerm = geradosTodos.filter(g=>amplo || g.n<=4);          // tríades e tétrades; desenhos de 5 e 6 cordas só entram vindos do CAGED / PDF
+  const universo = list.map(d=>({frets:d.frets})).concat(geradosPerm);
+  universo.forEach(g=>{
     const idx = []; g.frets.forEach((v,i)=>{ if(v!=='x') idx.push(i); });
     const n = idx.length;
     // só "corta" cordas agudas: o baixo (corda mais grave) tem que ser o mesmo, senão é outro modelo (ex.: D e E no mesmo trecho)
@@ -2867,7 +2885,7 @@ function variationsNucleo(rootPc, info, bassPc, todas, estica){
   });
   const dominado = (fr)=> subpadroes.has(fr.join(','));
   for(let k=list.length-1;k>=0;k--) if(dominado(list[k].frets)) list.splice(k,1);
-  const gerados = geradosTodos.filter(g=>!dominado(g.frets));
+  const gerados = geradosPerm.filter(g=>!dominado(g.frets));
   const posUsadas = list.map(d=>{ const n = d.frets.filter(v=>v!=='x' && v>0); return n.length ? Math.min(...n) : 0; });
   const limite = todas ? 12 : (doPdf.length>=3 ? 4 : 6);
   for(const g of gerados){
