@@ -566,7 +566,7 @@
   .cifra-list{display:flex;flex-direction:column;}
   /* [Rodada 122] Repertório do aluno */
   .rep-tabela{border-top:1px solid var(--border);}
-  .rep-head,.rep-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.5fr) 140px 34px;gap:14px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--border);}
+  .rep-head,.rep-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.5fr) 290px 34px;gap:14px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--border);}
   .rep-head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
   .rep-row{cursor:pointer;transition:background .2s;}
   .rep-row:hover{background:color-mix(in srgb,var(--accent) 7%,transparent);}
@@ -574,18 +574,25 @@
   .rep-c-art{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .rep-c-par{display:flex;gap:6px;justify-content:flex-start;}
   .rep-head .rep-c-par{display:block;}
-  .rep-ico{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s;}
-  .rep-ico svg{width:18px;height:18px;}
-  .rep-ico:hover{border-color:var(--accent);}
-  .rep-ico.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .rep-ico{height:30px;padding:0 12px 0 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--border) 70%,transparent);background:transparent;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12px;font-weight:600;letter-spacing:.01em;opacity:.55;transition:all .18s ease;}
+  .rep-ico svg{width:15px;height:15px;flex:none;}
+  .rep-ico:hover{opacity:1;border-color:var(--accent);color:var(--text);}
+  .rep-ico.on{opacity:1;background:color-mix(in srgb,var(--accent) 18%,transparent);border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);box-shadow:0 1px 6px color-mix(in srgb,var(--accent) 22%,transparent);}
+  .rep-seg{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--border) 35%,transparent);}
+  .rep-seg button{display:inline-flex;align-items:center;gap:6px;border:none;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;transition:all .18s ease;}
+  .rep-seg button svg{width:15px;height:15px;}
+  .rep-seg button .n{font-size:11px;opacity:.7;font-weight:500;}
+  .rep-seg button:hover{color:var(--text);}
+  .rep-seg button.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 35%,transparent);}
   .rep-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;opacity:.5;padding:4px;}
   .rep-del:hover{opacity:1;color:var(--danger);}
   .rep-legenda{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
   .rep-leg{display:inline-flex;align-items:center;gap:5px;}
   .rep-ic svg{width:16px;height:16px;vertical-align:middle;}
   .rep-partes{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-  .rep-parte{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;font:inherit;font-size:13px;}
-  .rep-parte.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .rep-parte{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:999px;border:1px solid color-mix(in srgb,var(--border) 70%,transparent);background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:13px;font-weight:600;transition:all .18s ease;}
+  .rep-parte:hover{border-color:var(--accent);color:var(--text);}
+  .rep-parte.on{background:color-mix(in srgb,var(--accent) 18%,transparent);border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);box-shadow:0 1px 6px color-mix(in srgb,var(--accent) 22%,transparent);}
   .cifra-row{display:flex;align-items:center;gap:14px;padding:10px 6px;border-bottom:1px solid var(--border);cursor:pointer;position:relative;transition:background .25s;}
   .cifra-row:hover{background:var(--bg-panel);}
   .cifra-row .avatar{width:38px;height:38px;border-radius:8px;background:var(--bg-panel-2);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
@@ -1496,7 +1503,10 @@
     .rep-row .rep-c-art{grid-column:1;grid-row:2;font-size:12px;}
     .rep-row .rep-c-par{grid-column:2;grid-row:1 / span 2;}
     .rep-row .rep-c-acao{grid-column:3;grid-row:1 / span 2;}
-    .rep-ico{width:30px;height:30px;}
+    .rep-ico{width:32px;height:32px;padding:0;justify-content:center;}
+    .rep-ico .lbl{display:none;}
+    .rep-seg button .n{display:none;}
+    .rep-seg button{padding:7px 11px;}
     .cifra-row{flex-wrap:wrap;padding:12px 4px;row-gap:6px;}
     .cifra-row .row-actions{position:static;opacity:1;background:none;padding:0;transform:none;top:auto;right:auto;margin-left:6px;}
     .cifra-row:hover .row-status{margin-right:0;}
@@ -3103,7 +3113,7 @@ let state = {
   draft:null, confirmDialog:null, variantModal:null, chordPopup:null, listMoreModal:null,
   selectMode:false, selectedIds:new Set(),
   tarefas:[], showCompletedTasks:false, pdfChoiceModal:null,
-  novaTarefaModalOpen:false, repModalOpen:false, repDraft:null, repBusca:'', novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
+  novaTarefaModalOpen:false, repModalOpen:false, repDraft:null, repBusca:'', repFiltro:'', novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
   solosIndex:[], solosDetailCache:{}, soloDraft:null, soloViewId:null,
   solosFiltro:{busca:''}, solosSortMode:'alfabetica', solosSortDir:'desc', solosSearchOpen:false,
   perfil:null, perfilDraft:null, trocarSenhaError:null, loginLoading:false,
@@ -3455,6 +3465,7 @@ function repTogglePartes(id, parte, ev){
   it[parte] = !it[parte];
   render(); repSalvar();
 }
+function repSetFiltro(k){ state.repFiltro = (state.repFiltro===k ? '' : k); render(); }
 function repAbrirModal(id){
   const it = id ? repLista().find(x=>x.id===id) : null;
   state.repDraft = it ? {...it} : {id:null, titulo:'', artista:'', base:false, canto:false, solo:false};
@@ -3510,9 +3521,14 @@ function repModalHtml(){
 function repertorioAlunoHtml(){
   const busca = (state.repBusca||'').toLowerCase();
   const itens = repLista().slice().sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'','pt-BR'))
+    .filter(x=>!state.repFiltro || x[state.repFiltro])
     .filter(x=>!busca || ((x.titulo||'')+' '+(x.artista||'')).toLowerCase().includes(busca));
   const total = repLista().length;
-  const legenda = REP_PARTES.map(p=>`<span class="rep-leg"><span class="rep-ic">${p.icon}</span>${p.label}</span>`).join('');
+  const cont = k=>repLista().filter(x=>x[k]).length;
+  const seg = `<div class="rep-seg" role="tablist">
+    <button type="button" class="${!state.repFiltro?'on':''}" onclick="repSetFiltro('')">Todas <span class="n">${total}</span></button>
+    ${REP_PARTES.map(p=>`<button type="button" class="${state.repFiltro===p.key?'on':''}" onclick="repSetFiltro('${p.key}')"><span class="ic">${p.icon}</span>${p.label} <span class="n">${cont(p.key)}</span></button>`).join('')}
+  </div>`;
   return `
       <div class="page-header-row" style="align-items:center;">
         <h2 style="margin:0;">Repertório</h2>
@@ -3521,15 +3537,15 @@ function repertorioAlunoHtml(){
           <button class="btn" onclick="repAbrirModal()">+ Adicionar música</button>
         </div>
       </div>
-      <div class="filters"><div class="rep-legenda">${legenda}</div><span class="total-count no-print" style="margin-left:auto;">Músicas no repertório: ${total}</span></div>
-      ${itens.length===0 ? `<div class="empty"><span class="big">${ICON_LISTA_REP}</span>${total===0?'Nenhuma música no repertório ainda. Clique em "Adicionar música" para começar.':'Nenhuma música encontrada.'}</div>` : `
+      <div class="filters">${seg}<span class="total-count no-print" style="margin-left:auto;">Músicas no repertório: ${total}</span></div>
+      ${itens.length===0 ? `<div class="empty"><span class="big">${ICON_LISTA_REP}</span>${total===0?'Nenhuma música no repertório ainda. Clique em "Adicionar música" para começar.':'Nenhuma música encontrada com esse filtro.'}</div>` : `
       <div class="rep-tabela">
         <div class="rep-head"><span class="rep-c-tit">Música</span><span class="rep-c-art">Artista ou banda</span><span class="rep-c-par">Parte que já toca</span><span class="rep-c-acao"></span></div>
         ${itens.map(x=>`
         <div class="rep-row" onclick="repAbrirModal('${x.id}')">
           <div class="rep-c-tit">${escapeHtml(x.titulo||'')}</div>
           <div class="rep-c-art">${escapeHtml(x.artista||'')}</div>
-          <div class="rep-c-par">${REP_PARTES.map(p=>`<button type="button" class="rep-ico ${x[p.key]?'on':''}" title="${p.label}${x[p.key]?' — já toca (clique para desmarcar)':' — clique para marcar'}" onclick="repTogglePartes('${x.id}','${p.key}',event)">${p.icon}</button>`).join('')}</div>
+          <div class="rep-c-par">${REP_PARTES.map(p=>`<button type="button" class="rep-ico ${x[p.key]?'on':''}" title="${p.label}${x[p.key]?' — já toca (clique para desmarcar)':' — clique para marcar'}" onclick="repTogglePartes('${x.id}','${p.key}',event)"><span class="ic">${p.icon}</span><span class="lbl">${p.label}</span></button>`).join('')}</div>
           <div class="rep-c-acao"><button type="button" class="rep-del" title="Remover da lista" onclick="repExcluir('${x.id}',event)">✕</button></div>
         </div>`).join('')}
       </div>`}
