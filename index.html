@@ -3443,9 +3443,9 @@ function novaTarefaModalHtml(){
 // por aluno: música, artista e quais partes ele já toca (Base, Canto, Solo). Fica em perfis.dados.repertorio (sem tabela nova).
 const ICON_LISTA_REP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>';
 const REP_PARTES = [
-  {key:'base',  label:'Base',  icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 9.5 20 4"/><path d="m18 3 3 3"/><path d="M11.2 8.8c-1.6-1.6-4-1.5-5.4.4-.9 1.2-.9 2.2-1.9 3.2-1.7 1.7-1.7 4.5 0 6.2s4.5 1.7 6.2 0c1-1 2-1 3.2-1.9 1.9-1.4 2-3.8.4-5.4z"/><circle cx="9.5" cy="14.5" r="1" fill="currentColor"/></svg>'},
+  {key:'base',  label:'Base',  get icon(){ return ICON_NOTE; }},
   {key:'canto', label:'Canto', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>'},
-  {key:'solo',  label:'Solo',  icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>'},
+  {key:'solo',  label:'Solo',  get icon(){ return NAV_ICON_SOLOS; }},
 ];
 function repLista(){ return (state.perfil && Array.isArray(state.perfil.repertorio)) ? state.perfil.repertorio : []; }
 async function repSalvar(){ await savePerfil(); }
@@ -11775,6 +11775,7 @@ function professorAlunoDetalheHtml(){
         </div>
       </form>
       <button type="button" class="text-link-btn" style="margin-top:10px;" onclick='enterAsStudent(${JSON.stringify(aluno.email)})'>Entrar como este aluno →</button>
+      <button type="button" class="text-link-btn" style="margin-top:10px;display:block;" onclick='enterAsStudent(${JSON.stringify(aluno.email)}, "repAluno")'>Ver / editar o repertório deste aluno →</button>
     </div>`;
 }
 function professorCadastroModalHtml(){
@@ -14923,12 +14924,12 @@ function professorNewCifra(){ state.professorMode = state.professorMode || {emai
 function professorOpenSolo(id){ state.professorMode = state.professorMode || {email:null, nome:null}; openSoloViewer(id); }
 function professorNewSolo(){ state.professorMode = state.professorMode || {email:null, nome:null}; openNewSolo(); }
 function professorOpenMaterial(id){ state.professorMode = state.professorMode || {email:null, nome:null}; openMaterialViewer(id); }
-async function enterAsStudent(email){
+async function enterAsStudent(email, destino){
   const aluno = (state.alunosAutorizados||[]).find(a=>a.email===email);
   if(!aluno) return;
   state.professorMode = {email: aluno.email, nome: aluno.nome||aluno.email};
   state.session = {email: aluno.email, nome: aluno.nome||'', foto: aluno.foto||''};
-  state.view = 'perfil';
+  state.view = destino || 'perfil';
   state.perfil = null; state.tarefas = [];
   render();
   await loadAlunoContextData(aluno.email);
