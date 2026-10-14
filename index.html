@@ -564,6 +564,28 @@
   .letter-header{font-size:14px;font-weight:800;color:var(--accent);padding:18px 6px 6px;letter-spacing:.03em;}
   .letter-header:first-child{padding-top:0;}
   .cifra-list{display:flex;flex-direction:column;}
+  /* [Rodada 122] Repertório do aluno */
+  .rep-tabela{border-top:1px solid var(--border);}
+  .rep-head,.rep-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.5fr) 140px 34px;gap:14px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--border);}
+  .rep-head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+  .rep-row{cursor:pointer;transition:background .2s;}
+  .rep-row:hover{background:color-mix(in srgb,var(--accent) 7%,transparent);}
+  .rep-c-tit{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rep-c-art{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rep-c-par{display:flex;gap:6px;justify-content:flex-start;}
+  .rep-head .rep-c-par{display:block;}
+  .rep-ico{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s;}
+  .rep-ico svg{width:18px;height:18px;}
+  .rep-ico:hover{border-color:var(--accent);}
+  .rep-ico.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .rep-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;opacity:.5;padding:4px;}
+  .rep-del:hover{opacity:1;color:var(--danger);}
+  .rep-legenda{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
+  .rep-leg{display:inline-flex;align-items:center;gap:5px;}
+  .rep-ic svg{width:16px;height:16px;vertical-align:middle;}
+  .rep-partes{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+  .rep-parte{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;font:inherit;font-size:13px;}
+  .rep-parte.on{background:var(--accent);border-color:var(--accent);color:#fff;}
   .cifra-row{display:flex;align-items:center;gap:14px;padding:10px 6px;border-bottom:1px solid var(--border);cursor:pointer;position:relative;transition:background .25s;}
   .cifra-row:hover{background:var(--bg-panel);}
   .cifra-row .avatar{width:38px;height:38px;border-radius:8px;background:var(--bg-panel-2);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
@@ -1468,6 +1490,13 @@
     .sort-group select{flex:1;min-width:0;}
     .filters > .btn-ghost{width:100%;margin-left:0 !important;}
 
+    .rep-head{display:none;}
+    .rep-row{grid-template-columns:minmax(0,1fr) auto 28px;row-gap:2px;}
+    .rep-row .rep-c-tit{grid-column:1;grid-row:1;}
+    .rep-row .rep-c-art{grid-column:1;grid-row:2;font-size:12px;}
+    .rep-row .rep-c-par{grid-column:2;grid-row:1 / span 2;}
+    .rep-row .rep-c-acao{grid-column:3;grid-row:1 / span 2;}
+    .rep-ico{width:30px;height:30px;}
     .cifra-row{flex-wrap:wrap;padding:12px 4px;row-gap:6px;}
     .cifra-row .row-actions{position:static;opacity:1;background:none;padding:0;transform:none;top:auto;right:auto;margin-left:6px;}
     .cifra-row:hover .row-status{margin-right:0;}
@@ -3074,7 +3103,7 @@ let state = {
   draft:null, confirmDialog:null, variantModal:null, chordPopup:null, listMoreModal:null,
   selectMode:false, selectedIds:new Set(),
   tarefas:[], showCompletedTasks:false, pdfChoiceModal:null,
-  novaTarefaModalOpen:false, novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
+  novaTarefaModalOpen:false, repModalOpen:false, repDraft:null, repBusca:'', novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
   solosIndex:[], solosDetailCache:{}, soloDraft:null, soloViewId:null,
   solosFiltro:{busca:''}, solosSortMode:'alfabetica', solosSortDir:'desc', solosSearchOpen:false,
   perfil:null, perfilDraft:null, trocarSenhaError:null, loginLoading:false,
@@ -3406,6 +3435,105 @@ function novaTarefaModalHtml(){
       </form>
     </div>
   </div>`;
+}
+
+
+// ---------- Repertório do aluno (lista: Música | Artista | partes que já toca) ----------
+// [Rodada 122] A antiga aba "Repertório" (biblioteca de cifras) virou "Cifras". A nova "Repertório" é uma lista simples
+// por aluno: música, artista e quais partes ele já toca (Base, Canto, Solo). Fica em perfis.dados.repertorio (sem tabela nova).
+const ICON_LISTA_REP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>';
+const REP_PARTES = [
+  {key:'base',  label:'Base',  icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 9.5 20 4"/><path d="m18 3 3 3"/><path d="M11.2 8.8c-1.6-1.6-4-1.5-5.4.4-.9 1.2-.9 2.2-1.9 3.2-1.7 1.7-1.7 4.5 0 6.2s4.5 1.7 6.2 0c1-1 2-1 3.2-1.9 1.9-1.4 2-3.8.4-5.4z"/><circle cx="9.5" cy="14.5" r="1" fill="currentColor"/></svg>'},
+  {key:'canto', label:'Canto', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>'},
+  {key:'solo',  label:'Solo',  icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>'},
+];
+function repLista(){ return (state.perfil && Array.isArray(state.perfil.repertorio)) ? state.perfil.repertorio : []; }
+async function repSalvar(){ await savePerfil(); }
+function repTogglePartes(id, parte, ev){
+  if(ev) ev.stopPropagation();
+  const it = repLista().find(x=>x.id===id); if(!it) return;
+  it[parte] = !it[parte];
+  render(); repSalvar();
+}
+function repAbrirModal(id){
+  const it = id ? repLista().find(x=>x.id===id) : null;
+  state.repDraft = it ? {...it} : {id:null, titulo:'', artista:'', base:false, canto:false, solo:false};
+  state.repModalOpen = true; render();
+  setTimeout(()=>{ const el=document.getElementById('rep_titulo'); if(el) el.focus(); }, 30);
+}
+function repFecharModal(){ state.repModalOpen = false; state.repDraft = null; render(); }
+function repToggleDraft(parte){ if(!state.repDraft) return; state.repDraft[parte] = !state.repDraft[parte];
+  document.querySelectorAll('[data-rep-draft]').forEach(b=>{ b.classList.toggle('on', !!state.repDraft[b.dataset.repDraft]); }); }
+async function repSubmit(ev){
+  if(ev) ev.preventDefault();
+  const d = state.repDraft; if(!d) return;
+  const titulo = tituloCase(((document.getElementById('rep_titulo')||{}).value||'').trim());
+  const artista = tituloCase(((document.getElementById('rep_artista')||{}).value||'').trim());
+  if(!titulo){ showToast('Digite o nome da música.', true); return; }
+  if(!state.perfil) state.perfil = defaultPerfil();
+  if(!Array.isArray(state.perfil.repertorio)) state.perfil.repertorio = [];
+  if(d.id){ const it = state.perfil.repertorio.find(x=>x.id===d.id); if(it) Object.assign(it, {titulo, artista, base:!!d.base, canto:!!d.canto, solo:!!d.solo}); }
+  else state.perfil.repertorio.push({id:genUuid(), titulo, artista, base:!!d.base, canto:!!d.canto, solo:!!d.solo, criadoEm:Date.now()});
+  state.repModalOpen = false; state.repDraft = null; render();
+  await repSalvar();
+  showToast(d.id ? 'Música atualizada.' : 'Música adicionada ao repertório.');
+}
+async function repExcluir(id, ev){
+  if(ev) ev.stopPropagation();
+  const it = repLista().find(x=>x.id===id); if(!it) return;
+  const ok = await customConfirm('Remover "'+it.titulo+'" do repertório?');
+  if(!ok) return;
+  state.perfil.repertorio = repLista().filter(x=>x.id!==id);
+  render(); await repSalvar();
+}
+function repModalHtml(){
+  if(!state.repModalOpen || !state.repDraft) return '';
+  const d = state.repDraft;
+  return `
+  <div class="modal-bg" onclick="if(event.target===this) repFecharModal()">
+    <div class="mini-modal" style="max-width:420px;text-align:left;">
+      <h4 style="margin:0 0 14px;">${d.id?'Editar música':'Adicionar música'}</h4>
+      <form onsubmit="repSubmit(event)">
+        <div class="login-field"><label>Música</label><input id="rep_titulo" type="text" placeholder="Ex: Trem-Bala" value="${escapeHtml(d.titulo||'')}" autocomplete="off"></div>
+        <div class="login-field"><label>Artista ou banda</label><input id="rep_artista" type="text" placeholder="Ex: Ana Vilela" value="${escapeHtml(d.artista||'')}" autocomplete="off"></div>
+        <div class="login-field"><label>Parte da música que já toca</label>
+          <div class="rep-partes">${REP_PARTES.map(p=>`<button type="button" class="rep-parte ${d[p.key]?'on':''}" data-rep-draft="${p.key}" onclick="repToggleDraft('${p.key}')"><span class="rep-ic">${p.icon}</span>${p.label}</button>`).join('')}</div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-ghost" onclick="repFecharModal()">Cancelar</button>
+          <button type="submit" class="btn">${d.id?'Salvar':'Adicionar'}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+function repertorioAlunoHtml(){
+  const busca = (state.repBusca||'').toLowerCase();
+  const itens = repLista().slice().sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'','pt-BR'))
+    .filter(x=>!busca || ((x.titulo||'')+' '+(x.artista||'')).toLowerCase().includes(busca));
+  const total = repLista().length;
+  const legenda = REP_PARTES.map(p=>`<span class="rep-leg"><span class="rep-ic">${p.icon}</span>${p.label}</span>`).join('');
+  return `
+      <div class="page-header-row" style="align-items:center;">
+        <h2 style="margin:0;">Repertório</h2>
+        <div class="top-actions">
+          <div class="search-box"><span class="s-icon">${SEARCH_SVG}</span><input id="rep_busca" placeholder="Buscar música ou artista…" value="${escapeHtml(state.repBusca||'')}" oninput="state.repBusca=this.value;render();var e=document.getElementById('rep_busca');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}"></div>
+          <button class="btn" onclick="repAbrirModal()">+ Adicionar música</button>
+        </div>
+      </div>
+      <div class="filters"><div class="rep-legenda">${legenda}</div><span class="total-count no-print" style="margin-left:auto;">Músicas no repertório: ${total}</span></div>
+      ${itens.length===0 ? `<div class="empty"><span class="big">${ICON_LISTA_REP}</span>${total===0?'Nenhuma música no repertório ainda. Clique em "Adicionar música" para começar.':'Nenhuma música encontrada.'}</div>` : `
+      <div class="rep-tabela">
+        <div class="rep-head"><span class="rep-c-tit">Música</span><span class="rep-c-art">Artista ou banda</span><span class="rep-c-par">Parte que já toca</span><span class="rep-c-acao"></span></div>
+        ${itens.map(x=>`
+        <div class="rep-row" onclick="repAbrirModal('${x.id}')">
+          <div class="rep-c-tit">${escapeHtml(x.titulo||'')}</div>
+          <div class="rep-c-art">${escapeHtml(x.artista||'')}</div>
+          <div class="rep-c-par">${REP_PARTES.map(p=>`<button type="button" class="rep-ico ${x[p.key]?'on':''}" title="${p.label}${x[p.key]?' — já toca (clique para desmarcar)':' — clique para marcar'}" onclick="repTogglePartes('${x.id}','${p.key}',event)">${p.icon}</button>`).join('')}</div>
+          <div class="rep-c-acao"><button type="button" class="rep-del" title="Remover da lista" onclick="repExcluir('${x.id}',event)">✕</button></div>
+        </div>`).join('')}
+      </div>`}
+      ${repModalHtml()}`;
 }
 
 // ---------- Solos (tablature) ----------
@@ -6846,7 +6974,7 @@ function genericAvatarSvg(size){
   </svg>`;
 }
 function defaultPerfil(){
-  return {nome:'', metas:[], artistas:[], wishlist:[], diasEstudo:{}};
+  return {nome:'', metas:[], artistas:[], wishlist:[], diasEstudo:{}, repertorio:[]};
 }
 function metasList(p){
   if(!p || !p.metas) return [];
@@ -10116,7 +10244,8 @@ function getNavItems(){
   return [
     {key:'perfil', label:'Perfil do Aluno', icon:NAV_ICON_PERFIL},
     {key:'tarefas', label:'Tarefas', icon:NAV_ICON_TAREFAS},
-    {key:'repertorio', label:'Repertório', icon:ICON_NOTE},
+    {key:'repAluno', label:'Repertório', icon:ICON_LISTA_REP},
+    {key:'repertorio', label:'Cifras', icon:ICON_NOTE},
     {key:'solos', label:'Solos', icon:NAV_ICON_SOLOS},
     {key:'materiais', label:'Materiais', icon:NAV_ICON_MATERIAIS},
     {key:'ferramentas', label:'Ferramentas', icon:NAV_ICON_FERRAMENTAS},
@@ -11231,7 +11360,7 @@ async function submitConfiguracoes(ev, secao){
 function getProfessorTabItems(){
   return [
     {key:'alunos', label:'Alunos', icon:ICON_ALUNOS},
-    {key:'repertorio', label:'Repertório', icon:ICON_NOTE},
+    {key:'repertorio', label:'Cifras', icon:ICON_NOTE},
     {key:'solos', label:'Solos', icon:NAV_ICON_SOLOS},
     {key:'materiais', label:'Materiais', icon:NAV_ICON_MATERIAIS},
     {key:'ferramentas', label:'Ferramentas', icon:NAV_ICON_FERRAMENTAS},
@@ -11296,7 +11425,7 @@ function professorRepertorioTabHtml(){
         <span class="tlabel">Ritmo</span>
         ${filtroRitmoDropdownHtml()}
       </div>
-      <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${bancoDoProfessor.length}</span>
+      <span class="total-count no-print" style="margin-left:auto;">Total de cifras: ${bancoDoProfessor.length}</span>
     </div>
     ${filtradas.length===0?`<div class="empty"><span class="big">${ICON_NOTE}</span>${bancoDoProfessor.length===0?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Nenhuma música encontrada com esse filtro.'}</div>`:
     groups.map(group=>`
@@ -14399,7 +14528,7 @@ function syncDraftFieldsFromDom(){
 // funções, como o confirmDialog.resolve) — pro navegador só vai um índice.
 const NAV_SIMPLE_KEYS = ['view','professorTab','professorStudentEmail','cifraSelId','soloViewId','materialViewId',
   'professorCadastroOpen','materialUploadOpen','matNovaPastaModalOpen','materialMoveId',
-  'novaTarefaModalOpen','trocarSenhaOpen','notifPanelOpen','topbarMenuOpen','profAreaMenuOpen'];
+  'novaTarefaModalOpen','repModalOpen','trocarSenhaOpen','notifPanelOpen','topbarMenuOpen','profAreaMenuOpen'];
 const NAV_MODAL_KEYS = ['confirmDialog','variantModal','pdfChoiceModal','listMoreModal','itemContextMenu','toolContextMenu','avatarCropModal','perfilDraft'];
 let _navStack = [];
 let _navLastSig = null;
@@ -14486,7 +14615,7 @@ function render(){
 // "App do aluno | [nome da área atual]", recalculado a cada render() (formato da rodada 54).
 const VIEW_TITLES = {
   'login':'Login', 'professorArea':'Área do Professor',
-  'perfil':'Perfil', 'tarefas':'Tarefas', 'repertorio':'Repertório', 'solos':'Solos',
+  'perfil':'Perfil', 'tarefas':'Tarefas', 'repAluno':'Repertório', 'repertorio':'Cifras', 'solos':'Solos',
   'solo-editor':'Editor de Solo', 'solo-viewer':'Solo', 'materiais':'Materiais',
   'material-viewer':'Material', 'notificacoes':'Notificações', 'ferramentas':'Ferramentas',
   'cifraViewer':'Cifra',
@@ -14496,7 +14625,7 @@ const VIEW_TITLES = {
   'tool-harm':'Campo Harmônico',
 };
 const PROFESSOR_TAB_TITLES = {
-  'alunos':'Alunos', 'config':'Configurações', 'repertorio':'Repertório',
+  'alunos':'Alunos', 'config':'Configurações', 'repertorio':'Cifras',
   'solos':'Solos', 'materiais':'Materiais', 'ferramentas':'Ferramentas',
 };
 function updateDocumentTitle(){
@@ -14975,7 +15104,7 @@ function renderApp(){
       </div>
       ${isProfessorAdmin?professorNavHtml():mainNavHtml()}
       <div class="page-header-row">
-        <h2 style="margin:0;">Repertório</h2>
+        <h2 style="margin:0;">Cifras</h2>
         <div class="top-actions">
           ${(state.searchOpen || f.busca) ?
             `<div class="search-box"><span class="s-icon">${SEARCH_SVG}</span><input id="busca_input" placeholder="Buscar música ou artista…" value="${escapeHtml(f.busca)}" oninput="setFiltro('busca', this.value)" onblur="collapseSearchIfEmpty()"></div>`
@@ -15034,6 +15163,18 @@ function renderApp(){
         </div>`).join('')}
       ${draftModalHtml()}
       ${state.sendModalType?sendModalHtml():''}
+    `;
+    return;
+  }
+
+  if(state.view==='repAluno'){
+    app.innerHTML = `
+      <div class="topbar">
+        ${brandHtml(false)}
+        ${themeSwitch}
+      </div>
+      ${mainNavHtml()}
+      ${repertorioAlunoHtml()}
     `;
     return;
   }
