@@ -3114,7 +3114,7 @@ let state = {
   draft:null, confirmDialog:null, variantModal:null, chordPopup:null, listMoreModal:null,
   selectMode:false, selectedIds:new Set(),
   tarefas:[], showCompletedTasks:false, pdfChoiceModal:null,
-  novaTarefaModalOpen:false, repModalOpen:false, repDraft:null, repBusca:'', repFiltro:'', novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
+  novaTarefaModalOpen:false, repModalOpen:false, repDraft:null, repBusca:'', bulk:null, repFiltro:'', novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
   solosIndex:[], solosDetailCache:{}, soloDraft:null, soloViewId:null,
   solosFiltro:{busca:''}, solosSortMode:'alfabetica', solosSortDir:'desc', solosSearchOpen:false,
   perfil:null, perfilDraft:null, trocarSenhaError:null, loginLoading:false,
@@ -3552,6 +3552,141 @@ function repertorioAlunoHtml(){
         </div>`).join('')}
       </div>`}
       ${repModalHtml()}`;
+}
+
+
+// ---------- Importação em massa de cifras em PDF (pasta, vários PDFs ou .zip) ----------
+// [Rodada 129] Nome do arquivo no formato "Música - Artista.pdf". Cada PDF vira uma cifra do tipo PDF no banco do professor.
+function bulkParseNome(nome){
+  let base = String(nome).split('/').pop().replace(/\.pdf$/i,'').replace(/_/g,' ').replace(/\s+/g,' ').trim();
+  const i = base.lastIndexOf(' - ');
+  if(i>0) return {titulo: base.slice(0,i).trim(), artista: base.slice(i+3).trim()};
+  return {titulo: base, artista: ''};
+}
+function bulkAbrir(){ if(!state.professorMode || state.professorMode.email) return; state.bulk = {items:[], rodando:false, feitos:0, erros:0, fim:false, lendo:false}; render(); }
+function bulkFechar(){ if(state.bulk && state.bulk.rodando) return; state.bulk = null; render(); }
+async function bulkLerZip(file){
+  const buf = new Uint8Array(await file.arrayBuffer()), dv = new DataView(buf.buffer);
+  let eocd = -1; for(let i=buf.length-22;i>=Math.max(0,buf.length-66000);i--){ if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; } }
+  if(eocd<0) throw new Error('arquivo .zip inválido');
+  const total = dv.getUint16(eocd+10,true); let off = dv.getUint32(eocd+16,true);
+  const out = [];
+  for(let k=0;k<total;k++){
+    if(dv.getUint32(off,true)!==0x02014b50) break;
+    const flags=dv.getUint16(off+8,true), metodo=dv.getUint16(off+10,true), csize=dv.getUint32(off+20,true), usize=dv.getUint32(off+24,true);
+    const nl=dv.getUint16(off+28,true), el=dv.getUint16(off+30,true), cl=dv.getUint16(off+32,true), loc=dv.getUint32(off+42,true);
+    const nome = new TextDecoder('utf-8').decode(buf.subarray(off+46, off+46+nl));
+    off += 46+nl+el+cl;
+    if(nome.endsWith('/') || /(^|\/)(__MACOSX|\.)/.test(nome) || /(^|\/)\._/.test(nome) || !/\.pdf$/i.test(nome)) continue;
+    if(flags & 1) throw new Error('o .zip tem senha');
+    out.push({nome, metodo, csize, usize, loc, zip:buf});
+  }
+  return out.map(e=>({nome:e.nome, tam:e.usize, blob: async ()=>{
+    const d = new DataView(e.zip.buffer), n=d.getUint16(e.loc+26,true), x=d.getUint16(e.loc+28,true), ini=e.loc+30+n+x;
+    const dados = e.zip.subarray(ini, ini+e.csize);
+    if(e.metodo===0) return new Blob([dados],{type:'application/pdf'});
+    if(e.metodo!==8) throw new Error('compressão não suportada');
+    const ds = new Blob([dados]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Blob([await new Response(ds).arrayBuffer()],{type:'application/pdf'});
+  }}));
+}
+async function bulkEscolhidos(input){
+  const b = state.bulk; if(!b) return;
+  const arquivos = Array.from(input.files||[]); input.value='';
+  if(!arquivos.length) return;
+  b.lendo = true; render();
+  const novos = [];
+  try{
+    for(const f of arquivos){
+      const nome = f.webkitRelativePath || f.name;
+      if(/\.zip$/i.test(f.name)){
+        (await bulkLerZip(f)).forEach(z=>novos.push({nome:z.nome, tam:z.tam, blob:z.blob}));
+      } else if(/\.pdf$/i.test(f.name) || f.type==='application/pdf'){
+        if(/(^|\/)(__MACOSX|\.)/.test(nome)) continue;
+        novos.push({nome, tam:f.size, blob: async ()=>f});
+      }
+    }
+  }catch(e){ showToast('Não consegui abrir o arquivo: '+(e&&e.message||e), true); }
+  const existentes = new Set(state.cifraIndex.map(c=>((c.titulo||'')+'|'+(c.artista||'')).toLowerCase()).concat(b.items.map(i=>((i.titulo||'')+'|'+(i.artista||'')).toLowerCase())));
+  novos.forEach(n=>{
+    const t = bulkParseNome(n.nome);
+    const jaExiste = existentes.has((t.titulo+'|'+t.artista).toLowerCase());
+    const grande = n.tam > maxPdfBytes();
+    existentes.add((t.titulo+'|'+t.artista).toLowerCase());
+    b.items.push({id:uid()+Math.random().toString(36).slice(2,5), nome:n.nome, blob:n.blob, titulo:t.titulo, artista:t.artista, marcado: !jaExiste && !grande, status: grande?'grande demais':(jaExiste?'já existe':''), grande});
+  });
+  b.items.sort((a,c)=>a.titulo.localeCompare(c.titulo,'pt-BR'));
+  b.lendo = false; render();
+  if(!novos.length) showToast('Nenhum PDF encontrado.', true);
+}
+function bulkSetCampo(id, campo, valor){ const it = state.bulk && state.bulk.items.find(x=>x.id===id); if(it) it[campo] = valor; }
+function bulkToggle(id, v){ const it = state.bulk && state.bulk.items.find(x=>x.id===id); if(it){ it.marcado = v; render(); } }
+function bulkToggleTodos(v){ if(!state.bulk) return; state.bulk.items.forEach(i=>{ if(!i.grande) i.marcado = v; }); render(); }
+function bulkRemover(id){ if(!state.bulk) return; state.bulk.items = state.bulk.items.filter(x=>x.id!==id); render(); }
+async function bulkImportar(){
+  const b = state.bulk; if(!b || b.rodando) return;
+  const lista = b.items.filter(i=>i.marcado && !i.grande && i.status!=='importada');
+  if(!lista.length){ showToast('Marque ao menos uma música.', true); return; }
+  if(lista.some(i=>!(i.titulo||'').trim())){ showToast('Há músicas sem título.', true); return; }
+  b.rodando = true; b.feitos = 0; b.erros = 0; b.total = lista.length; render();
+  for(const it of lista){
+    it.status = 'enviando…'; bulkAtualizaLinha(it);
+    try{
+      const blob = await it.blob();
+      const dataUrl = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(new Error('leitura')); r.readAsDataURL(blob); });
+      const id = uid(), criadoEm = Date.now();
+      const titulo = it.titulo.trim(), artista = (it.artista||'').trim();
+      const full = {id, titulo, artista, tom:'', ritmos:[], criadoEm, tipo:'pdf', pdfData:dataUrl, pdfName:it.nome.split('/').pop(), memorizada:false, tiradaDeOuvido:false, dificuldade:0, chordOverrides:{}, capo:0, destinatarios:[], youtubeUrl:'', criadoPorAluno:false};
+      const meta = {id, titulo, artista, tom:'', ritmos:[], criadoEm, tipo:'pdf', memorizada:false, tiradaDeOuvido:false, dificuldade:0, capo:0, destinatarios:[], criadoPorAluno:false};
+      const ok = await saveDetail(id, full);
+      if(!ok) throw new Error('não salvou');
+      state.cifraIndex.push(meta);
+      it.status = 'importada'; it.marcado = false; b.feitos++;
+    }catch(e){ console.error('bulk', e); it.status = 'erro'; b.erros++; }
+    bulkAtualizaLinha(it);
+    const barra = document.getElementById('bulkProgresso'); if(barra) barra.textContent = (b.feitos+b.erros)+' de '+b.total;
+  }
+  b.rodando = false; b.fim = true; render();
+  showToast(b.feitos+' cifra'+(b.feitos===1?'':'s')+' importada'+(b.feitos===1?'':'s')+(b.erros?' — '+b.erros+' com erro':'')+'.', !!b.erros);
+}
+function bulkAtualizaLinha(it){ const el = document.getElementById('bulkSt_'+it.id); if(el) el.textContent = it.status; }
+function bulkModalHtml(){
+  const b = state.bulk; if(!b) return '';
+  const sel = b.items.filter(i=>i.marcado && !i.grande).length;
+  const todosMarcados = b.items.length && b.items.filter(i=>!i.grande).every(i=>i.marcado);
+  return `
+  <div class="modal-bg" onclick="if(event.target===this) bulkFechar()">
+    <div class="mini-modal" style="max-width:820px;width:94vw;text-align:left;max-height:90vh;display:flex;flex-direction:column;">
+      <h4 style="margin:0 0 6px;">Importar cifras em PDF</h4>
+      <p class="hint" style="margin:0 0 12px;">Escolha uma pasta, vários PDFs ou um arquivo .zip. O nome de cada arquivo deve estar como <b>Música - Artista.pdf</b> — confira e ajuste abaixo antes de importar.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <label class="btn-ghost btn-small" style="cursor:pointer;">Escolher pasta<input type="file" webkitdirectory directory multiple style="display:none;" onchange="bulkEscolhidos(this)"></label>
+        <label class="btn-ghost btn-small" style="cursor:pointer;">Escolher PDFs ou .zip<input type="file" accept="application/pdf,.pdf,.zip,application/zip" multiple style="display:none;" onchange="bulkEscolhidos(this)"></label>
+        ${b.lendo?'<span class="hint" style="align-self:center;">Lendo arquivos…</span>':''}
+      </div>
+      ${b.items.length?`
+      <div style="overflow:auto;border:1px solid var(--border);border-radius:8px;flex:1;min-height:120px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="text-align:left;position:sticky;top:0;background:var(--bg);">
+            <th style="padding:8px;width:30px;"><input type="checkbox" ${todosMarcados?'checked':''} ${b.rodando?'disabled':''} onchange="bulkToggleTodos(this.checked)" style="width:16px;height:16px;accent-color:var(--accent);"></th>
+            <th style="padding:8px;">Música</th><th style="padding:8px;">Artista ou banda</th><th style="padding:8px;width:110px;">Situação</th><th style="width:28px;"></th></tr></thead>
+          <tbody>${b.items.map(i=>`
+            <tr style="border-top:1px solid var(--border);${i.status==='importada'?'opacity:.55;':''}">
+              <td style="padding:6px 8px;"><input type="checkbox" ${i.marcado?'checked':''} ${(i.grande||b.rodando||i.status==='importada')?'disabled':''} onchange="bulkToggle('${i.id}', this.checked)" style="width:16px;height:16px;accent-color:var(--accent);"></td>
+              <td style="padding:6px 8px;"><input type="text" value="${escapeHtml(i.titulo)}" ${b.rodando?'disabled':''} oninput="bulkSetCampo('${i.id}','titulo',this.value)" style="padding:6px 8px;font-size:13px;"></td>
+              <td style="padding:6px 8px;"><input type="text" value="${escapeHtml(i.artista)}" ${b.rodando?'disabled':''} oninput="bulkSetCampo('${i.id}','artista',this.value)" style="padding:6px 8px;font-size:13px;"></td>
+              <td style="padding:6px 8px;color:var(--muted);font-size:12px;" id="bulkSt_${i.id}">${escapeHtml(i.status||'')}</td>
+              <td style="padding:6px 0;"><button type="button" class="rep-del" title="Tirar da lista" ${b.rodando?'disabled':''} onclick="bulkRemover('${i.id}')">✕</button></td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>`:''}
+      <div class="form-actions" style="margin-top:14px;align-items:center;">
+        <span class="hint" id="bulkProgresso" style="margin-right:auto;">${b.rodando?((b.feitos+b.erros)+' de '+b.total):(b.items.length?sel+' selecionada'+(sel===1?'':'s')+' de '+b.items.length:'')}</span>
+        <button type="button" class="btn-ghost" ${b.rodando?'disabled':''} onclick="bulkFechar()">${b.fim?'Fechar':'Cancelar'}</button>
+        <button type="button" class="btn" ${(b.rodando||!sel)?'disabled':''} onclick="bulkImportar()">${b.rodando?'Importando…':'Importar '+sel+' cifra'+(sel===1?'':'s')}</button>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ---------- Solos (tablature) ----------
@@ -11420,6 +11555,7 @@ function professorRepertorioTabHtml(){
         ${(state.searchOpen || f.busca) ?
           `<div class="search-box"><span class="s-icon">${SEARCH_SVG}</span><input id="busca_input" placeholder="Buscar música ou artista…" value="${escapeHtml(f.busca)}" oninput="setFiltro('busca', this.value)" onblur="collapseSearchIfEmpty()"></div>`
           : `<button class="search-icon-btn" title="Buscar" onclick="openSearch()">${SEARCH_SVG}</button>`}
+        <button class="btn-ghost" onclick="bulkAbrir()">Importar PDFs</button>
         <button class="btn" onclick="professorNewCifra()">+ Nova cifra</button>
       </div>
     </div>
@@ -15785,6 +15921,7 @@ function renderApp(){
 
 function dialogsHtml(){
   let html = '';
+  if(state.bulk) html += bulkModalHtml();
   if(state.confirmDialog){
     html += `
     <div class="modal-bg" onclick="if(event.target===this) resolveConfirm(false)">
