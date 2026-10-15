@@ -3674,7 +3674,7 @@ function bulkParseNome(nome){
   if(i>0) return {titulo: base.slice(0,i).trim(), artista: base.slice(i+3).trim()};
   return {titulo: base, artista: ''};
 }
-function bulkAbrir(){ if(!state.professorMode || state.professorMode.email) return; state.bulk = {items:[], rodando:false, feitos:0, erros:0, fim:false, lendo:false, destino: state.cifPastaAberta||'', porSubpasta:false}; render(); }
+function bulkAbrir(){ if(!state.professorMode || state.professorMode.email) return; state.bulk = {items:[], rodando:false, feitos:0, erros:0, fim:false, lendo:false, destino: state.cifPastaAberta||'', porSubpasta:true}; render(); }
 function bulkFechar(){ if(state.bulk && state.bulk.rodando) return; state.bulk = null; render(); }
 async function bulkLerZip(file){
   const buf = new Uint8Array(await file.arrayBuffer()), dv = new DataView(buf.buffer);
@@ -3792,12 +3792,12 @@ function bulkModalHtml(){
       </div>
       ${b.items.length?`
       <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:-2px 0 12px;font-size:13px;">
-        <label style="display:flex;align-items:center;gap:8px;">Pasta de destino
-          <select ${(b.rodando||b.porSubpasta)?'disabled':''} onchange="state.bulk.destino=this.value" style="min-width:160px;">
+        <label style="display:flex;align-items:center;gap:8px;" title="Usada para PDFs soltos, que não vieram dentro de uma pasta">Pasta de destino (PDFs soltos)
+          <select ${b.rodando?'disabled':''} onchange="state.bulk.destino=this.value" style="min-width:160px;">
             <option value="">Lista principal (sem pasta)</option>
             ${getCifraPastas().slice().sort((a,c)=>a.nome.localeCompare(c.nome,'pt-BR')).map(p=>`<option value="${p.id}" ${b.destino===p.id?'selected':''}>${escapeHtml(p.nome)}</option>`).join('')}
           </select></label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" ${b.porSubpasta?'checked':''} ${b.rodando?'disabled':''} onchange="state.bulk.porSubpasta=this.checked;render()" style="width:16px;height:16px;accent-color:var(--accent);"> Criar uma pasta para cada subpasta do arquivo</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" ${b.porSubpasta?'checked':''} ${b.rodando?'disabled':''} onchange="state.bulk.porSubpasta=this.checked;render()" style="width:16px;height:16px;accent-color:var(--accent);"> Manter o nome da pasta original (cria a pasta no app)</label>
       </div>
       <div style="overflow:auto;border:1px solid var(--border);border-radius:8px;flex:1;min-height:120px;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;">
