@@ -620,7 +620,9 @@
   .select-all-label input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;}
   .select-mode-count{font-weight:700;white-space:nowrap;}
   .select-mode-warn{color:var(--danger);opacity:.85;white-space:nowrap;}
-  .select-mode-actions{display:flex;gap:8px;margin-left:auto;}
+  .select-mode-actions{display:flex;gap:8px;margin-left:auto;align-items:center;}
+  .select-mode-actions .btn-small{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  .select-mode-actions svg{width:15px;height:15px;flex:0 0 auto;}
   .btn-danger-solid{background:var(--danger);color:#fff;border:none;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;transition:filter .25s;}
   .btn-danger-solid:disabled{opacity:.4;cursor:not-allowed;}
   .btn-danger-solid:hover:not(:disabled){filter:brightness(1.1);}
@@ -1001,6 +1003,11 @@
   .mat-crumb-link:hover{background:var(--bg-panel-2);}
   .mat-crumb-link svg{width:15px;height:15px;}
   .mat-crumb-sep{opacity:.6;}
+  .cifra-row[draggable="true"]{-webkit-user-select:none;user-select:none;}
+  .cifra-row.dragging{opacity:.4;}
+  .pasta-row.drop-over,.mat-crumb-link.drop-over{outline:2px dashed var(--accent);outline-offset:-2px;background:color-mix(in srgb, var(--accent) 14%, var(--bg-panel));}
+  body.mat-dragging .pasta-row *,body.mat-dragging .mat-crumb-link *{pointer-events:none;}
+  .mat-drag-badge{position:fixed;top:-100px;left:-100px;background:var(--accent);color:#fff;font:700 13px 'Montserrat',sans-serif;padding:8px 14px;border-radius:999px;}
   .mat-crumb-atual{color:var(--text);font-weight:600;}
   /* [Rodada 58] Contagem de alunos (ativos/inativos) tirada do título e posta
      embaixo dele, discreta, a pedido do usuário. */
@@ -10896,30 +10903,81 @@ function pastaNome(id){ const p = getMateriaisPastas().find(x=>x.id===id); retur
 // de ser um filtro e passou a significar "a pasta aberta agora" (null = raiz).
 // Na raiz aparecem as pastas e, embaixo, os arquivos que não estão em nenhuma
 // delas — o antigo "Sem pasta" deixou de existir como item.
-function entrarNaPasta(id){ state.matPastaFiltro = id; render(); }
-function voltarParaRaizMateriais(){ state.matPastaFiltro = null; render(); }
-function pastaRowHtml(p, qtd, podeGerenciar){
+function entrarNaPasta(id){ state.matPastaFiltro = id; if(state.selectMode==='mat'){ state.selectMode=false; state.selectedIds=new Set(); } render(); }
+function voltarParaRaizMateriais(){ state.matPastaFiltro = null; if(state.selectMode==='mat'){ state.selectMode=false; state.selectedIds=new Set(); } render(); }
+function matIrParaPasta(id){ if(id) entrarNaPasta(id); else voltarParaRaizMateriais(); }
+// [Rodada 137] Pastas dentro de pastas: cada pasta pode ter `parentId`. Arrastar com o mouse
+// (arquivos e pastas sobre uma pasta ou sobre o "caminho" no topo) e modo "Selecionar" com
+// mover em lote — tudo só pro professor.
+function matPastaDe(id){ return getMateriaisPastas().find(x=>x.id===id) || null; }
+function matPai(p){ return (p && p.parentId && p.parentId!==p.id && matPastaDe(p.parentId)) ? p.parentId : null; }
+function matFilhas(parentId){ const pid = parentId||null; return getMateriaisPastas().filter(p=>matPai(p)===pid); }
+function matCaminho(id){
+  const out = []; const vis = new Set(); let c = matPastaDe(id);
+  while(c && !vis.has(c.id)){ vis.add(c.id); out.unshift(c); c = matPastaDe(matPai(c)); }
+  return out;
+}
+function matCaminhoNome(id){ return matCaminho(id).map(p=>p.nome).join(' / '); }
+function matDescendentes(id){
+  const out = [], vis = new Set([id]), pilha = [id];
+  while(pilha.length){ const x = pilha.pop(); matFilhas(x).forEach(f=>{ if(!vis.has(f.id)){ vis.add(f.id); out.push(f.id); pilha.push(f.id); } }); }
+  return out;
+}
+function matContagemRec(id, lista){ const ids = new Set([id].concat(matDescendentes(id))); return lista.filter(m=>m.pastaId && ids.has(m.pastaId)).length; }
+// Lista de todas as pastas em ordem de árvore, com o nível de cada uma (pra indentar nos menus).
+function matPastasEmArvore(){
+  const out = []; const vis = new Set();
+  const visita = (pid, nivel)=>{ matFilhas(pid).forEach(p=>{ if(vis.has(p.id)) return; vis.add(p.id); out.push({p, nivel}); visita(p.id, nivel+1); }); };
+  visita(null, 0);
+  return out;
+}
+function matSelecionando(){ return state.selectMode==='mat' && !!state.professorMode; }
+function matSelAtrs(id){
+  const sel = matSelecionando() && state.selectedIds && state.selectedIds.has(id);
+  return { selecting: matSelecionando(), sel: !!sel };
+}
+function matCheckHtml(id){
+  const a = matSelAtrs(id);
+  return a.selecting ? `<input type="checkbox" class="row-check" data-id="${id}" ${a.sel?'checked':''} onclick="event.stopPropagation();toggleSelectItem('${id}')">` : '';
+}
+function matDragAtrs(id){
+  return state.professorMode ? `draggable="true" data-mat-id="${id}" ondragstart="matDragStart(event,'${id}')" ondragend="matDragEnd(event)"` : '';
+}
+function matDropAtrs(destId){
+  if(!state.professorMode) return '';
+  const d = destId ? `'${destId}'` : 'null';
+  return `ondragover="matDragOver(event,${d})" ondragleave="matDragLeave(event)" ondrop="matDrop(event,${d})"`;
+}
+function pastaRowHtml(p, qtd, podeGerenciar, nSub){
+  const a = matSelAtrs(p.id);
+  const selecting = a.selecting && podeGerenciar;
+  const sub = nSub ? `${nSub} ${nSub===1?'pasta':'pastas'} · ` : '';
   return `
-  <div class="cifra-row pasta-row" onclick="entrarNaPasta('${p.id}')" ${podeGerenciar?`oncontextmenu="openItemContextMenu(event,'pasta','${p.id}')"`:''}>
+  <div class="cifra-row pasta-row ${selecting?'select-row':''} ${selecting&&a.sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${p.id}')`:`entrarNaPasta('${p.id}')`}" ${(podeGerenciar&&!selecting)?`oncontextmenu="openItemContextMenu(event,'pasta','${p.id}')"`:''} ${podeGerenciar?matDragAtrs(p.id)+' '+matDropAtrs(p.id):''}>
+    ${selecting?matCheckHtml(p.id):''}
     <div class="avatar pasta-avatar">${FOLDER_SVG}</div>
     <div class="info">
       <div class="tit">${escapeHtml(p.nome)}</div>
-      <div class="art">${qtd} ${qtd===1?'arquivo':'arquivos'}</div>
+      <div class="art">${sub}${qtd} ${qtd===1?'arquivo':'arquivos'}</div>
     </div>
     <div class="row-status">
-      ${podeGerenciar?`<button class="row-menu-btn" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openItemContextMenu(event,'pasta','${p.id}')">⋮</button>`:''}
+      ${(podeGerenciar&&!selecting)?`<button class="row-menu-btn" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openItemContextMenu(event,'pasta','${p.id}')">⋮</button>`:''}
     </div>
   </div>`;
 }
-// Caminho no topo, como a barra de endereço de uma janela de pastas.
+// Caminho no topo, como a barra de endereço de uma janela de pastas. Cada trecho leva de volta
+// àquele nível e (pro professor) também aceita itens arrastados para lá.
 function breadcrumbMateriaisHtml(){
   const id = state.matPastaFiltro;
   if(!id) return '';
-  const nome = id==='sem-pasta' ? 'Sem pasta' : pastaNome(id);
+  const cam = matCaminho(id);
+  if(!cam.length) return '';
+  const link = (destId, nome, ic)=>`<button type="button" class="mat-crumb-link" onclick="matIrParaPasta(${destId?`'${destId}'`:'null'})" ${matDropAtrs(destId)}>${ic||''}<span>${escapeHtml(nome)}</span></button>`;
+  const partes = cam.slice(0,-1).map(p=>`<span class="mat-crumb-sep">›</span>${link(p.id, p.nome)}`).join('');
   return `<div class="mat-breadcrumb">
-    <button type="button" class="mat-crumb-link" onclick="voltarParaRaizMateriais()">${FOLDER_SVG}<span>Materiais</span></button>
+    ${link(null, 'Materiais', FOLDER_SVG)}${partes}
     <span class="mat-crumb-sep">›</span>
-    <span class="mat-crumb-atual">${escapeHtml(nome)}</span>
+    <span class="mat-crumb-atual">${escapeHtml(cam[cam.length-1].nome)}</span>
   </div>`;
 }
 function openRenomearPastaModal(id){
@@ -10961,6 +11019,7 @@ async function criarPasta(){
   state.config = state.config || {};
   state.config.materiaisPastas = state.config.materiaisPastas || [];
   const pasta = { id: uid(), nome };
+  if(state.matPastaFiltro && matPastaDe(state.matPastaFiltro)) pasta.parentId = state.matPastaFiltro;   // nasce dentro da pasta aberta
   state.config.materiaisPastas.push(pasta);
   state.matNovaPastaModalOpen = false;
   state.matNovaPastaNomeDraft = '';
@@ -10978,31 +11037,107 @@ async function renomearPasta(id, novoNome){
   await saveConfigEscola();
 }
 async function excluirPasta(id){
-  const ok = await customConfirm('Excluir esta pasta? Os materiais dentro dela voltam para "Sem pasta" — nenhum arquivo é apagado.');
+  const p = matPastaDe(id); if(!p) return;
+  const pai = matPai(p);
+  const temSub = matFilhas(id).length>0;
+  const ok = await customConfirm(`Excluir esta pasta? ${temSub?'Os arquivos e as subpastas':'Os materiais'} dentro dela ${pai?'sobem para a pasta anterior':'voltam para a lista principal'} — nenhum arquivo é apagado.`);
   if(!ok) return;
-  state.config.materiaisPastas = (getMateriaisPastas()).filter(p=>p.id!==id);
-  if(state.matPastaFiltro===id) state.matPastaFiltro=null;
+  getMateriaisPastas().forEach(f=>{ if(f.parentId===id){ if(pai) f.parentId = pai; else delete f.parentId; } });
+  state.config.materiaisPastas = getMateriaisPastas().filter(x=>x.id!==id);
+  if(state.matPastaFiltro===id) state.matPastaFiltro = pai;
   render();
   await saveConfigEscola();
   const afetados = state.materiaisIndex.filter(m=>m.pastaId===id);
   for(const m of afetados){
-    m.pastaId = null;
-    if(state.materiaisDetailCache[m.id]) state.materiaisDetailCache[m.id].pastaId = null;
-    await updateMaterialPasta(m.id, null);
+    m.pastaId = pai;
+    if(state.materiaisDetailCache[m.id]) state.materiaisDetailCache[m.id].pastaId = pai;
+    await updateMaterialPasta(m.id, pai);
   }
   render();
 }
-function openMaterialMoveModal(id){ state.itemContextMenu = null; state.materialMoveId = id; render(); }
+// `state.materialMoveId` agora guarda a LISTA de ids (arquivos e/ou pastas) que estão sendo movidos.
+function openMaterialMoveModal(id){ state.itemContextMenu = null; state.materialMoveId = Array.isArray(id) ? id.slice() : [id]; render(); }
+function matAbrirMover(ids){ openMaterialMoveModal(ids); }
 function closeMaterialMoveModal(){ state.materialMoveId = null; render(); }
-async function moveMaterialToPasta(pastaId){
-  const id = state.materialMoveId; if(!id) return;
-  const meta = state.materiaisIndex.find(m=>m.id===id); if(!meta) return;
-  meta.pastaId = pastaId || null;
-  state.materialMoveId = null;
+function matSelecionar(id){ state.itemContextMenu = null; state.selectMode = 'mat'; state.selectedIds = new Set([id]); render(); }
+// Move arquivos e/ou pastas para `destino` (id de pasta, ou null = raiz de Materiais).
+async function matMoverItens(ids, destino){
+  destino = destino || null;
+  ids = Array.from(new Set(ids||[]));
+  const pastaIds = ids.filter(id=>matPastaDe(id));
+  const matIds = ids.filter(id=>!pastaIds.includes(id) && state.materiaisIndex.some(m=>m.id===id));
+  const bloqueados = new Set();
+  pastaIds.forEach(id=>{ bloqueados.add(id); matDescendentes(id).forEach(d=>bloqueados.add(d)); });
+  if(destino && !matPastaDe(destino)){ showToast('Pasta de destino não encontrada.', true); return false; }
+  if(destino && bloqueados.has(destino)){ showToast('Uma pasta não pode ser movida para dentro dela mesma.', true); return false; }
+  let nPastas = 0; const mexidos = [];
+  pastaIds.forEach(id=>{ const p = matPastaDe(id); if(matPai(p)!==destino){ if(destino) p.parentId = destino; else delete p.parentId; nPastas++; } });
+  matIds.forEach(id=>{ const m = state.materiaisIndex.find(x=>x.id===id); if((m.pastaId||null)!==destino){ m.pastaId = destino; if(state.materiaisDetailCache[id]) state.materiaisDetailCache[id].pastaId = destino; mexidos.push(id); } });
+  state.materialMoveId = null; state.selectMode = false; state.selectedIds = new Set();
   render();
-  if(state.materiaisDetailCache[id]) state.materiaisDetailCache[id].pastaId = pastaId||null;
-  const ok = await updateMaterialPasta(id, pastaId||null);
-  if(ok) showToast('Material movido.'); else showToast('Não foi possível mover o material.', true);
+  const total = nPastas + mexidos.length;
+  if(!total){ showToast('Já está nessa pasta.'); return true; }
+  let ok = true;
+  if(nPastas){ try{ await saveConfigEscola(); }catch(e){ ok = false; } }
+  for(let k=0;k<mexidos.length;k+=6){
+    const r = await Promise.all(mexidos.slice(k,k+6).map(id=>updateMaterialPasta(id, destino)));
+    if(r.some(x=>!x)) ok = false;
+  }
+  const dest = destino ? `"${matPastaDe(destino).nome}"` : 'Materiais';
+  if(ok) showToast(total===1 ? `Movido para ${dest}.` : `${total} itens movidos para ${dest}.`); else showToast('Alguns itens não puderam ser movidos.', true);
+  return ok;
+}
+function matAplicarMover(destino){ const ids = state.materialMoveId; if(!ids || !ids.length) return; matMoverItens(ids, destino); }
+// ---- arrastar com o mouse ----
+let _matDragIds = null;
+function matDragStart(ev, id){
+  if(!state.professorMode){ ev.preventDefault(); return; }
+  const sel = state.selectMode==='mat' && state.selectedIds && state.selectedIds.has(id);
+  _matDragIds = sel ? Array.from(state.selectedIds) : [id];
+  try{
+    ev.dataTransfer.effectAllowed = 'move';
+    ev.dataTransfer.setData('text/plain', 'materiais:' + _matDragIds.join(','));
+    if(_matDragIds.length>1){
+      const b = document.createElement('div');
+      b.className = 'mat-drag-badge'; b.textContent = _matDragIds.length + ' itens';
+      document.body.appendChild(b);
+      ev.dataTransfer.setDragImage(b, 20, 16);
+      setTimeout(()=>b.remove(), 0);
+    }
+  }catch(e){}
+  const ids = _matDragIds.slice();
+  setTimeout(()=>{
+    document.body.classList.add('mat-dragging');
+    ids.forEach(x=>{ const r = document.querySelector(`[data-mat-id="${x}"]`); if(r) r.classList.add('dragging'); });
+  }, 0);
+}
+function matDragLimpa(){
+  document.body.classList.remove('mat-dragging');
+  document.querySelectorAll('.dragging,.drop-over').forEach(e=>e.classList.remove('dragging','drop-over'));
+}
+function matDragEnd(){ matDragLimpa(); _matDragIds = null; }
+// Pode soltar aqui? (não pode soltar uma pasta dentro dela mesma ou das suas subpastas)
+function matDestinoValido(destId){
+  if(!_matDragIds) return false;
+  if(!destId) return true;
+  for(const id of _matDragIds){ if(id===destId) return false; if(matPastaDe(id) && matDescendentes(id).includes(destId)) return false; }
+  return true;
+}
+function matDragOver(ev, destId){
+  if(!_matDragIds) return;                      // arrastando arquivo de fora do app: ignora
+  if(!matDestinoValido(destId)) return;
+  ev.preventDefault();
+  try{ ev.dataTransfer.dropEffect = 'move'; }catch(e){}
+  ev.currentTarget.classList.add('drop-over');
+}
+function matDragLeave(ev){ ev.currentTarget.classList.remove('drop-over'); }
+function matDrop(ev, destId){
+  ev.preventDefault();
+  const ids = _matDragIds;
+  matDragLimpa(); _matDragIds = null;
+  if(!ids || !ids.length || !state.professorMode) return;
+  if(destId && ids.some(id=>id===destId || (matPastaDe(id) && matDescendentes(id).includes(destId)))){ showToast('Uma pasta não pode ser movida para dentro dela mesma.', true); return; }
+  matMoverItens(ids, destId||null);
 }
 async function openCifraViewer(id){
   stopAutoScroll(); state.scrolling=false;
@@ -11847,7 +11982,8 @@ function professorMateriaisTabHtml(){
   else if(pastaAtiva==='sem-pasta') mats = mats.filter(m=>!m.pastaId);
   else if(!buscando) mats = mats.filter(m=>!m.pastaId);
   mats = sortedMateriais(mats);
-  const pastasNaLista = (!buscando && !pastaAtiva) ? pastas : [];
+  const pastasNaLista = buscando ? [] : matFilhas(pastaAtiva && pastaAtiva!=='sem-pasta' ? pastaAtiva : null);
+  const selecting = matSelecionando();
   return `
     <div class="page-header-row" style="margin-top:0;">
       <h3 style="margin:0;">Materiais</h3>
@@ -11861,6 +11997,7 @@ function professorMateriaisTabHtml(){
     </div>
     <div class="hint" style="margin:-6px 0 14px;">PDFs novos ficam visíveis só para você até você enviar para os alunos.${buscando?' Buscando em todas as pastas.':''}</div>
     ${buscando?'':breadcrumbMateriaisHtml()}
+    ${matSelectBarHtml()}
     <div class="filters">
       <div class="sort-group">
         <span class="tlabel">Classificar por</span>
@@ -11876,20 +12013,21 @@ function professorMateriaisTabHtml(){
       </div>
       <span class="total-count no-print" style="margin-left:auto;">Total de materiais disponíveis: ${state.materiaisIndex.length}</span>
     </div>
-    ${(pastasNaLista.length||mats.length)?`<div class="cifra-list">${pastasNaLista.map(p=>pastaRowHtml(p, state.materiaisIndex.filter(m=>m.pastaId===p.id).length, true)).join('')}${mats.map(m=>{
+    ${(pastasNaLista.length||mats.length)?`<div class="cifra-list">${pastasNaLista.map(p=>pastaRowHtml(p, matContagemRec(p.id, state.materiaisIndex), true, matFilhas(p.id).length)).join('')}${mats.map(m=>{
       const dest = m.destinatarios||[];
       const destLabel = dest.length===0 ? 'Não enviado' : (dest.length===1?'1 aluno':dest.length+' alunos');
       return `
-      <div class="cifra-row" onclick="professorOpenMaterial('${m.id}')" oncontextmenu="openItemContextMenu(event,'material','${m.id}')">
+      <div class="cifra-row ${selecting?'select-row':''} ${matSelAtrs(m.id).sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${m.id}')`:`professorOpenMaterial('${m.id}')`}" ${selecting?'':`oncontextmenu="openItemContextMenu(event,'material','${m.id}')"`} ${matDragAtrs(m.id)}>
+        ${matCheckHtml(m.id)}
         <div class="avatar">${ICON_FILE}</div>
         <div class="info">
           <div class="tit">${escapeHtml(m.titulo)}</div>
-          <div class="art">${formatDatePt(m.criadoEm)}${(buscando && m.pastaId)?' · '+escapeHtml(pastaNome(m.pastaId)):''}</div>
+          <div class="art">${formatDatePt(m.criadoEm)}${(buscando && m.pastaId)?' · '+escapeHtml(matCaminhoNome(m.pastaId)):''}</div>
         </div>
         <div class="row-status">
           <span class="prof-song-dest">${destLabel}</span>
           <button class="row-ear ${dest.length?'on':''}" title="Enviar para alunos" onclick="event.stopPropagation();openSendModal('material','${m.id}')">${SEND_SVG}</button>
-          ${rowMenuBtnHtml('material', m.id)}
+          ${selecting?'':rowMenuBtnHtml('material', m.id)}
         </div>
       </div>`;
     }).join('')}</div>`:`<div class="empty"><span class="big">${ICON_FILE_BIG}</span>${buscando?'Nenhum material encontrado com esse nome.':(pastaAtiva?'Esta pasta está vazia. Envie um material ou mova um que já existe para cá (menu "⋮" do arquivo).':(state.materiaisIndex.length===0?'Nenhum material enviado ainda. Clique em "Enviar material" para começar.':'Nenhum material aqui.'))}</div>`}
@@ -11906,7 +12044,7 @@ function materialUploadModalHtml(){
       <h4 style="margin:0 0 14px;">Enviar material</h4>
       <form onsubmit="submitMaterialUpload(event)">
         <div class="login-field"><label>Nome do material</label><input id="mat_titulo" type="text" placeholder="Ex: Apostila de escalas" value="${escapeHtml(state.matDraftTitulo||'')}" oninput="state.matDraftTitulo=this.value"></div>
-        ${pastas.length?`<div class="login-field"><label>Pasta (opcional)</label><select onchange="state.matDraftPastaId=this.value"><option value="">Sem pasta</option>${pastas.map(p=>`<option value="${p.id}" ${state.matDraftPastaId===p.id?'selected':''}>${escapeHtml(p.nome)}</option>`).join('')}</select></div>`:''}
+        ${pastas.length?`<div class="login-field"><label>Pasta (opcional)</label><select onchange="state.matDraftPastaId=this.value"><option value="">Sem pasta</option>${matPastasEmArvore().map(({p})=>`<option value="${p.id}" ${state.matDraftPastaId===p.id?'selected':''}>${escapeHtml(matCaminhoNome(p.id))}</option>`).join('')}</select></div>`:''}
         <div class="login-field">
           <label>Arquivo PDF</label>
           <div class="file-drop ${state.matDraftPdfData?'has-file':''}" onclick="document.getElementById('mat_pdf').click()" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleMaterialPdfDrop(event, this)">
@@ -11924,19 +12062,27 @@ function materialUploadModalHtml(){
   </div>`;
 }
 function materialMoveModalHtml(){
-  if(!state.materialMoveId) return '';
-  const pastas = getMateriaisPastas();
-  const meta = state.materiaisIndex.find(m=>m.id===state.materialMoveId);
-  const current = meta ? meta.pastaId : null;
+  const ids = state.materialMoveId;
+  if(!ids || !ids.length) return '';
+  const unico = ids.length===1;
+  const pasta1 = unico ? matPastaDe(ids[0]) : null;
+  const meta = unico && !pasta1 ? state.materiaisIndex.find(m=>m.id===ids[0]) : null;
+  const atual = unico ? (pasta1 ? matPai(pasta1) : (meta ? (meta.pastaId||null) : null)) : undefined;
+  const bloqueados = new Set();
+  ids.forEach(id=>{ if(matPastaDe(id)){ bloqueados.add(id); matDescendentes(id).forEach(d=>bloqueados.add(d)); } });
+  const opc = (id, nome, nivel, desabilitado)=>`<button type="button" class="mover-opt ${atual===id?'on':''}" ${desabilitado?'disabled':''} style="padding-left:${12+nivel*18}px;${desabilitado?'opacity:.4;cursor:not-allowed;':''}" onclick="${desabilitado?'':`matAplicarMover(${id?`'${id}'`:'null'})`}">${FOLDER_SVG}<span>${escapeHtml(nome)}</span></button>`;
+  const titulo = unico ? (pasta1 ? 'Mover pasta' : 'Mover material') : `Mover ${ids.length} itens`;
+  const sub = unico ? (pasta1 ? pasta1.nome : (meta ? meta.titulo : '')) : '';
+  const arv = matPastasEmArvore();
   return `
   <div class="modal-bg" onclick="if(event.target===this) closeMaterialMoveModal()">
-    <div class="mini-modal" style="max-width:360px;text-align:left;">
-      <h4 style="margin:0 0 4px;">Mover material</h4>
-      <p class="hint" style="margin:0 0 14px;">${meta?escapeHtml(meta.titulo):''}</p>
-      <div style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;">
-        <button type="button" class="btn-ghost btn-small" style="text-align:left;${!current?'border-color:var(--accent);color:var(--accent);':''}" onclick="moveMaterialToPasta(null)">${!current?'✓ ':''}Sem pasta</button>
-        ${pastas.map(p=>`<button type="button" class="btn-ghost btn-small" style="text-align:left;${current===p.id?'border-color:var(--accent);color:var(--accent);':''}" onclick="moveMaterialToPasta('${p.id}')">${current===p.id?'✓ ':''}${escapeHtml(p.nome)}</button>`).join('')}
-        ${pastas.length===0?'<p class="hint" style="margin:0;">Nenhuma pasta criada ainda.</p>':''}
+    <div class="mini-modal" style="max-width:380px;text-align:left;">
+      <h4 style="margin:0 0 4px;">${titulo}</h4>
+      ${sub?`<p class="hint" style="margin:0 0 14px;">${escapeHtml(sub)}</p>`:'<div style="height:10px;"></div>'}
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow-y:auto;">
+        ${opc(null, 'Materiais (início)', 0, false)}
+        ${arv.map(({p,nivel})=>opc(p.id, p.nome, nivel+1, bloqueados.has(p.id))).join('')}
+        ${arv.length===0?'<p class="hint" style="margin:0;">Nenhuma pasta criada ainda.</p>':''}
       </div>
       <div class="form-actions">
         <button type="button" class="text-link-btn" style="margin-right:auto;" onclick="const _mvId=state.materialMoveId;closeMaterialMoveModal();openNovaPastaModal(_mvId);">+ Nova pasta</button>
@@ -15225,15 +15371,30 @@ function selectModeBarHtml(type){
     </div>
   </div>`;
 }
+function matSelectBarHtml(){
+  if(!matSelecionando()) return '';
+  const n = state.selectedIds ? state.selectedIds.size : 0;
+  return `<div class="select-mode-bar no-print">
+    <label class="select-all-label"><input type="checkbox" onclick="toggleSelectAllVisible()"> Selecionar tudo</label>
+    <span class="select-mode-count">${n} ${n===1?'item selecionado':'itens selecionados'}</span>
+    <span class="select-mode-warn" style="color:var(--muted);">Dica: arraste os itens selecionados para uma pasta.</span>
+    <div class="select-mode-actions">
+      <button type="button" class="btn-ghost btn-small" onclick="cancelSelectMode()">Cancelar</button>
+      <button type="button" class="btn-ghost btn-small" ${n===0?'disabled':''} onclick="matAbrirMover(Array.from(state.selectedIds))">${FOLDER_SVG} Mover para pasta</button>
+    </div>
+  </div>`;
+}
 function itemContextMenuHtml(){
   const m = state.itemContextMenu; if(!m) return '';
   const vw = window.innerWidth, vh = window.innerHeight;
   const left = Math.min(m.x, vw-180);
-  const top = Math.min(m.y, vh-90);
+  const top = Math.min(m.y, vh-((m.type==='pasta')?190:150));
   if(m.type==='pasta'){
     // [Rodada 44] Menu da linha de pasta, como o botão direito numa pasta do
     // computador: renomear ou excluir (os arquivos de dentro não são apagados).
     return `<div class="ctx-menu" style="left:${left}px;top:${top}px;">
+      <button type="button" onclick="matSelecionar('${m.id}')">${ICON_CHECK_SMALL} Selecionar</button>
+      <button type="button" onclick="openMaterialMoveModal('${m.id}')">${FOLDER_SVG} Mover</button>
       <button type="button" onclick="openRenomearPastaModal('${m.id}')">${EDIT_SVG} Renomear</button>
       <button type="button" class="ctx-menu-danger" onclick="closeItemContextMenu();excluirPasta('${m.id}')">✕ Excluir pasta</button>
     </div>`;
@@ -15246,6 +15407,7 @@ function itemContextMenuHtml(){
   }
   if(m.type==='material'){
     return `<div class="ctx-menu" style="left:${left}px;top:${top}px;">
+      <button type="button" onclick="matSelecionar('${m.id}')">${ICON_CHECK_SMALL} Selecionar</button>
       <button type="button" onclick="openMaterialMoveModal('${m.id}')">${FOLDER_SVG} Mover</button>
       <button type="button" class="ctx-menu-danger" onclick="closeItemContextMenu();deleteMaterial('${m.id}')">✕ Excluir</button>
     </div>`;
@@ -15780,11 +15942,9 @@ function renderApp(){
     // têm algum material realmente enviado para este aluno.
     const buscandoMat = !!mf.busca;
     const pastaAtiva = buscandoMat ? null : state.matPastaFiltro;
-    const contagemPorPasta = {};
-    visiveis.forEach(m=>{ if(m.pastaId) contagemPorPasta[m.pastaId] = (contagemPorPasta[m.pastaId]||0)+1; });
-    const pastasNaLista = (!buscandoMat && !pastaAtiva)
-      ? getMateriaisPastas().filter(p=>contagemPorPasta[p.id])
-      : [];
+    const baseVisiveis = visiveis.slice();
+    const pastasNaLista = buscandoMat ? [] : matFilhas(pastaAtiva && pastaAtiva!=='sem-pasta' ? pastaAtiva : null).filter(p=>matContagemRec(p.id, baseVisiveis)>0);
+    const selectingMat = matSelecionando();
     if(pastaAtiva && pastaAtiva!=='sem-pasta') visiveis = visiveis.filter(m=>m.pastaId===pastaAtiva);
     else if(pastaAtiva==='sem-pasta') visiveis = visiveis.filter(m=>!m.pastaId);
     else if(!buscandoMat) visiveis = visiveis.filter(m=>!m.pastaId);
@@ -15805,6 +15965,7 @@ function renderApp(){
       </div>
       ${buscandoMat?`<div class="hint" style="margin:-6px 0 14px;">Buscando em todas as pastas.</div>`:""}
       ${buscandoMat?'':breadcrumbMateriaisHtml()}
+      ${matSelectBarHtml()}
       <div class="filters">
         <div class="sort-group">
           <span class="tlabel">Classificar por</span>
@@ -15820,14 +15981,15 @@ function renderApp(){
         </div>
       </div>
       ${(visiveis.length===0 && pastasNaLista.length===0)?`<div class="empty"><span class="big">${ICON_FILE_BIG}</span>${buscandoMat?'Nenhum material encontrado com esse nome.':(pastaAtiva?'Esta pasta está vazia.':(state.professorMode?'Nenhum material disponível ainda.':'Seu professor ainda não enviou nenhum material para você.'))}</div>`:
-      `<div class="cifra-list">${pastasNaLista.map(p=>pastaRowHtml(p, contagemPorPasta[p.id]||0, !!state.professorMode)).join('')}${visiveis.map(m=>`
-        <div class="cifra-row" onclick="openMaterialViewer('${m.id}')">
+      `<div class="cifra-list">${pastasNaLista.map(p=>pastaRowHtml(p, matContagemRec(p.id, baseVisiveis), !!state.professorMode, matFilhas(p.id).filter(f=>matContagemRec(f.id, baseVisiveis)>0).length)).join('')}${visiveis.map(m=>`
+        <div class="cifra-row ${selectingMat?'select-row':''} ${matSelAtrs(m.id).sel?'selected':''}" onclick="${selectingMat?`toggleSelectItem('${m.id}')`:`openMaterialViewer('${m.id}')`}" ${matDragAtrs(m.id)}>
+          ${matCheckHtml(m.id)}
           <div class="avatar">${ICON_FILE}</div>
           <div class="info">
             <div class="tit">${escapeHtml(m.titulo)}</div>
             <div class="art">${formatDatePt(m.criadoEm)}</div>
           </div>
-          <div class="row-status"><button class="row-ear on" title="Baixar" onclick="event.stopPropagation();downloadMaterial('${m.id}')">${DOWNLOAD_SVG}</button>${rowMenuBtnHtml('material', m.id)}</div>
+          <div class="row-status"><button class="row-ear on" title="Baixar" onclick="event.stopPropagation();downloadMaterial('${m.id}')">${DOWNLOAD_SVG}</button>${selectingMat?'':rowMenuBtnHtml('material', m.id)}</div>
         </div>`).join('')}</div>`}
     `;
     return;
