@@ -3666,6 +3666,70 @@ function cifPastaModalHtml(){
   </div>`;
 }
 
+
+// ---------- PDFs no Supabase Storage (bucket "arquivos") ----------
+// [Rodada 133] Os PDFs deixam de ser gravados em base64 dentro do banco (jsonb `dados`) e passam para a área de arquivos do Supabase.
+// No banco fica só o caminho (`pdfPath`). Na leitura o app baixa o arquivo e o monta em memória como antes (`pdfData`), então o resto do app
+// não muda. Se o envio ao Storage falhar (bucket ausente, sem permissão, offline), o PDF continua sendo gravado no banco como antes.
+const PDF_BUCKET = 'arquivos';
+let _pdfBucketOff = false, _pdfContaStorage = 0, _pdfContaBanco = 0;
+function pdfDataUrlToBlob(du){
+  const i = du.indexOf(','); const meta = du.slice(0,i), b64 = du.slice(i+1);
+  const mime = (meta.match(/data:([^;,]+)/)||[])[1] || 'application/pdf';
+  const bin = atob(b64); const u8 = new Uint8Array(bin.length);
+  for(let k=0;k<bin.length;k++) u8[k] = bin.charCodeAt(k);
+  return new Blob([u8], {type:mime});
+}
+function pdfBlobToDataUrl(blob){ return new Promise((res,rej)=>{ const r = new FileReader(); r.onload = ()=>res(r.result); r.onerror = ()=>rej(r.error||new Error('leitura')); r.readAsDataURL(blob); }); }
+function pdfPastaBase(){
+  if(state.professorMode || !(state.session && state.session.email)) return 'pdfs';
+  return 'alunos/'+state.session.email;   // o aluno só pode gravar dentro da própria pasta (política do bucket)
+}
+// Devolve o objeto que deve ir para a coluna `dados`: com PDF no Storage (sem pdfData) ou, se não der, o próprio objeto.
+async function pdfParaStorage(tabela, id, obj){
+  if(!obj || typeof obj.pdfData!=='string' || obj.pdfData.indexOf('data:')!==0) return obj;
+  if(!sb || !sb.storage || _pdfBucketOff){ _pdfContaBanco++; return obj; }
+  const tam = obj.pdfData.length;
+  try{
+    let path = obj.pdfPath;
+    if(!(path && obj.pdfTamanho===tam)){
+      const novo = pdfPastaBase()+'/'+tabela+'/'+id+'-'+uid()+'.pdf';
+      const { error } = await sb.storage.from(PDF_BUCKET).upload(novo, pdfDataUrlToBlob(obj.pdfData), {contentType:'application/pdf', upsert:false});
+      if(error) throw error;
+      const antigo = obj.pdfPath; path = novo;
+      if(antigo && state.professorMode){ try{ sb.storage.from(PDF_BUCKET).remove([antigo]); }catch(e){} }
+    }
+    _pdfContaStorage++;
+    obj.pdfPath = path; obj.pdfTamanho = tam;           // memória: guarda o caminho; pdfData continua para exibir
+    const { pdfData, ...resto } = obj;
+    return resto;
+  }catch(e){
+    console.error('PDF no Storage falhou; gravando no banco', e);
+    if(/bucket not found|not found/i.test((e&&e.message)||'')) _pdfBucketOff = true;
+    _pdfContaBanco++;
+    return obj;
+  }
+}
+// Leitura: se o item guarda só o caminho, baixa o arquivo e preenche pdfData em memória.
+async function pdfDoStorage(obj){
+  if(obj && !obj.pdfData && obj.pdfPath && sb && sb.storage){
+    try{
+      const { data, error } = await sb.storage.from(PDF_BUCKET).download(obj.pdfPath);
+      if(error) throw error;
+      obj.pdfData = await pdfBlobToDataUrl(data); obj.pdfTamanho = obj.pdfData.length;
+    }catch(e){ console.error('Não foi possível baixar o PDF do Storage', e); }
+  }
+  return obj;
+}
+// Ao excluir um item, apaga também o arquivo (só o professor tem essa permissão; para o aluno falha em silêncio).
+async function pdfRemoverDoStorage(tabela, id){
+  if(!sb || !sb.storage || !state.professorMode) return;
+  try{
+    const { data } = await sb.from(tabela).select('caminho:dados->>pdfPath').eq('id', id).maybeSingle();
+    if(data && data.caminho) await sb.storage.from(PDF_BUCKET).remove([data.caminho]);
+  }catch(e){}
+}
+
 // ---------- Importação em massa de cifras em PDF (pasta, vários PDFs ou .zip) ----------
 // [Rodada 129] Nome do arquivo no formato "Música - Artista.pdf". Cada PDF vira uma cifra do tipo PDF no banco do professor.
 function bulkParseNome(nome){
@@ -3740,6 +3804,7 @@ async function bulkImportar(){
   if(!lista.length){ showToast('Marque ao menos uma música.', true); return; }
   if(lista.some(i=>!(i.titulo||'').trim())){ showToast('Há músicas sem título.', true); return; }
   b.rodando = true; b.feitos = 0; b.erros = 0; b.total = lista.length; render();
+  const _st0 = _pdfContaStorage, _bd0 = _pdfContaBanco;
   state.config = state.config || {}; state.config.cifrasPastas = state.config.cifrasPastas || []; state.config.cifrasPastaMap = state.config.cifrasPastaMap || {};
   const pastaDoItem = (it)=>{
     if(b.porSubpasta){
@@ -3773,6 +3838,7 @@ async function bulkImportar(){
   }
   b.rodando = false; b.fim = true; render();
   await saveConfigEscola();
+  b.noStorage = _pdfContaStorage-_st0; b.noBanco = _pdfContaBanco-_bd0; render();
   showToast(b.feitos+' cifra'+(b.feitos===1?'':'s')+' importada'+(b.feitos===1?'':'s')+(b.erros?' — '+b.erros+' com erro':'')+'.', !!b.erros);
 }
 function bulkAtualizaLinha(it){ const el = document.getElementById('bulkSt_'+it.id); if(el) el.textContent = it.status; }
@@ -3814,6 +3880,7 @@ function bulkModalHtml(){
             </tr>`).join('')}</tbody>
         </table>
       </div>`:''}
+      ${b.fim?`<p class="hint" style="margin:10px 0 0;">${b.noStorage?`✔ ${b.noStorage} PDF${b.noStorage===1?'':'s'} guardado${b.noStorage===1?'':'s'} na área de arquivos.`:''} ${b.noBanco?`⚠ ${b.noBanco} PDF${b.noBanco===1?'':'s'} ${b.noBanco===1?'foi':'foram'} gravado${b.noBanco===1?'':'s'} no banco de dados (a área de arquivos não respondeu — veja as instruções do bucket "arquivos" no Supabase).`:''}</p>`:''}
       <div class="form-actions" style="margin-top:14px;align-items:center;">
         <span class="hint" id="bulkProgresso" style="margin-right:auto;">${b.rodando?((b.feitos+b.erros)+' de '+b.total):(b.items.length?sel+' selecionada'+(sel===1?'':'s')+' de '+b.items.length:'')}</span>
         <button type="button" class="btn-ghost" ${b.rodando?'disabled':''} onclick="bulkFechar()">${b.fim?'Fechar':'Cancelar'}</button>
@@ -3846,7 +3913,7 @@ async function saveSolosIndex(){ return true; }
 async function saveSoloDetail(id, obj){
   if(!sb) return false;
   try{
-    await insertOrUpdate('solos', '_soloKnownIds', id, { id, titulo: obj.titulo||'', destinatarios: obj.destinatarios||[], artista: obj.artista||'', criado_por_aluno: !!obj.criadoPorAluno, dados: obj });
+    await insertOrUpdate('solos', '_soloKnownIds', id, { id, titulo: obj.titulo||'', destinatarios: obj.destinatarios||[], artista: obj.artista||'', criado_por_aluno: !!obj.criadoPorAluno, dados: await pdfParaStorage('solos', id, obj) });
     return true;
   }catch(e){ console.error('Erro ao salvar solo', e); return false; }
 }
@@ -3856,13 +3923,14 @@ async function loadSoloDetail(id){
   try{
     const { data, error } = await sb.from('solos').select('dados').eq('id', id).single();
     if(error) throw error;
-    const obj = data.dados;
+    const obj = await pdfDoStorage(data.dados);
     state.solosDetailCache[id]=obj;
     return obj;
   }catch(e){ return null; }
 }
 async function deleteSoloRemote(id){
   if(!sb) return;
+  await pdfRemoverDoStorage('solos', id);
   try{ const { error } = await sb.from('solos').delete().eq('id', id); if(error) throw error; if(state._soloKnownIds) state._soloKnownIds.delete(id); }catch(e){ console.error('Erro ao excluir solo', e); }
 }
 // [Rodada 33 — 14/09/2026] IMPORTANTE: esta seleção usa só colunas reais
@@ -3894,7 +3962,7 @@ async function saveMaterialDetail(id, obj){
   try{
     // pasta_id também vai como coluna real (não só dentro de `dados`), pelo
     // mesmo motivo do comentário acima — ver MATERIAL_INDEX_SELECT.
-    await insertOrUpdate('materiais', '_materialKnownIds', id, { id, titulo: obj.titulo||'', destinatarios: obj.destinatarios||[], pasta_id: obj.pastaId||null, dados: obj });
+    await insertOrUpdate('materiais', '_materialKnownIds', id, { id, titulo: obj.titulo||'', destinatarios: obj.destinatarios||[], pasta_id: obj.pastaId||null, dados: await pdfParaStorage('materiais', id, obj) });
     return true;
   }catch(e){ console.error('Erro ao salvar material', e); return false; }
 }
@@ -3914,13 +3982,14 @@ async function loadMaterialDetail(id){
   try{
     const { data, error } = await sb.from('materiais').select('dados').eq('id', id).single();
     if(error) throw error;
-    const obj = data.dados;
+    const obj = await pdfDoStorage(data.dados);
     state.materiaisDetailCache[id]=obj;
     return obj;
   }catch(e){ return null; }
 }
 async function deleteMaterialRemote(id){
   if(!sb) return;
+  await pdfRemoverDoStorage('materiais', id);
   try{ const { error } = await sb.from('materiais').delete().eq('id', id); if(error) throw error; if(state._materialKnownIds) state._materialKnownIds.delete(id); }catch(e){ console.error('Erro ao excluir material', e); }
 }
 // [Rodada 93] "+ Novo solo" abre um popup que pede o nome e o artista e, embaixo,
@@ -10686,7 +10755,7 @@ async function saveDetail(id, obj){
       memorizada: !!obj.memorizada, dificuldade: obj.dificuldade||0, capo: obj.capo||0,
       tirada_de_ouvido: !!obj.tiradaDeOuvido, ritmos: obj.ritmos||[],
       criado_por_aluno: !!obj.criadoPorAluno,
-      dados: obj
+      dados: await pdfParaStorage('cifras', id, obj)
     });
     return true;
   }catch(e){ console.error('Erro ao salvar cifra', e); return false; }
@@ -10697,7 +10766,7 @@ async function loadDetail(id){
   try{
     const { data, error } = await sb.from('cifras').select('dados').eq('id', id).single();
     if(error) throw error;
-    const obj = data.dados;
+    const obj = await pdfDoStorage(data.dados);
     if(!obj.corpo && obj.linhas){ obj.corpo = linhasToText(obj.linhas); } // migrate old structured format
     state.detailCache[id]=obj;
     return obj;
@@ -10705,6 +10774,7 @@ async function loadDetail(id){
 }
 async function deleteCifraRemote(id){
   if(!sb) return;
+  await pdfRemoverDoStorage('cifras', id);
   try{ const { error } = await sb.from('cifras').delete().eq('id', id); if(error) throw error; if(state._cifraKnownIds) state._cifraKnownIds.delete(id); }catch(e){ console.error('Erro ao excluir cifra', e); }
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
