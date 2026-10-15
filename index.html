@@ -1188,6 +1188,13 @@
   .mini-modal input{margin-bottom:6px;}
   #debugToggle{position:fixed;left:10px;bottom:10px;font-size:11px;color:var(--muted);background:var(--bg-panel);border-radius:8px;padding:4px 9px;cursor:pointer;z-index:5;opacity:.6;transition:opacity .25s;}
   #debugToggle:hover{opacity:1;}
+  #storageMeter{position:fixed;left:128px;bottom:10px;font-size:11px;color:var(--muted);background:var(--bg-panel);border-radius:8px;padding:4px 9px;cursor:pointer;z-index:5;opacity:.6;transition:opacity .25s;display:none;white-space:nowrap;}
+  #storageMeter.show{display:block;}
+  #storageMeter:hover{opacity:1;}
+  #storageMeter .sm-bar{display:inline-block;vertical-align:middle;width:44px;height:3px;border-radius:2px;background:var(--border);margin-left:7px;overflow:hidden;}
+  #storageMeter .sm-bar i{display:block;height:100%;background:var(--accent);}
+  #storageMeter.alto .sm-bar i{background:var(--danger);}
+  #storageMeter.alto{color:var(--danger);opacity:.9;}
   #debugPanel{position:fixed;left:10px;bottom:38px;width:280px;max-height:0;overflow:hidden;background:var(--bg-panel);border-radius:10px;font-size:11px;color:var(--muted);line-height:1.6;z-index:5;transition:max-height .2s,padding .2s;padding:0 12px;}
   #debugPanel.open{max-height:200px;padding:10px 12px;overflow-y:auto;}
   .wa-fab{position:fixed;right:20px;bottom:20px;width:50px;height:50px;border-radius:50%;background:var(--pill-bg);color:var(--muted);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:60;text-decoration:none;transition:background .25s,color .25s,transform .25s;}
@@ -1548,7 +1555,7 @@
     .modal{padding:20px;}
     .diagram-box{min-width:96px;}
 
-    #debugToggle,#debugPanel{display:none;}
+    #debugToggle,#debugPanel,#storageMeter{display:none;}
     .wa-fab{width:44px;height:44px;right:14px;bottom:14px;}
     .wa-fab svg{width:21px;height:21px;}
 
@@ -1787,6 +1794,7 @@
 <div id="app"></div>
 <div id="toast"></div>
 <div id="debugToggle" onclick="document.getElementById('debugPanel').classList.toggle('open')"><span id="debugIcon"></span> <span id="debugVersion"></span></div>
+<div id="storageMeter" title="" onclick="storageMedir(true)"></div>
 <div id="debugPanel"></div>
 <a id="whatsappBtn" class="wa-fab" href="https://wa.me/5532991610300" target="_blank" rel="noopener">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.63.07-.3-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.63-2.03-.17-.3-.02-.46.13-.6.13-.13.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5-.17-.01-.37-.01-.56-.01a1.08 1.08 0 0 0-.78.37c-.27.3-1.03 1-1.03 2.45s1.06 2.85 1.2 3.05c.15.2 2.1 3.2 5.08 4.5.71.3 1.26.49 1.7.62.71.23 1.36.2 1.87.12.57-.09 1.75-.72 2-1.4.24-.7.24-1.3.17-1.4-.07-.12-.26-.19-.56-.34z"/><path d="M12 2a10 10 0 0 0-8.62 15.03L2 22l5.1-1.34A10 10 0 1 0 12 2zm0 18.1a8.06 8.06 0 0 1-4.13-1.13l-.3-.18-3.03.8.81-2.95-.2-.3A8.1 8.1 0 1 1 12 20.1z"/></svg>
@@ -15208,6 +15216,7 @@ function render(){
   updateMobileDrawerFooter();
   updateProfessorBanner();
   updateProfessorAreaBanner();
+  updateStorageMeter();
   updateYoutubePanel();
   updateGlobalDialogs();
   updateWhatsappFabVisibility();
@@ -15291,6 +15300,49 @@ function updateProfessorBanner(){
   if(active && text){
     text.textContent = 'Modo professor — navegação geral';
   }
+}
+// ---- Indicador discreto de espaço usado na área de arquivos (só na tela do professor) ----
+const STORAGE_LIMITE_BYTES = 1024*1024*1024;   // plano gratuito do Supabase: 1 GB de arquivos
+let _storageMedido = null, _storageMedindo = false;
+function storageFmt(b){
+  if(b>=1024*1024*1024){ const g = b/1024/1024/1024; return (Math.abs(g-Math.round(g))<0.005 ? String(Math.round(g)) : g.toFixed(2).replace('.',','))+' GB'; }
+  return Math.round(b/1024/1024)+' MB';
+}
+async function storageListar(path, acc){
+  for(let offset=0;;offset+=1000){
+    const { data, error } = await sb.storage.from(PDF_BUCKET).list(path, {limit:1000, offset, sortBy:{column:'name', order:'asc'}});
+    if(error) throw error;
+    if(!data || !data.length) break;
+    for(const it of data){
+      if(it.id===null || !it.metadata) await storageListar(path ? path+'/'+it.name : it.name, acc);
+      else { acc.bytes += Number(it.metadata.size)||0; acc.n++; }
+    }
+    if(data.length<1000) break;
+  }
+}
+async function storageMedir(forcar){
+  if(_storageMedindo || !sb || !sb.storage) return;
+  if(!forcar && _storageMedido && Date.now()-_storageMedido.quando < 10*60*1000) return;
+  _storageMedindo = true;
+  try{
+    const acc = {bytes:0, n:0};
+    await storageListar('', acc);
+    _storageMedido = {bytes:acc.bytes, n:acc.n, quando:Date.now()};
+  }catch(e){ console.error('Não foi possível medir o armazenamento', e); _storageMedido = {erro:true, quando:Date.now()}; }
+  _storageMedindo = false;
+  updateStorageMeter();
+}
+function updateStorageMeter(){
+  const el = document.getElementById('storageMeter'); if(!el) return;
+  const ativo = !!(state.professorMode && !state.professorMode.email && state.view==='professorArea');
+  if(!ativo){ el.classList.remove('show'); return; }
+  const m = _storageMedido;
+  if(!m || (!m.erro && Date.now()-m.quando > 10*60*1000)){ storageMedir(false); }
+  if(!m || m.erro){ el.classList.remove('show'); return; }
+  const pct = Math.min(100, m.bytes/STORAGE_LIMITE_BYTES*100);
+  el.classList.add('show'); el.classList.toggle('alto', pct>=80);
+  el.title = `Área de arquivos (PDFs de cifras e materiais): ${storageFmt(m.bytes)} de ${storageFmt(STORAGE_LIMITE_BYTES)} do plano gratuito, em ${m.n} arquivo${m.n===1?'':'s'}. Clique para atualizar. Fotos e textos ficam no banco de dados, que não entra nesta conta.`;
+  el.innerHTML = `${storageFmt(m.bytes)} / ${storageFmt(STORAGE_LIMITE_BYTES)}<span class="sm-bar"><i style="width:${pct.toFixed(1)}%"></i></span>`;
 }
 function updateProfessorAreaBanner(){
   const banner = document.getElementById('profAreaBanner');
