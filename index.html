@@ -940,6 +940,8 @@
      por cima de tudo (position:fixed) e esse espaçador não é usado — por isso
      fica com altura 0 fora da media query abaixo. */
   .yt-video-spacer{height:0;}
+  .viewer-header-pdf{justify-content:flex-start;}
+  .viewer-header-pdf .yt-video-spacer{order:2;margin-left:auto;}
   @media (max-width:640px){
     /* No mobile o vídeo não fica mais "grudado" na tela (position:fixed
        acompanhando a rolagem) — vira um bloco ancorado no documento, logo
@@ -16009,7 +16011,7 @@ function renderApp(){
           ${themeSwitch}
         </div>
         <a class="back-link no-print" onclick="backToRepertorio()">&larr; Voltar ao repertório</a>
-        <div class="viewer-header">
+        <div class="viewer-header viewer-header-pdf">
           <div id="ytVideoSpacer" class="yt-video-spacer no-print"></div>
           <div class="viewer-title"><h2>${escapeHtml(titleCase(c.titulo))}</h2>
             <div class="art">${escapeHtml(titleCase(c.artista||''))}</div></div>
