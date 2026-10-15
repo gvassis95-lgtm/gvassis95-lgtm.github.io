@@ -3581,6 +3581,37 @@ function cifPodeGerenciar(){ return !!(state.professorMode && !state.professorMo
 function getCifraPastas(){ return (state.config && state.config.cifrasPastas) || []; }
 function cifPastaDe(id){ const m = state.config && state.config.cifrasPastaMap; const pid = m && m[id]; return (pid && getCifraPastas().some(p=>p.id===pid)) ? pid : null; }
 function cifPastaNome(id){ const p = getCifraPastas().find(x=>x.id===id); return p ? p.nome : ''; }
+// [Rodada 138] Pastas de cifras também aceitam subpastas (`parentId`), arrastar com o mouse e seleção em lote.
+function cifPastaObj(id){ return getCifraPastas().find(x=>x.id===id) || null; }
+function cifPai(p){ return (p && p.parentId && p.parentId!==p.id && cifPastaObj(p.parentId)) ? p.parentId : null; }
+function cifFilhas(pid){ const x = pid||null; return getCifraPastas().filter(p=>cifPai(p)===x); }
+function cifCaminho(id){
+  const out = []; const vis = new Set(); let c = cifPastaObj(id);
+  while(c && !vis.has(c.id)){ vis.add(c.id); out.unshift(c); c = cifPastaObj(cifPai(c)); }
+  return out;
+}
+function cifCaminhoNome(id){ return cifCaminho(id).map(p=>p.nome).join(' / '); }
+function cifDescendentes(id){
+  const out = [], vis = new Set([id]), pilha = [id];
+  while(pilha.length){ const x = pilha.pop(); cifFilhas(x).forEach(f=>{ if(!vis.has(f.id)){ vis.add(f.id); out.push(f.id); pilha.push(f.id); } }); }
+  return out;
+}
+function cifContagemRec(id, lista){ const ids = new Set([id].concat(cifDescendentes(id))); return lista.filter(c=>{ const pd = cifPastaDe(c.id); return pd && ids.has(pd); }).length; }
+function cifPastasEmArvore(){
+  const out = []; const vis = new Set();
+  const visita = (pid, nivel)=>{ cifFilhas(pid).slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).forEach(p=>{ if(vis.has(p.id)) return; vis.add(p.id); out.push({p, nivel}); visita(p.id, nivel+1); }); };
+  visita(null, 0);
+  return out;
+}
+function cifSelecionando(){ return state.selectMode==='cifra' && cifPodeGerenciar(); }
+function cifDragAtrs(id){
+  return cifPodeGerenciar() ? `draggable="true" data-mat-id="${id}" ondragstart="dndStart(event,'${id}','cif')" ondragend="dndEnd(event)"` : '';
+}
+function cifDropAtrs(destId){
+  if(!cifPodeGerenciar()) return '';
+  const d = destId ? `'${destId}'` : 'null';
+  return `ondragover="dndOver(event,${d},'cif')" ondragleave="dndLeave(event)" ondrop="dndDrop(event,${d},'cif')"`;
+}
 // Filtra a lista para o "nível" atual: dentro de uma pasta, só as dela; na raiz, só as sem pasta. Com busca/filtro ativo, mostra tudo.
 function cifBuscando(f){ return !!(f && (f.busca || f.artista || (f.ritmos && f.ritmos.length))); }
 function cifNivel(lista, f){
@@ -3589,25 +3620,34 @@ function cifNivel(lista, f){
   return lista.filter(c=> aberta ? cifPastaDe(c.id)===aberta : !cifPastaDe(c.id));
 }
 function cifPastasNaRaiz(visiveis, f){
-  if(cifBuscando(f) || state.cifPastaAberta) return [];
+  if(cifBuscando(f)) return [];
   const pode = cifPodeGerenciar();
-  return getCifraPastas().filter(p=> pode || visiveis.some(c=>cifPastaDe(c.id)===p.id))
+  return cifFilhas(state.cifPastaAberta||null).filter(p=> pode || cifContagemRec(p.id, visiveis)>0)
     .slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
 }
-function cifPastaRowHtml(p, qtd, pode){
+function cifPastaRowHtml(p, qtd, pode, nSub){
+  const selecting = pode && cifSelecionando();
+  const sel = selecting && state.selectedIds && state.selectedIds.has(p.id);
+  const sub = nSub ? `${nSub} ${nSub===1?'pasta':'pastas'} · ` : '';
   return `
-  <div class="cifra-row pasta-row" onclick="cifEntrarPasta('${p.id}')" ${pode?`oncontextmenu="openItemContextMenu(event,'pastaCif','${p.id}')"`:''}>
+  <div class="cifra-row pasta-row ${selecting?'select-row':''} ${sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${p.id}')`:`cifEntrarPasta('${p.id}')`}" ${(pode&&!selecting)?`oncontextmenu="openItemContextMenu(event,'pastaCif','${p.id}')"`:''} ${pode?cifDragAtrs(p.id)+' '+cifDropAtrs(p.id):''}>
+    ${selecting?`<input type="checkbox" class="row-check" data-id="${p.id}" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelectItem('${p.id}')">`:''}
     <div class="avatar pasta-avatar">${FOLDER_SVG}</div>
-    <div class="info"><div class="tit">${escapeHtml(p.nome)}</div><div class="art">${qtd} ${qtd===1?'cifra':'cifras'}</div></div>
-    <div class="row-status">${pode?`<button class="row-menu-btn" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openItemContextMenu(event,'pastaCif','${p.id}')">⋮</button>`:''}</div>
+    <div class="info"><div class="tit">${escapeHtml(p.nome)}</div><div class="art">${sub}${qtd} ${qtd===1?'cifra':'cifras'}</div></div>
+    <div class="row-status">${(pode&&!selecting)?`<button class="row-menu-btn" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openItemContextMenu(event,'pastaCif','${p.id}')">⋮</button>`:''}</div>
   </div>`;
 }
 function cifBreadcrumbHtml(){
   const id = state.cifPastaAberta; if(!id) return '';
-  return `<div class="mat-breadcrumb"><button type="button" class="mat-crumb-link" onclick="cifVoltarRaiz()">${FOLDER_SVG}<span>Cifras</span></button><span class="mat-crumb-sep">›</span><span class="mat-crumb-atual">${escapeHtml(cifPastaNome(id))}</span></div>`;
+  const cam = cifCaminho(id); if(!cam.length) return '';
+  const link = (destId, nome, ic)=>`<button type="button" class="mat-crumb-link" onclick="cifIrParaPasta(${destId?`'${destId}'`:'null'})" ${cifDropAtrs(destId)}>${ic||''}<span>${escapeHtml(nome)}</span></button>`;
+  const partes = cam.slice(0,-1).map(p=>`<span class="mat-crumb-sep">›</span>${link(p.id, p.nome)}`).join('');
+  return `<div class="mat-breadcrumb">${link(null,'Cifras',FOLDER_SVG)}${partes}<span class="mat-crumb-sep">›</span><span class="mat-crumb-atual">${escapeHtml(cam[cam.length-1].nome)}</span></div>`;
 }
 function cifEntrarPasta(id){ state.cifPastaAberta = id; state.selectMode = false; state.selectedIds = new Set(); render(); }
-function cifVoltarRaiz(){ state.cifPastaAberta = null; render(); }
+function cifVoltarRaiz(){ state.cifPastaAberta = null; state.selectMode = false; state.selectedIds = new Set(); render(); }
+function cifIrParaPasta(id){ if(id) cifEntrarPasta(id); else cifVoltarRaiz(); }
+function cifSelecionarItem(id){ state.itemContextMenu = null; state.selectMode = 'cifra'; state.selectedIds = new Set([id]); render(); }
 function cifNovaPasta(moverIds){ state.cifPastaModal = {editId:null, nome:'', moverIds: moverIds||null}; state.itemContextMenu = null; state.cifMover = null; render(); setTimeout(()=>{ const e=document.getElementById('cif_pasta_nome'); if(e) e.focus(); },30); }
 function cifRenomearPasta(id){ state.itemContextMenu = null; state.cifPastaModal = {editId:id, nome:cifPastaNome(id), moverIds:null}; render(); setTimeout(()=>{ const e=document.getElementById('cif_pasta_nome'); if(e){ e.focus(); e.select(); } },30); }
 function cifFecharPastaModal(){ const m = state.cifPastaModal; state.cifPastaModal = null; if(m && m.moverIds) state.cifMover = {ids:m.moverIds}; render(); }
@@ -3616,47 +3656,73 @@ async function cifSalvarPasta(ev){
   const m = state.cifPastaModal; if(!m) return;
   const nome = ((document.getElementById('cif_pasta_nome')||{}).value||'').trim();
   if(!nome){ showToast('Dê um nome à pasta.', true); return; }
-  if(getCifraPastas().some(p=>p.id!==m.editId && p.nome.toLowerCase()===nome.toLowerCase())){ showToast('Já existe uma pasta com esse nome.', true); return; }
+  const paiAlvo = m.editId ? cifPai(cifPastaObj(m.editId)) : (state.cifPastaAberta && cifPastaObj(state.cifPastaAberta) ? state.cifPastaAberta : null);
+  if(getCifraPastas().some(p=>p.id!==m.editId && cifPai(p)===paiAlvo && p.nome.toLowerCase()===nome.toLowerCase())){ showToast('Já existe uma pasta com esse nome aqui.', true); return; }
   state.config = state.config || {};
   state.config.cifrasPastas = state.config.cifrasPastas || [];
   state.cifPastaModal = null;
   if(m.editId){ const p = state.config.cifrasPastas.find(x=>x.id===m.editId); if(p) p.nome = nome; render(); await saveConfigEscola(); showToast('Pasta renomeada.'); return; }
   const pasta = {id:uid(), nome};
+  if(paiAlvo) pasta.parentId = paiAlvo;   // nasce dentro da pasta aberta
   state.config.cifrasPastas.push(pasta);
   if(m.moverIds && m.moverIds.length){ state.cifMover = null; await cifAplicarMover(m.moverIds, pasta.id, true); return; }
   render(); await saveConfigEscola(); showToast('Pasta criada.');
 }
 async function cifExcluirPasta(id){
   state.itemContextMenu = null;
-  const ok = await customConfirm('Excluir esta pasta? As cifras dentro dela voltam para a lista principal — nenhuma cifra é apagada.');
+  const p = cifPastaObj(id); if(!p) return;
+  const pai = cifPai(p);
+  const temSub = cifFilhas(id).length>0;
+  const ok = await customConfirm(`Excluir esta pasta? ${temSub?'As cifras e as subpastas':'As cifras'} dentro dela ${pai?'sobem para a pasta anterior':'voltam para a lista principal'} — nenhuma cifra é apagada.`);
   if(!ok) return;
-  state.config.cifrasPastas = getCifraPastas().filter(p=>p.id!==id);
+  getCifraPastas().forEach(f=>{ if(f.parentId===id){ if(pai) f.parentId = pai; else delete f.parentId; } });
+  state.config.cifrasPastas = getCifraPastas().filter(x=>x.id!==id);
   const mapa = state.config.cifrasPastaMap || {};
-  Object.keys(mapa).forEach(k=>{ if(mapa[k]===id) delete mapa[k]; });
-  if(state.cifPastaAberta===id) state.cifPastaAberta = null;
+  Object.keys(mapa).forEach(k=>{ if(mapa[k]===id){ if(pai) mapa[k] = pai; else delete mapa[k]; } });
+  if(state.cifPastaAberta===id) state.cifPastaAberta = pai;
   render(); await saveConfigEscola();
 }
 function cifAbrirMover(ids){ state.itemContextMenu = null; state.cifMover = {ids: ids.slice()}; render(); }
 function cifFecharMover(){ state.cifMover = null; render(); }
+// Move cifras e/ou pastas para `pastaId` (null = lista principal).
 async function cifAplicarMover(ids, pastaId, jaCriada){
+  pastaId = pastaId || null;
+  ids = Array.from(new Set(ids||[]));
   state.config = state.config || {};
   state.config.cifrasPastaMap = state.config.cifrasPastaMap || {};
-  ids.forEach(id=>{ if(pastaId) state.config.cifrasPastaMap[id] = pastaId; else delete state.config.cifrasPastaMap[id]; });
+  const pastaIds = ids.filter(id=>cifPastaObj(id));
+  const cifIds = ids.filter(id=>!pastaIds.includes(id));
+  const bloqueados = new Set();
+  pastaIds.forEach(id=>{ bloqueados.add(id); cifDescendentes(id).forEach(d=>bloqueados.add(d)); });
+  if(pastaId && bloqueados.has(pastaId)){ showToast('Uma pasta não pode ser movida para dentro dela mesma.', true); return; }
+  let nPastas = 0, nCif = 0;
+  pastaIds.forEach(id=>{ const p = cifPastaObj(id); if(cifPai(p)!==pastaId){ if(pastaId) p.parentId = pastaId; else delete p.parentId; nPastas++; } });
+  cifIds.forEach(id=>{ if((cifPastaDe(id)||null)!==pastaId){ if(pastaId) state.config.cifrasPastaMap[id] = pastaId; else delete state.config.cifrasPastaMap[id]; nCif++; } });
   state.cifMover = null; state.selectMode = false; state.selectedIds = new Set();
-  render(); await saveConfigEscola();
-  showToast(ids.length===1 ? 'Cifra movida.' : ids.length+' cifras movidas'+(pastaId?' para "'+cifPastaNome(pastaId)+'"':' para a lista principal')+'.');
+  render();
+  const total = nPastas + nCif;
+  if(!total && !jaCriada){ showToast('Já está nessa pasta.'); return; }
+  await saveConfigEscola();
+  const dest = pastaId ? '"'+cifPastaNome(pastaId)+'"' : 'a lista principal';
+  showToast(total<=1 ? (pastaIds.length?'Pasta movida':'Cifra movida')+(pastaId?' para '+dest:'')+'.' : total+' itens movidos para '+dest+'.');
 }
 function cifMoverModalHtml(){
   const m = state.cifMover; if(!m) return '';
-  const atual = m.ids.length===1 ? cifPastaDe(m.ids[0]) : null;
-  const opc = (id, nome, ic)=>`<button type="button" class="mover-opt ${atual===id?'on':''}" onclick="cifAplicarMover(${JSON.stringify(m.ids).replace(/"/g,'&quot;')}, ${id?`'${id}'`:'null'})">${ic}<span>${escapeHtml(nome)}</span></button>`;
+  const unico = m.ids.length===1;
+  const pasta1 = unico ? cifPastaObj(m.ids[0]) : null;
+  const atual = unico ? (pasta1 ? cifPai(pasta1) : cifPastaDe(m.ids[0])) : undefined;
+  const bloqueados = new Set();
+  m.ids.forEach(id=>{ if(cifPastaObj(id)){ bloqueados.add(id); cifDescendentes(id).forEach(d=>bloqueados.add(d)); } });
+  const idsJs = JSON.stringify(m.ids).replace(/"/g,'&quot;');
+  const opc = (id, nome, nivel, des)=>`<button type="button" class="mover-opt ${atual===id?'on':''}" ${des?'disabled':''} style="padding-left:${12+nivel*18}px;${des?'opacity:.4;cursor:not-allowed;':''}" onclick="${des?'':`cifAplicarMover(${idsJs}, ${id?`'${id}'`:'null'})`}">${id?FOLDER_SVG:ICON_NOTE}<span>${escapeHtml(nome)}</span></button>`;
+  const titulo = unico ? (pasta1?'Mover pasta':'Mover cifra') : `Mover ${m.ids.length} itens`;
   return `
   <div class="modal-bg" onclick="if(event.target===this) cifFecharMover()">
     <div class="mini-modal" style="max-width:380px;text-align:left;">
-      <h4 style="margin:0 0 12px;">Mover ${m.ids.length===1?'cifra':m.ids.length+' cifras'} para…</h4>
+      <h4 style="margin:0 0 12px;">${titulo} para…</h4>
       <div style="display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;">
-        ${opc(null,'Lista principal (sem pasta)',ICON_NOTE)}
-        ${getCifraPastas().slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).map(p=>opc(p.id,p.nome,FOLDER_SVG)).join('')}
+        ${opc(null,'Lista principal (sem pasta)',0,false)}
+        ${cifPastasEmArvore().map(({p,nivel})=>opc(p.id,p.nome,nivel+1,bloqueados.has(p.id))).join('')}
       </div>
       <div class="form-actions" style="margin-top:14px;">
         <button type="button" class="text-link-btn" style="margin-right:auto;" onclick='cifNovaPasta(${JSON.stringify(m.ids)})'>+ Nova pasta</button>
@@ -3819,14 +3885,21 @@ async function bulkImportar(){
   b.rodando = true; b.feitos = 0; b.erros = 0; b.total = lista.length; render();
   const _st0 = _pdfContaStorage, _bd0 = _pdfContaBanco;
   state.config = state.config || {}; state.config.cifrasPastas = state.config.cifrasPastas || []; state.config.cifrasPastaMap = state.config.cifrasPastaMap || {};
+  // Mantém a hierarquia de pastas do computador (subpastas viram subpastas no app, dentro da pasta de destino).
+  // Se todos os arquivos vieram dentro de subpastas da pasta escolhida, a pasta-raiz escolhida não vira pasta.
+  const cadeiaDe = (it)=> it.nome.split('/').filter(Boolean).slice(0,-1).map(x=>x.trim()).filter(Boolean);
+  const tiraRaiz = !!b.porSubpasta && lista.every(it=>cadeiaDe(it).length>=2);
   const pastaDoItem = (it)=>{
     if(b.porSubpasta){
-      const partes = it.nome.split('/').filter(Boolean);
-      if(partes.length>=2){
-        const nomeP = partes[partes.length-2].trim();
-        let p = state.config.cifrasPastas.find(x=>x.nome.toLowerCase()===nomeP.toLowerCase());
-        if(!p){ p = {id:uid()+Math.random().toString(36).slice(2,4), nome:nomeP}; state.config.cifrasPastas.push(p); }
-        return p.id;
+      let cad = cadeiaDe(it); if(tiraRaiz) cad = cad.slice(1);
+      if(cad.length){
+        let pai = b.destino || null;
+        for(const nomeP of cad){
+          let p = state.config.cifrasPastas.find(x=>x.nome.toLowerCase()===nomeP.toLowerCase() && cifPai(x)===pai);
+          if(!p){ p = {id:uid()+Math.random().toString(36).slice(2,4), nome:nomeP}; if(pai) p.parentId = pai; state.config.cifrasPastas.push(p); }
+          pai = p.id;
+        }
+        return pai;
       }
     }
     return b.destino || null;
@@ -3874,7 +3947,7 @@ function bulkModalHtml(){
         <label style="display:flex;align-items:center;gap:8px;" title="Usada para PDFs soltos, que não vieram dentro de uma pasta">Pasta de destino (PDFs soltos)
           <select ${b.rodando?'disabled':''} onchange="state.bulk.destino=this.value" style="min-width:160px;">
             <option value="">Lista principal (sem pasta)</option>
-            ${getCifraPastas().slice().sort((a,c)=>a.nome.localeCompare(c.nome,'pt-BR')).map(p=>`<option value="${p.id}" ${b.destino===p.id?'selected':''}>${escapeHtml(p.nome)}</option>`).join('')}
+            ${cifPastasEmArvore().map(({p})=>`<option value="${p.id}" ${b.destino===p.id?'selected':''}>${escapeHtml(cifCaminhoNome(p.id))}</option>`).join('')}
           </select></label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" ${b.porSubpasta?'checked':''} ${b.rodando?'disabled':''} onchange="state.bulk.porSubpasta=this.checked;render()" style="width:16px;height:16px;accent-color:var(--accent);"> Manter o nome da pasta original (cria a pasta no app)</label>
       </div>
@@ -10941,12 +11014,12 @@ function matCheckHtml(id){
   return a.selecting ? `<input type="checkbox" class="row-check" data-id="${id}" ${a.sel?'checked':''} onclick="event.stopPropagation();toggleSelectItem('${id}')">` : '';
 }
 function matDragAtrs(id){
-  return state.professorMode ? `draggable="true" data-mat-id="${id}" ondragstart="matDragStart(event,'${id}')" ondragend="matDragEnd(event)"` : '';
+  return state.professorMode ? `draggable="true" data-mat-id="${id}" ondragstart="dndStart(event,'${id}','mat')" ondragend="dndEnd(event)"` : '';
 }
 function matDropAtrs(destId){
   if(!state.professorMode) return '';
   const d = destId ? `'${destId}'` : 'null';
-  return `ondragover="matDragOver(event,${d})" ondragleave="matDragLeave(event)" ondrop="matDrop(event,${d})"`;
+  return `ondragover="dndOver(event,${d},'mat')" ondragleave="dndLeave(event)" ondrop="dndDrop(event,${d},'mat')"`;
 }
 function pastaRowHtml(p, qtd, podeGerenciar, nSub){
   const a = matSelAtrs(p.id);
@@ -11088,15 +11161,22 @@ async function matMoverItens(ids, destino){
   return ok;
 }
 function matAplicarMover(destino){ const ids = state.materialMoveId; if(!ids || !ids.length) return; matMoverItens(ids, destino); }
-// ---- arrastar com o mouse ----
-let _matDragIds = null;
-function matDragStart(ev, id){
-  if(!state.professorMode){ ev.preventDefault(); return; }
-  const sel = state.selectMode==='mat' && state.selectedIds && state.selectedIds.has(id);
+// ---- arrastar com o mouse (Materiais e Cifras) ----
+let _matDragIds = null, _dndDom = null;
+function dndCfg(dom){
+  return dom==='cif'
+    ? { selMode:'cifra', pode:()=>cifPodeGerenciar(), ehPasta:id=>!!cifPastaObj(id), desc:id=>cifDescendentes(id), mover:(ids,d)=>cifAplicarMover(ids,d) }
+    : { selMode:'mat',   pode:()=>!!state.professorMode, ehPasta:id=>!!matPastaDe(id), desc:id=>matDescendentes(id), mover:(ids,d)=>matMoverItens(ids,d) };
+}
+function dndStart(ev, id, dom){
+  const cfg = dndCfg(dom);
+  if(!cfg.pode()){ ev.preventDefault(); return; }
+  _dndDom = dom;
+  const sel = state.selectMode===cfg.selMode && state.selectedIds && state.selectedIds.has(id);
   _matDragIds = sel ? Array.from(state.selectedIds) : [id];
   try{
     ev.dataTransfer.effectAllowed = 'move';
-    ev.dataTransfer.setData('text/plain', 'materiais:' + _matDragIds.join(','));
+    ev.dataTransfer.setData('text/plain', 'itens:' + _matDragIds.join(','));
     if(_matDragIds.length>1){
       const b = document.createElement('div');
       b.className = 'mat-drag-badge'; b.textContent = _matDragIds.length + ' itens';
@@ -11111,33 +11191,36 @@ function matDragStart(ev, id){
     ids.forEach(x=>{ const r = document.querySelector(`[data-mat-id="${x}"]`); if(r) r.classList.add('dragging'); });
   }, 0);
 }
-function matDragLimpa(){
+function dndLimpa(){
   document.body.classList.remove('mat-dragging');
   document.querySelectorAll('.dragging,.drop-over').forEach(e=>e.classList.remove('dragging','drop-over'));
 }
-function matDragEnd(){ matDragLimpa(); _matDragIds = null; }
-// Pode soltar aqui? (não pode soltar uma pasta dentro dela mesma ou das suas subpastas)
-function matDestinoValido(destId){
-  if(!_matDragIds) return false;
+function dndEnd(){ dndLimpa(); _matDragIds = null; _dndDom = null; }
+// Pode soltar aqui? (uma pasta não pode ir para dentro dela mesma nem das suas subpastas)
+function dndDestinoValido(destId, dom){
+  if(!_matDragIds || _dndDom!==dom) return false;
   if(!destId) return true;
-  for(const id of _matDragIds){ if(id===destId) return false; if(matPastaDe(id) && matDescendentes(id).includes(destId)) return false; }
+  const cfg = dndCfg(dom);
+  for(const id of _matDragIds){ if(id===destId) return false; if(cfg.ehPasta(id) && cfg.desc(id).includes(destId)) return false; }
   return true;
 }
-function matDragOver(ev, destId){
+function dndOver(ev, destId, dom){
   if(!_matDragIds) return;                      // arrastando arquivo de fora do app: ignora
-  if(!matDestinoValido(destId)) return;
+  if(!dndDestinoValido(destId, dom)) return;
   ev.preventDefault();
   try{ ev.dataTransfer.dropEffect = 'move'; }catch(e){}
   ev.currentTarget.classList.add('drop-over');
 }
-function matDragLeave(ev){ ev.currentTarget.classList.remove('drop-over'); }
-function matDrop(ev, destId){
+function dndLeave(ev){ ev.currentTarget.classList.remove('drop-over'); }
+function dndDrop(ev, destId, dom){
   ev.preventDefault();
-  const ids = _matDragIds;
-  matDragLimpa(); _matDragIds = null;
-  if(!ids || !ids.length || !state.professorMode) return;
-  if(destId && ids.some(id=>id===destId || (matPastaDe(id) && matDescendentes(id).includes(destId)))){ showToast('Uma pasta não pode ser movida para dentro dela mesma.', true); return; }
-  matMoverItens(ids, destId||null);
+  const ids = _matDragIds, dd = _dndDom;
+  dndLimpa(); _matDragIds = null; _dndDom = null;
+  if(!ids || !ids.length || dd!==dom) return;
+  const cfg = dndCfg(dom);
+  if(!cfg.pode()) return;
+  if(destId && ids.some(id=>id===destId || (cfg.ehPasta(id) && cfg.desc(id).includes(destId)))){ showToast('Uma pasta não pode ser movida para dentro dela mesma.', true); return; }
+  cfg.mover(ids, destId||null);
 }
 async function openCifraViewer(id){
   stopAutoScroll(); state.scrolling=false;
@@ -11910,7 +11993,7 @@ function professorRepertorioTabHtml(){
         ${(state.searchOpen || f.busca) ?
           `<div class="search-box"><span class="s-icon">${SEARCH_SVG}</span><input id="busca_input" placeholder="Buscar música ou artista…" value="${escapeHtml(f.busca)}" oninput="setFiltro('busca', this.value)" onblur="collapseSearchIfEmpty()"></div>`
           : `<button class="search-icon-btn" title="Buscar" onclick="openSearch()">${SEARCH_SVG}</button>`}
-        ${state.cifPastaAberta?'':`<button class="btn-ghost" onclick="cifNovaPasta()">+ Pasta</button>`}
+        <button class="btn-ghost" onclick="cifNovaPasta()">+ Pasta</button>
         <button class="btn-ghost" onclick="bulkAbrir()">Importar PDFs</button>
         <button class="btn" onclick="professorNewCifra()">+ Nova cifra</button>
       </div>
@@ -11938,7 +12021,7 @@ function professorRepertorioTabHtml(){
       <span class="total-count no-print" style="margin-left:auto;">Total de cifras: ${bancoDoProfessor.length}</span>
     </div>
     ${cifBreadcrumbHtml()}
-    ${(pastasAqui.length && !selecting)?`<div class="cifra-list" style="margin-bottom:10px;">${pastasAqui.map(p=>cifPastaRowHtml(p, bancoDoProfessor.filter(c=>cifPastaDe(c.id)===p.id).length, true)).join('')}</div>`:''}
+    ${pastasAqui.length?`<div class="cifra-list" style="margin-bottom:10px;">${pastasAqui.map(p=>cifPastaRowHtml(p, cifContagemRec(p.id, bancoDoProfessor), true, cifFilhas(p.id).length)).join('')}</div>`:''}
     ${(filtradasNivel.length===0 && !pastasAqui.length)?`<div class="empty"><span class="big">${ICON_NOTE}</span>${bancoDoProfessor.length===0?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':(state.cifPastaAberta&&!cifBuscando(f)?'Esta pasta está vazia. Use "Mover para pasta" no menu ⋮ de uma cifra, ou crie uma nova cifra aqui.':'Nenhuma música encontrada com esse filtro.')}</div>`:
     groups.map(group=>`
       <div class="letter-group">
@@ -11949,7 +12032,7 @@ function professorRepertorioTabHtml(){
             const destLabel = dest.length===0 ? 'Não enviada' : (dest.length===1?'1 aluno':dest.length+' alunos');
             const sel = selecting && state.selectedIds && state.selectedIds.has(c.id);
             return `
-            <div class="cifra-row ${selecting?'select-row':''} ${sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${c.id}')`:`professorOpenCifra('${c.id}')`}" ${selecting?'':`oncontextmenu="openItemContextMenu(event,'cifra','${c.id}')"`}>
+            <div class="cifra-row ${selecting?'select-row':''} ${sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${c.id}')`:`professorOpenCifra('${c.id}')`}" ${selecting?'':`oncontextmenu="openItemContextMenu(event,'cifra','${c.id}')"`} ${cifDragAtrs(c.id)}>
               ${selecting?`<input type="checkbox" class="row-check" data-id="${c.id}" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelectItem('${c.id}')">`:''}
               <div class="avatar">${avatarFor(c)}</div>
               <div class="info">
@@ -15334,7 +15417,8 @@ function cancelSelectMode(){
 }
 async function confirmDeleteSelected(){
   const type = state.selectMode;
-  const ids = Array.from(state.selectedIds||[]);
+  let ids = Array.from(state.selectedIds||[]);
+  if(type==='cifra') ids = ids.filter(id=>!cifPastaObj(id));   // pastas marcadas só servem pra mover, não são excluídas aqui
   if(!type || ids.length===0) return;
   const label = type==='cifra'
     ? (ids.length===1?'esta cifra':`estas ${ids.length} cifras`)
@@ -15359,7 +15443,9 @@ async function confirmDeleteSelected(){
 function selectModeBarHtml(type){
   if(state.selectMode !== type) return '';
   const n = state.selectedIds ? state.selectedIds.size : 0;
-  const noun = type==='cifra' ? (n===1?'cifra selecionada':'cifras selecionadas') : (n===1?'solo selecionado':'solos selecionados');
+  const temPasta = type==='cifra' && Array.from(state.selectedIds||[]).some(id=>cifPastaObj(id));
+  const nCif = type==='cifra' ? Array.from(state.selectedIds||[]).filter(id=>!cifPastaObj(id)).length : n;
+  const noun = temPasta ? (n===1?'item selecionado':'itens selecionados') : (type==='cifra' ? (n===1?'cifra selecionada':'cifras selecionadas') : (n===1?'solo selecionado':'solos selecionados'));
   return `<div class="select-mode-bar no-print">
     <label class="select-all-label"><input type="checkbox" onclick="toggleSelectAllVisible()"> Selecionar todas</label>
     <span class="select-mode-count">${n} ${noun}</span>
@@ -15367,7 +15453,7 @@ function selectModeBarHtml(type){
     <div class="select-mode-actions">
       <button type="button" class="btn-ghost btn-small" onclick="cancelSelectMode()">Cancelar</button>
       ${(type==='cifra' && cifPodeGerenciar())?`<button type="button" class="btn-ghost btn-small" ${n===0?'disabled':''} onclick="cifAbrirMover(Array.from(state.selectedIds))">${FOLDER_SVG} Mover para pasta</button>`:''}
-      <button type="button" class="btn-danger-solid" style="padding:7px 16px;font-size:12px;" ${n===0?'disabled':''} onclick="confirmDeleteSelected()">Excluir selecionadas</button>
+      <button type="button" class="btn-danger-solid" style="padding:7px 16px;font-size:12px;" ${nCif===0?'disabled':''} onclick="confirmDeleteSelected()">Excluir selecionadas</button>
     </div>
   </div>`;
 }
@@ -15388,7 +15474,7 @@ function itemContextMenuHtml(){
   const m = state.itemContextMenu; if(!m) return '';
   const vw = window.innerWidth, vh = window.innerHeight;
   const left = Math.min(m.x, vw-180);
-  const top = Math.min(m.y, vh-((m.type==='pasta')?190:150));
+  const top = Math.min(m.y, vh-((m.type==='pasta'||m.type==='pastaCif')?190:150));
   if(m.type==='pasta'){
     // [Rodada 44] Menu da linha de pasta, como o botão direito numa pasta do
     // computador: renomear ou excluir (os arquivos de dentro não são apagados).
@@ -15401,6 +15487,8 @@ function itemContextMenuHtml(){
   }
   if(m.type==='pastaCif'){
     return `<div class="ctx-menu" style="left:${left}px;top:${top}px;">
+      <button type="button" onclick="cifSelecionarItem('${m.id}')">${ICON_CHECK_SMALL} Selecionar</button>
+      <button type="button" onclick="cifAbrirMover(['${m.id}'])">${FOLDER_SVG} Mover</button>
       <button type="button" onclick="cifRenomearPasta('${m.id}')">${EDIT_SVG} Renomear</button>
       <button type="button" class="ctx-menu-danger" onclick="cifExcluirPasta('${m.id}')">✕ Excluir pasta</button>
     </div>`;
@@ -15417,9 +15505,10 @@ function itemContextMenuHtml(){
   const item = (m.type==='solo' ? state.solosIndex : state.cifraIndex).find(x=>x.id===m.id);
   const podeSalvarNoBanco = !!(state.professorMode && state.professorMode.email && item && item.criadoPorAluno);
   const podeMover = m.type==='cifra' && cifPodeGerenciar();
-  return `<div class="ctx-menu" style="left:${left}px;top:${Math.min(m.y, vh-(podeSalvarNoBanco?130:(podeMover?130:90)))}px;">
+  return `<div class="ctx-menu" style="left:${left}px;top:${Math.min(m.y, vh-(podeSalvarNoBanco?170:(podeMover?170:130)))}px;">
     <button type="button" onclick="itemContextMenuEdit()">${EDIT_SVG} Editar</button>
     ${podeMover ? `<button type="button" onclick="cifAbrirMover(['${m.id}'])">${FOLDER_SVG} Mover para pasta</button>` : ''}
+    <button type="button" onclick="itemContextMenuDelete()">${ICON_CHECK_SMALL} Selecionar</button>
     ${podeSalvarNoBanco ? `<button type="button" onclick="salvarNaAreaDoProfessor('${m.type}','${m.id}')">${ICON_SAVE} Salvar na área do professor</button>` : ''}
     <button type="button" class="ctx-menu-danger" onclick="itemContextMenuDelete()">✕ Excluir</button>
   </div>`;
@@ -15687,7 +15776,7 @@ function renderApp(){
         <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${state.professorMode && !state.professorMode.email?state.cifraIndex.length:meusVisiveis.length}</span>
       </div>
       ${cifBreadcrumbHtml()}
-      ${(pastasAqui.length && !selecting)?`<div class="cifra-list" style="margin-bottom:10px;">${pastasAqui.map(p=>cifPastaRowHtml(p, meusVisiveis.filter(c=>cifPastaDe(c.id)===p.id).length, cifPodeGerenciar())).join('')}</div>`:''}
+      ${pastasAqui.length?`<div class="cifra-list" style="margin-bottom:10px;">${pastasAqui.map(p=>cifPastaRowHtml(p, cifContagemRec(p.id, meusVisiveis), cifPodeGerenciar(), cifFilhas(p.id).filter(f=>cifPodeGerenciar()||cifContagemRec(f.id, meusVisiveis)>0).length)).join('')}</div>`:''}
       ${(filtradasNivel.length===0 && !pastasAqui.length)?`<div class="empty"><span class="big">${ICON_NOTE}</span>${meusVisiveis.length===0?(state.professorMode?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Seu professor ainda não enviou nenhuma música para você.'):'Nenhuma música encontrada com esse filtro.'}</div>`:
       groups.map(group=>`
         <div class="letter-group">
@@ -15696,7 +15785,7 @@ function renderApp(){
             ${group.items.map(c=>{
               const sel = selecting && state.selectedIds && state.selectedIds.has(c.id);
               return `
-              <div class="cifra-row ${selecting?'select-row':''} ${sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${c.id}')`:`openCifraViewer('${c.id}')`}" ${selecting?'':`oncontextmenu="openItemContextMenu(event,'cifra','${c.id}')"`}>
+              <div class="cifra-row ${selecting?'select-row':''} ${sel?'selected':''}" onclick="${selecting?`toggleSelectItem('${c.id}')`:`openCifraViewer('${c.id}')`}" ${selecting?'':`oncontextmenu="openItemContextMenu(event,'cifra','${c.id}')"`} ${cifDragAtrs(c.id)}>
                 ${selecting?`<input type="checkbox" class="row-check" data-id="${c.id}" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelectItem('${c.id}')">`:''}
                 <div class="avatar">${avatarFor(c)}</div>
                 <div class="info">
