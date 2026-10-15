@@ -7487,6 +7487,14 @@ async function normalizeImageFile(file){
     return new File([blob], (file.name||'foto').replace(/\.hei[cf]$/i,'')+'.jpg', {type:'image/jpeg'});
   }catch(e){ console.error('Falha ao converter HEIC/HEIF para JPEG', e); return file; }
 }
+// Converte o canvas pra WebP (bem menor que JPEG/PNG na mesma qualidade). Se o
+// navegador não suportar WebP no toDataURL (Safari antigo devolve PNG), cai pra JPEG.
+function canvasToWebpDataUrl(canvas, q){
+  let url = '';
+  try{ url = canvas.toDataURL('image/webp', q); }catch(e){}
+  if(!url || url.indexOf('data:image/webp') !== 0) url = canvas.toDataURL('image/jpeg', Math.max(q, 0.85));
+  return url;
+}
 const IMAGE_UPLOAD_MAX_BYTES = 20*1024*1024;
 function readImageSquareDataUrl(file, size, cb){
   if(!file) return;
@@ -7501,7 +7509,7 @@ function readImageSquareDataUrl(file, size, cb){
       const side = Math.min(img.width, img.height);
       const sx = (img.width-side)/2, sy = (img.height-side)/2;
       ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
-      cb(canvas.toDataURL('image/jpeg', 0.85));
+      cb(canvasToWebpDataUrl(canvas, 0.82));
     };
     img.onerror = ()=>{ showToast('Não foi possível ler essa imagem. Tente uma foto em JPG ou PNG.', true); };
     img.src = reader.result;
@@ -7547,7 +7555,7 @@ async function handleAlunoFotoUpload(input, which){
     if(oEl) state.detObservacoesDraft = oEl.value;
   }
   const file = await normalizeImageFile(file0);
-  readImageSquareDataUrl(file, 160, (dataUrl)=>{
+  readImageSquareDataUrl(file, 380, (dataUrl)=>{
     if(which==='cad') state.cadFotoPreview = dataUrl; else state.detFotoPreview = dataUrl;
     render();
   });
@@ -7691,9 +7699,9 @@ function confirmAvatarCrop(){
   const m = state.avatarCropModal; if(!m) return;
   window.removeEventListener('resize', syncAvatarCropViewportSize);
   const canvas = document.createElement('canvas');
-  // 480px cobre com folga o maior tamanho exibido hoje (avatar de 190px, mesmo em
-  // tela retina/alta densidade) sem gerar um arquivo desproporcionalmente pesado.
-  const OUT = 480;
+  // 380px = maior tamanho exibido hoje (avatar de 190px) x2 pra telas retina.
+  // Salvo em WebP pra ocupar o mínimo possível de espaço no banco.
+  const OUT = 380;
   canvas.width = OUT; canvas.height = OUT;
   const ctx = canvas.getContext('2d');
   const img = new Image();
@@ -7703,7 +7711,7 @@ function confirmAvatarCrop(){
     const srcY = -m.offsetY / m.scale;
     const srcSize = vp / m.scale;
     ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, OUT, OUT);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    const dataUrl = canvasToWebpDataUrl(canvas, 0.82);
     state.perfilFotoDraft = dataUrl;
     state.avatarCropModal = null;
     render();
@@ -15791,7 +15799,7 @@ function renderApp(){
             : `<button class="search-icon-btn" title="Buscar" onclick="openMatSearch()">${SEARCH_SVG}</button>`}
         </div>
       </div>
-      <div class="hint" style="margin:-6px 0 14px;">PDFs enviados pelo seu professor. Clique para abrir.${buscandoMat?' Buscando em todas as pastas.':''}</div>
+      ${buscandoMat?`<div class="hint" style="margin:-6px 0 14px;">Buscando em todas as pastas.</div>`:""}
       ${buscandoMat?'':breadcrumbMateriaisHtml()}
       <div class="filters">
         <div class="sort-group">
