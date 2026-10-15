@@ -226,8 +226,8 @@
   .page-header-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px;}
   .page-header-row h2{margin:0;}
   .total-count{font-size:12.5px;color:var(--muted);}
-  .main-nav{display:flex;justify-content:center;gap:4px;border-bottom:1px solid var(--border);margin-bottom:32px;}
-  .main-nav-btn{display:flex;align-items:center;gap:7px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:600;padding:13px 16px;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:-1px;transition:color .25s,border-color .15s;}
+  .main-nav{display:flex;justify-content:stretch;gap:4px;border-bottom:1px solid var(--border);margin-bottom:32px;}
+  .main-nav-btn{flex:1 1 0;justify-content:center;display:flex;align-items:center;gap:7px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:600;padding:13px 16px;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:-1px;transition:color .25s,border-color .15s;}
   .main-nav-icon{display:flex;flex:0 0 auto;opacity:.5;}
   .main-nav-icon svg{width:16px;height:16px;}
   .main-nav-btn:hover{color:var(--text);}
@@ -564,6 +564,10 @@
   .letter-header{font-size:14px;font-weight:800;color:var(--accent);padding:18px 6px 6px;letter-spacing:.03em;}
   .letter-header:first-child{padding-top:0;}
   .cifra-list{display:flex;flex-direction:column;}
+  .mover-opt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 12px;cursor:pointer;font:inherit;font-size:14px;}
+  .mover-opt svg{width:18px;height:18px;flex:none;color:var(--muted);}
+  .mover-opt:hover,.mover-opt.on{border-color:var(--accent);}
+  .mover-opt.on svg{color:var(--accent);}
   /* [Rodada 122] Repertório do aluno */
   .rep-tabela{border-top:1px solid var(--border);}
   .rep-head,.rep-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) 200px 26px;gap:14px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--border);}
@@ -3114,7 +3118,7 @@ let state = {
   draft:null, confirmDialog:null, variantModal:null, chordPopup:null, listMoreModal:null,
   selectMode:false, selectedIds:new Set(),
   tarefas:[], showCompletedTasks:false, pdfChoiceModal:null,
-  novaTarefaModalOpen:false, repModalOpen:false, repDraft:null, repBusca:'', bulk:null, repFiltro:'', novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
+  novaTarefaModalOpen:false, repModalOpen:false, repDraft:null, repBusca:'', bulk:null, cifPastaAberta:null, cifPastaModal:null, cifMover:null, repFiltro:'', novaTarefaTituloDraft:'', novaTarefaObsDraft:'', novaTarefaFixadaDraft:false,
   solosIndex:[], solosDetailCache:{}, soloDraft:null, soloViewId:null,
   solosFiltro:{busca:''}, solosSortMode:'alfabetica', solosSortDir:'desc', solosSearchOpen:false,
   perfil:null, perfilDraft:null, trocarSenhaError:null, loginLoading:false,
@@ -3555,6 +3559,113 @@ function repertorioAlunoHtml(){
 }
 
 
+
+// ---------- Pastas de cifras ----------
+// [Rodada 130] Cifras podem ser organizadas em pastas (um nível, como em Materiais). A lista de pastas e o "mapa" cifra→pasta ficam em
+// config_escola (jsonb), sem coluna nova no banco: state.config.cifrasPastas = [{id,nome}] e state.config.cifrasPastaMap = {idDaCifra: idDaPasta}.
+// Só o professor (Área do Professor) cria/renomeia/exclui pastas e move cifras; o aluno vê as pastas que têm cifras enviadas para ele.
+function cifPodeGerenciar(){ return !!(state.professorMode && !state.professorMode.email); }
+function getCifraPastas(){ return (state.config && state.config.cifrasPastas) || []; }
+function cifPastaDe(id){ const m = state.config && state.config.cifrasPastaMap; const pid = m && m[id]; return (pid && getCifraPastas().some(p=>p.id===pid)) ? pid : null; }
+function cifPastaNome(id){ const p = getCifraPastas().find(x=>x.id===id); return p ? p.nome : ''; }
+// Filtra a lista para o "nível" atual: dentro de uma pasta, só as dela; na raiz, só as sem pasta. Com busca/filtro ativo, mostra tudo.
+function cifBuscando(f){ return !!(f && (f.busca || f.artista || (f.ritmos && f.ritmos.length))); }
+function cifNivel(lista, f){
+  if(cifBuscando(f)) return lista;
+  const aberta = state.cifPastaAberta;
+  return lista.filter(c=> aberta ? cifPastaDe(c.id)===aberta : !cifPastaDe(c.id));
+}
+function cifPastasNaRaiz(visiveis, f){
+  if(cifBuscando(f) || state.cifPastaAberta) return [];
+  const pode = cifPodeGerenciar();
+  return getCifraPastas().filter(p=> pode || visiveis.some(c=>cifPastaDe(c.id)===p.id))
+    .slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+}
+function cifPastaRowHtml(p, qtd, pode){
+  return `
+  <div class="cifra-row pasta-row" onclick="cifEntrarPasta('${p.id}')" ${pode?`oncontextmenu="openItemContextMenu(event,'pastaCif','${p.id}')"`:''}>
+    <div class="avatar pasta-avatar">${FOLDER_SVG}</div>
+    <div class="info"><div class="tit">${escapeHtml(p.nome)}</div><div class="art">${qtd} ${qtd===1?'cifra':'cifras'}</div></div>
+    <div class="row-status">${pode?`<button class="row-menu-btn" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openItemContextMenu(event,'pastaCif','${p.id}')">⋮</button>`:''}</div>
+  </div>`;
+}
+function cifBreadcrumbHtml(){
+  const id = state.cifPastaAberta; if(!id) return '';
+  return `<div class="mat-breadcrumb"><button type="button" class="mat-crumb-link" onclick="cifVoltarRaiz()">${FOLDER_SVG}<span>Cifras</span></button><span class="mat-crumb-sep">›</span><span class="mat-crumb-atual">${escapeHtml(cifPastaNome(id))}</span></div>`;
+}
+function cifEntrarPasta(id){ state.cifPastaAberta = id; state.selectMode = false; state.selectedIds = new Set(); render(); }
+function cifVoltarRaiz(){ state.cifPastaAberta = null; render(); }
+function cifNovaPasta(moverIds){ state.cifPastaModal = {editId:null, nome:'', moverIds: moverIds||null}; state.itemContextMenu = null; state.cifMover = null; render(); setTimeout(()=>{ const e=document.getElementById('cif_pasta_nome'); if(e) e.focus(); },30); }
+function cifRenomearPasta(id){ state.itemContextMenu = null; state.cifPastaModal = {editId:id, nome:cifPastaNome(id), moverIds:null}; render(); setTimeout(()=>{ const e=document.getElementById('cif_pasta_nome'); if(e){ e.focus(); e.select(); } },30); }
+function cifFecharPastaModal(){ const m = state.cifPastaModal; state.cifPastaModal = null; if(m && m.moverIds) state.cifMover = {ids:m.moverIds}; render(); }
+async function cifSalvarPasta(ev){
+  if(ev) ev.preventDefault();
+  const m = state.cifPastaModal; if(!m) return;
+  const nome = ((document.getElementById('cif_pasta_nome')||{}).value||'').trim();
+  if(!nome){ showToast('Dê um nome à pasta.', true); return; }
+  if(getCifraPastas().some(p=>p.id!==m.editId && p.nome.toLowerCase()===nome.toLowerCase())){ showToast('Já existe uma pasta com esse nome.', true); return; }
+  state.config = state.config || {};
+  state.config.cifrasPastas = state.config.cifrasPastas || [];
+  state.cifPastaModal = null;
+  if(m.editId){ const p = state.config.cifrasPastas.find(x=>x.id===m.editId); if(p) p.nome = nome; render(); await saveConfigEscola(); showToast('Pasta renomeada.'); return; }
+  const pasta = {id:uid(), nome};
+  state.config.cifrasPastas.push(pasta);
+  if(m.moverIds && m.moverIds.length){ state.cifMover = null; await cifAplicarMover(m.moverIds, pasta.id, true); return; }
+  render(); await saveConfigEscola(); showToast('Pasta criada.');
+}
+async function cifExcluirPasta(id){
+  state.itemContextMenu = null;
+  const ok = await customConfirm('Excluir esta pasta? As cifras dentro dela voltam para a lista principal — nenhuma cifra é apagada.');
+  if(!ok) return;
+  state.config.cifrasPastas = getCifraPastas().filter(p=>p.id!==id);
+  const mapa = state.config.cifrasPastaMap || {};
+  Object.keys(mapa).forEach(k=>{ if(mapa[k]===id) delete mapa[k]; });
+  if(state.cifPastaAberta===id) state.cifPastaAberta = null;
+  render(); await saveConfigEscola();
+}
+function cifAbrirMover(ids){ state.itemContextMenu = null; state.cifMover = {ids: ids.slice()}; render(); }
+function cifFecharMover(){ state.cifMover = null; render(); }
+async function cifAplicarMover(ids, pastaId, jaCriada){
+  state.config = state.config || {};
+  state.config.cifrasPastaMap = state.config.cifrasPastaMap || {};
+  ids.forEach(id=>{ if(pastaId) state.config.cifrasPastaMap[id] = pastaId; else delete state.config.cifrasPastaMap[id]; });
+  state.cifMover = null; state.selectMode = false; state.selectedIds = new Set();
+  render(); await saveConfigEscola();
+  showToast(ids.length===1 ? 'Cifra movida.' : ids.length+' cifras movidas'+(pastaId?' para "'+cifPastaNome(pastaId)+'"':' para a lista principal')+'.');
+}
+function cifMoverModalHtml(){
+  const m = state.cifMover; if(!m) return '';
+  const atual = m.ids.length===1 ? cifPastaDe(m.ids[0]) : null;
+  const opc = (id, nome, ic)=>`<button type="button" class="mover-opt ${atual===id?'on':''}" onclick="cifAplicarMover(${JSON.stringify(m.ids).replace(/"/g,'&quot;')}, ${id?`'${id}'`:'null'})">${ic}<span>${escapeHtml(nome)}</span></button>`;
+  return `
+  <div class="modal-bg" onclick="if(event.target===this) cifFecharMover()">
+    <div class="mini-modal" style="max-width:380px;text-align:left;">
+      <h4 style="margin:0 0 12px;">Mover ${m.ids.length===1?'cifra':m.ids.length+' cifras'} para…</h4>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;">
+        ${opc(null,'Lista principal (sem pasta)',ICON_NOTE)}
+        ${getCifraPastas().slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).map(p=>opc(p.id,p.nome,FOLDER_SVG)).join('')}
+      </div>
+      <div class="form-actions" style="margin-top:14px;">
+        <button type="button" class="text-link-btn" style="margin-right:auto;" onclick='cifNovaPasta(${JSON.stringify(m.ids)})'>+ Nova pasta</button>
+        <button type="button" class="btn-ghost" onclick="cifFecharMover()">Cancelar</button>
+      </div>
+    </div>
+  </div>`;
+}
+function cifPastaModalHtml(){
+  const m = state.cifPastaModal; if(!m) return '';
+  return `
+  <div class="modal-bg" onclick="if(event.target===this) cifFecharPastaModal()">
+    <div class="mini-modal" style="max-width:360px;text-align:left;">
+      <h4 style="margin:0 0 14px;">${m.editId?'Renomear pasta':'Nova pasta de cifras'}</h4>
+      <form onsubmit="cifSalvarPasta(event)">
+        <div class="login-field"><label>Nome da pasta</label><input id="cif_pasta_nome" type="text" placeholder="Ex: Sertanejo, Iniciantes, Gospel" value="${escapeHtml(m.nome||'')}" autocomplete="off"></div>
+        <div class="form-actions"><button type="button" class="btn-ghost" onclick="cifFecharPastaModal()">Cancelar</button><button type="submit" class="btn">${m.editId?'Salvar':'Criar pasta'}</button></div>
+      </form>
+    </div>
+  </div>`;
+}
+
 // ---------- Importação em massa de cifras em PDF (pasta, vários PDFs ou .zip) ----------
 // [Rodada 129] Nome do arquivo no formato "Música - Artista.pdf". Cada PDF vira uma cifra do tipo PDF no banco do professor.
 function bulkParseNome(nome){
@@ -3563,7 +3674,7 @@ function bulkParseNome(nome){
   if(i>0) return {titulo: base.slice(0,i).trim(), artista: base.slice(i+3).trim()};
   return {titulo: base, artista: ''};
 }
-function bulkAbrir(){ if(!state.professorMode || state.professorMode.email) return; state.bulk = {items:[], rodando:false, feitos:0, erros:0, fim:false, lendo:false}; render(); }
+function bulkAbrir(){ if(!state.professorMode || state.professorMode.email) return; state.bulk = {items:[], rodando:false, feitos:0, erros:0, fim:false, lendo:false, destino: state.cifPastaAberta||'', porSubpasta:false}; render(); }
 function bulkFechar(){ if(state.bulk && state.bulk.rodando) return; state.bulk = null; render(); }
 async function bulkLerZip(file){
   const buf = new Uint8Array(await file.arrayBuffer()), dv = new DataView(buf.buffer);
@@ -3629,6 +3740,19 @@ async function bulkImportar(){
   if(!lista.length){ showToast('Marque ao menos uma música.', true); return; }
   if(lista.some(i=>!(i.titulo||'').trim())){ showToast('Há músicas sem título.', true); return; }
   b.rodando = true; b.feitos = 0; b.erros = 0; b.total = lista.length; render();
+  state.config = state.config || {}; state.config.cifrasPastas = state.config.cifrasPastas || []; state.config.cifrasPastaMap = state.config.cifrasPastaMap || {};
+  const pastaDoItem = (it)=>{
+    if(b.porSubpasta){
+      const partes = it.nome.split('/').filter(Boolean);
+      if(partes.length>=2){
+        const nomeP = partes[partes.length-2].trim();
+        let p = state.config.cifrasPastas.find(x=>x.nome.toLowerCase()===nomeP.toLowerCase());
+        if(!p){ p = {id:uid()+Math.random().toString(36).slice(2,4), nome:nomeP}; state.config.cifrasPastas.push(p); }
+        return p.id;
+      }
+    }
+    return b.destino || null;
+  };
   for(const it of lista){
     it.status = 'enviando…'; bulkAtualizaLinha(it);
     try{
@@ -3641,12 +3765,14 @@ async function bulkImportar(){
       const ok = await saveDetail(id, full);
       if(!ok) throw new Error('não salvou');
       state.cifraIndex.push(meta);
+      { const pid = pastaDoItem(it); if(pid) state.config.cifrasPastaMap[id] = pid; }
       it.status = 'importada'; it.marcado = false; b.feitos++;
     }catch(e){ console.error('bulk', e); it.status = 'erro'; b.erros++; }
     bulkAtualizaLinha(it);
     const barra = document.getElementById('bulkProgresso'); if(barra) barra.textContent = (b.feitos+b.erros)+' de '+b.total;
   }
   b.rodando = false; b.fim = true; render();
+  await saveConfigEscola();
   showToast(b.feitos+' cifra'+(b.feitos===1?'':'s')+' importada'+(b.feitos===1?'':'s')+(b.erros?' — '+b.erros+' com erro':'')+'.', !!b.erros);
 }
 function bulkAtualizaLinha(it){ const el = document.getElementById('bulkSt_'+it.id); if(el) el.textContent = it.status; }
@@ -3665,6 +3791,14 @@ function bulkModalHtml(){
         ${b.lendo?'<span class="hint" style="align-self:center;">Lendo arquivos…</span>':''}
       </div>
       ${b.items.length?`
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:-2px 0 12px;font-size:13px;">
+        <label style="display:flex;align-items:center;gap:8px;">Pasta de destino
+          <select ${(b.rodando||b.porSubpasta)?'disabled':''} onchange="state.bulk.destino=this.value" style="min-width:160px;">
+            <option value="">Lista principal (sem pasta)</option>
+            ${getCifraPastas().slice().sort((a,c)=>a.nome.localeCompare(c.nome,'pt-BR')).map(p=>`<option value="${p.id}" ${b.destino===p.id?'selected':''}>${escapeHtml(p.nome)}</option>`).join('')}
+          </select></label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" ${b.porSubpasta?'checked':''} ${b.rodando?'disabled':''} onchange="state.bulk.porSubpasta=this.checked;render()" style="width:16px;height:16px;accent-color:var(--accent);"> Criar uma pasta para cada subpasta do arquivo</label>
+      </div>
       <div style="overflow:auto;border:1px solid var(--border);border-radius:8px;flex:1;min-height:120px;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;">
           <thead><tr style="text-align:left;position:sticky;top:0;background:var(--bg);">
@@ -11547,7 +11681,9 @@ function professorRepertorioTabHtml(){
     (!f.artista||c.artista===f.artista) &&
     (!f.ritmos || !f.ritmos.length || (c.ritmos&&c.ritmos.some(r=>f.ritmos.includes(r)))) &&
     (!f.busca || (c.titulo+c.artista).toLowerCase().includes(f.busca.toLowerCase())));
-  const groups = buildDisplayGroups(filtradas, state.sortMode, state.sortDir);
+  const filtradasNivel = cifNivel(filtradas, f);
+  const pastasAqui = cifPastasNaRaiz(bancoDoProfessor, f);
+  const groups = buildDisplayGroups(filtradasNivel, state.sortMode, state.sortDir);
   return `
     <div class="page-header-row" style="margin-top:0;">
       <h3 style="margin:0;">Banco de cifras</h3>
@@ -11555,6 +11691,7 @@ function professorRepertorioTabHtml(){
         ${(state.searchOpen || f.busca) ?
           `<div class="search-box"><span class="s-icon">${SEARCH_SVG}</span><input id="busca_input" placeholder="Buscar música ou artista…" value="${escapeHtml(f.busca)}" oninput="setFiltro('busca', this.value)" onblur="collapseSearchIfEmpty()"></div>`
           : `<button class="search-icon-btn" title="Buscar" onclick="openSearch()">${SEARCH_SVG}</button>`}
+        ${state.cifPastaAberta?'':`<button class="btn-ghost" onclick="cifNovaPasta()">+ Pasta</button>`}
         <button class="btn-ghost" onclick="bulkAbrir()">Importar PDFs</button>
         <button class="btn" onclick="professorNewCifra()">+ Nova cifra</button>
       </div>
@@ -11581,7 +11718,9 @@ function professorRepertorioTabHtml(){
       </div>
       <span class="total-count no-print" style="margin-left:auto;">Total de cifras: ${bancoDoProfessor.length}</span>
     </div>
-    ${filtradas.length===0?`<div class="empty"><span class="big">${ICON_NOTE}</span>${bancoDoProfessor.length===0?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Nenhuma música encontrada com esse filtro.'}</div>`:
+    ${cifBreadcrumbHtml()}
+    ${(pastasAqui.length && !selecting)?`<div class="cifra-list" style="margin-bottom:10px;">${pastasAqui.map(p=>cifPastaRowHtml(p, bancoDoProfessor.filter(c=>cifPastaDe(c.id)===p.id).length, true)).join('')}</div>`:''}
+    ${(filtradasNivel.length===0 && !pastasAqui.length)?`<div class="empty"><span class="big">${ICON_NOTE}</span>${bancoDoProfessor.length===0?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':(state.cifPastaAberta&&!cifBuscando(f)?'Esta pasta está vazia. Use "Mover para pasta" no menu ⋮ de uma cifra, ou crie uma nova cifra aqui.':'Nenhuma música encontrada com esse filtro.')}</div>`:
     groups.map(group=>`
       <div class="letter-group">
         ${group.letter!==null?`<div class="letter-header">${escapeHtml(group.letter)}</div>`:''}
@@ -13885,6 +14024,7 @@ async function submitDraft(ev){
     }
 
     // Update the visible repertoire right away — the teacher should always see the song appear.
+    if(d.isNew && state.cifPastaAberta && cifPodeGerenciar() && !criadoPorAluno && cifPastaNome(state.cifPastaAberta)){ state.config.cifrasPastaMap = state.config.cifrasPastaMap || {}; state.config.cifrasPastaMap[id] = state.cifPastaAberta; saveConfigEscola(); }
     if(d.isNew){ state.cifraIndex.push(meta); } else { const idx=state.cifraIndex.findIndex(c=>c.id===id); if(idx>=0) state.cifraIndex[idx]=meta; else state.cifraIndex.push(meta); }
     state.detailCache[id]=full;
     state.draft=null;
@@ -14996,6 +15136,7 @@ function selectModeBarHtml(type){
     <span class="select-mode-warn">A exclusão não pode ser desfeita.</span>
     <div class="select-mode-actions">
       <button type="button" class="btn-ghost btn-small" onclick="cancelSelectMode()">Cancelar</button>
+      ${(type==='cifra' && cifPodeGerenciar())?`<button type="button" class="btn-ghost btn-small" ${n===0?'disabled':''} onclick="cifAbrirMover(Array.from(state.selectedIds))">${FOLDER_SVG} Mover para pasta</button>`:''}
       <button type="button" class="btn-danger-solid" style="padding:7px 16px;font-size:12px;" ${n===0?'disabled':''} onclick="confirmDeleteSelected()">Excluir selecionadas</button>
     </div>
   </div>`;
@@ -15013,6 +15154,12 @@ function itemContextMenuHtml(){
       <button type="button" class="ctx-menu-danger" onclick="closeItemContextMenu();excluirPasta('${m.id}')">✕ Excluir pasta</button>
     </div>`;
   }
+  if(m.type==='pastaCif'){
+    return `<div class="ctx-menu" style="left:${left}px;top:${top}px;">
+      <button type="button" onclick="cifRenomearPasta('${m.id}')">${EDIT_SVG} Renomear</button>
+      <button type="button" class="ctx-menu-danger" onclick="cifExcluirPasta('${m.id}')">✕ Excluir pasta</button>
+    </div>`;
+  }
   if(m.type==='material'){
     return `<div class="ctx-menu" style="left:${left}px;top:${top}px;">
       <button type="button" onclick="openMaterialMoveModal('${m.id}')">${FOLDER_SVG} Mover</button>
@@ -15023,8 +15170,10 @@ function itemContextMenuHtml(){
   // do professor ganha a opção de ir para lá
   const item = (m.type==='solo' ? state.solosIndex : state.cifraIndex).find(x=>x.id===m.id);
   const podeSalvarNoBanco = !!(state.professorMode && state.professorMode.email && item && item.criadoPorAluno);
-  return `<div class="ctx-menu" style="left:${left}px;top:${Math.min(m.y, vh-(podeSalvarNoBanco?130:90))}px;">
+  const podeMover = m.type==='cifra' && cifPodeGerenciar();
+  return `<div class="ctx-menu" style="left:${left}px;top:${Math.min(m.y, vh-(podeSalvarNoBanco?130:(podeMover?130:90)))}px;">
     <button type="button" onclick="itemContextMenuEdit()">${EDIT_SVG} Editar</button>
+    ${podeMover ? `<button type="button" onclick="cifAbrirMover(['${m.id}'])">${FOLDER_SVG} Mover para pasta</button>` : ''}
     ${podeSalvarNoBanco ? `<button type="button" onclick="salvarNaAreaDoProfessor('${m.type}','${m.id}')">${ICON_SAVE} Salvar na área do professor</button>` : ''}
     <button type="button" class="ctx-menu-danger" onclick="itemContextMenuDelete()">✕ Excluir</button>
   </div>`;
@@ -15251,7 +15400,9 @@ function renderApp(){
       (!f.artista||c.artista===f.artista) &&
       (!f.ritmos || !f.ritmos.length || (c.ritmos&&c.ritmos.some(r=>f.ritmos.includes(r)))) &&
       (!f.busca || (c.titulo+c.artista).toLowerCase().includes(f.busca.toLowerCase())));
-    const groups = buildDisplayGroups(filtradas, state.sortMode, state.sortDir);
+    const filtradasNivel = cifNivel(filtradas, f);
+    const pastasAqui = cifPastasNaRaiz(meusVisiveis, f);
+    const groups = buildDisplayGroups(filtradasNivel, state.sortMode, state.sortDir);
     app.innerHTML = `
       <div class="topbar">
         ${brandHtml(false)}
@@ -15289,7 +15440,9 @@ function renderApp(){
         </div>
         <span class="total-count no-print" style="margin-left:auto;">Total de músicas no repertório: ${state.professorMode && !state.professorMode.email?state.cifraIndex.length:meusVisiveis.length}</span>
       </div>
-      ${filtradas.length===0?`<div class="empty"><span class="big">${ICON_NOTE}</span>${meusVisiveis.length===0?(state.professorMode?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Seu professor ainda não enviou nenhuma música para você.'):'Nenhuma música encontrada com esse filtro.'}</div>`:
+      ${cifBreadcrumbHtml()}
+      ${(pastasAqui.length && !selecting)?`<div class="cifra-list" style="margin-bottom:10px;">${pastasAqui.map(p=>cifPastaRowHtml(p, meusVisiveis.filter(c=>cifPastaDe(c.id)===p.id).length, cifPodeGerenciar())).join('')}</div>`:''}
+      ${(filtradasNivel.length===0 && !pastasAqui.length)?`<div class="empty"><span class="big">${ICON_NOTE}</span>${meusVisiveis.length===0?(state.professorMode?'Nenhuma cifra cadastrada ainda. Clique em "Nova cifra" para começar.':'Seu professor ainda não enviou nenhuma música para você.'):'Nenhuma música encontrada com esse filtro.'}</div>`:
       groups.map(group=>`
         <div class="letter-group">
           ${group.letter!==null?`<div class="letter-header">${escapeHtml(group.letter)}</div>`:''}
@@ -15922,6 +16075,8 @@ function renderApp(){
 function dialogsHtml(){
   let html = '';
   if(state.bulk) html += bulkModalHtml();
+  if(state.cifPastaModal) html += cifPastaModalHtml();
+  if(state.cifMover) html += cifMoverModalHtml();
   if(state.confirmDialog){
     html += `
     <div class="modal-bg" onclick="if(event.target===this) resolveConfirm(false)">
