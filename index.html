@@ -1648,6 +1648,9 @@
   .te-seg button{border:none;background:none;color:var(--muted);font:inherit;font-family:'Montserrat',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:color .2s,background .2s;}
   .te-seg button:hover{color:var(--text);}
   .te-seg button.on{background:var(--accent);color:#fff;}
+  .te-rep-vz{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .te-rep-outro{text-transform:none;letter-spacing:0;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);}
+  .te-rep-outro input{width:58px;padding:6px 8px;text-align:center;}
   .te-seg-full{display:flex;width:100%;}
   .te-seg-full button{flex:1;}
   .te-sep{width:1px;height:22px;background:var(--border);margin:0 3px;}
@@ -5048,6 +5051,10 @@ function teToggleRepFim(){
 function teSetRepVezes(n){
   const c = teMedidaAtual(); if(!c.m) return;
   const b = TE.doc.beats[c.m.b-1]; if(!b.repFim) return;
+  n = Math.round(Number(n));
+  if(!isFinite(n)){ teToolbarOnly(); return; }
+  n = Math.max(2, Math.min(99, n));
+  if(n===b.repFim){ teToolbarOnly(); return; }
   teSnapshot(); b.repFim = n;
   teSyncDraft(); teRefresh();
 }
@@ -6499,7 +6506,7 @@ function teCompHtml(){
     <div class="te-opc-lbl">Ritornelo (${nm})</div>
     ${teSwitch(!!(ini && ini.repIni), 'teToggleRepIni()', 'Abrir ritornelo aqui')}
     ${teSwitch(!!vz, 'teToggleRepFim()', 'Fechar ritornelo aqui')}
-    ${vz ? `<div class="te-opc-lbl">Tocar no total</div><div class="te-seg te-seg-full">${[2,3,4].map(n=>`<button type="button" class="${vz===n?'on':''}" onmousedown="event.preventDefault()" onclick="teSetRepVezes(${n})">${n}x</button>`).join('')}</div>` : ''}
+    ${vz ? `<div class="te-opc-lbl">Tocar no total</div><div class="te-rep-vz"><div class="te-seg">${[2,4].map(n=>`<button type="button" class="${vz===n?'on':''}" onmousedown="event.preventDefault()" onclick="teSetRepVezes(${n})">${n}x</button>`).join('')}</div><label class="te-rep-outro">ou digite <input type="number" min="2" max="99" step="1" inputmode="numeric" value="${vz}" class="te-opc-sel" onchange="teSetRepVezes(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"> x</label></div>` : ''}
     <div class="te-opc-nota">O ritornelo repete o trecho entre o sinal de início e o de fim (sem sinal de início, volta ao começo da música). Ao tocar, o app já faz as repetições.</div>
   </div>`;
 }
