@@ -1203,6 +1203,44 @@
   .wa-fab:hover{background:var(--accent);color:#fff;transform:scale(1.08) translateY(-2px);}
   .wa-fab:active{transform:scale(.96);}
   .wa-fab svg{width:24px;height:24px;position:relative;z-index:1;}
+  .te-help-fab{bottom:80px;border:none;cursor:pointer;font:inherit;padding:0;}
+  .te-help-fab svg{width:25px;height:25px;}
+  .tut-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;}
+  .tut-card-main{background:var(--bg-panel);color:var(--text);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;height:min(92vh,560px);display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.5);}
+  .tut-head{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border);}
+  .tut-head h3{margin:0;font-size:17px;flex:1;line-height:1.25;}
+  .tut-badge{background:var(--accent);color:#fff;font-size:11.5px;font-weight:800;border-radius:20px;padding:3px 9px;white-space:nowrap;}
+  .tut-x{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 6px;line-height:1;}
+  .tut-x:hover{color:var(--text);}
+  .tut-body{flex:1;padding:14px 18px;overflow-y:auto;font-size:14.5px;line-height:1.55;}
+  .tut-body p{margin:0 0 10px;}
+  .tut-body .tut-svg{display:block;width:100%;max-width:420px;margin:6px auto 12px;color:var(--text);}
+  .tut-alerta{background:color-mix(in srgb,var(--accent) 16%,transparent);border-left:4px solid var(--accent);border-radius:8px;padding:9px 12px;}
+  .tut-dica{background:var(--bg);border-radius:8px;padding:9px 12px;color:var(--muted);font-size:13.5px;}
+  .tut-play{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-weight:700;font-size:13px;cursor:pointer;margin:2px 4px 2px 0;}
+  .tut-play:active{transform:scale(.96);}
+  .tut-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border);}
+  .tut-dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+  .tut-dot{width:9px;height:9px;border-radius:50%;border:none;padding:0;background:var(--border);cursor:pointer;}
+  .tut-dot.feito{background:color-mix(in srgb,var(--accent) 50%,var(--border));}
+  .tut-dot.on{background:var(--accent);transform:scale(1.3);}
+  .tut-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .tut-grid>div{background:var(--bg);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.4;}
+  .tut-sym{font-family:'Roboto Mono',monospace;color:var(--accent);font-size:16px;}
+  .tut-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:10px;}
+  .tut-card{background:var(--bg);border-radius:10px;padding:8px 12px;display:grid;grid-template-columns:150px 1fr;column-gap:12px;align-items:center;font-size:13px;line-height:1.4;}
+  .tut-card .tut-svg{grid-row:1 / span 2;margin:0 !important;max-width:150px !important;}
+  .tut-lista{margin:0 0 12px;padding-left:20px;} .tut-lista li{margin-bottom:6px;}
+  @media (max-width:640px){
+    .tut-overlay{align-items:flex-end;padding:0;}
+    .tut-card-main{max-width:none;border-radius:18px 18px 0 0;height:auto;max-height:92vh;}
+    .tut-grid{grid-template-columns:1fr;}
+    .tut-card{grid-template-columns:1fr;}
+    .tut-card .tut-svg{grid-row:auto;margin:0 auto 6px !important;}
+    .te-help-fab{bottom:68px;}
+    .tut-dots{gap:4px;} .tut-dot{width:7px;height:7px;}
+    body.te-editing #teHelpBtn{display:none !important;}
+  }
   .wa-tooltip{position:absolute;right:60px;bottom:13px;background:var(--ink);color:#fff;padding:8px 12px;border-radius:8px;font-size:12.5px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .25s;box-shadow:0 4px 10px rgba(0,0,0,.25);}
   .chart-tip{position:fixed;transform:translate(-50%,-100%);background:var(--bg-panel);color:var(--text);border:1px solid var(--border);padding:7px 13px;border-radius:10px;font-size:12.5px;font-weight:600;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .4s ease;box-shadow:0 6px 16px rgba(0,0,0,.28);z-index:80;}
   .chart-tip.visible{opacity:1;}
@@ -1800,6 +1838,10 @@
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.63.07-.3-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.63-2.03-.17-.3-.02-.46.13-.6.13-.13.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5-.17-.01-.37-.01-.56-.01a1.08 1.08 0 0 0-.78.37c-.27.3-1.03 1-1.03 2.45s1.06 2.85 1.2 3.05c.15.2 2.1 3.2 5.08 4.5.71.3 1.26.49 1.7.62.71.23 1.36.2 1.87.12.57-.09 1.75-.72 2-1.4.24-.7.24-1.3.17-1.4-.07-.12-.26-.19-.56-.34z"/><path d="M12 2a10 10 0 0 0-8.62 15.03L2 22l5.1-1.34A10 10 0 1 0 12 2zm0 18.1a8.06 8.06 0 0 1-4.13-1.13l-.3-.18-3.03.8.81-2.95-.2-.3A8.1 8.1 0 1 1 12 20.1z"/></svg>
   <span class="wa-tooltip">Alguma dúvida? Fale com o professor...</span>
 </a>
+<button id="teHelpBtn" type="button" class="wa-fab te-help-fab no-print" onclick="tutAbrir()" aria-label="Como ler a tablatura" style="display:none">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.2a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.4-2.8 4.1"/><circle cx="12" cy="17.6" r="0.5" fill="currentColor"/></svg>
+  <span class="wa-tooltip">Como ler a tablatura</span>
+</button>
 <div id="profBanner" class="prof-banner no-print">
   <span id="profBannerText"></span>
   <button type="button" onclick="exitProfessorMode()">Voltar à área do professor</button>
@@ -4743,6 +4785,7 @@ function teNomeNota(m){ return TE_NOTE_NAMES[((m%12)+12)%12] + (Math.floor(m/12)
 function teStringNames(doc){ return teTuning(doc).map(m=>TE_NOTE_NAMES[m%12]).map((n,i)=> i===0 ? n.toLowerCase() : n); }
 function teMidi(doc, note){ return teTuning(doc)[note.s-1] + note.f; }
 function teTicks(beat){
+  if(beat.sim) return beat.simTicks || TE_TPQ*4;   // compasso de símile: ocupa o compasso inteiro
   let t = TE_TPQ*4/beat.dur;
   if(beat.dot) t *= 1.5;
   if(beat.tup===3 || beat.tup===6) t = t*2/3; // tercina: 3 no tempo de 2 · sextina: 6 no tempo de 4
@@ -4754,7 +4797,7 @@ function teSigIgual(a, b){ return !!(a && b && a.n===b.n && a.d===b.d); }
 // pulso do metrônomo e agrupamento dos feixes: compostos (6/8, 9/8, 12/8) = semínima pontuada
 function teSigPulso(sig){ return (sig.d===8 && sig.n%3===0) ? TE_TPQ*1.5 : TE_TPQ*4/sig.d; }
 const TE_COMPASSOS = ['2/4','3/4','4/4','5/4','6/4','7/4','2/2','3/8','5/8','6/8','7/8','9/8','12/8'];
-function teIsEmpty(beat){ return !beat.notes || beat.notes.length===0; }
+function teIsEmpty(beat){ return !beat.sim && (!beat.notes || beat.notes.length===0); }
 // [Rodada 105] acorde (beat.acorde) e texto (beat.texto) escritos acima da pauta
 function teTemAnot(beat){ return !!(beat && (beat.acorde || beat.texto)); }
 function teNoteAt(beat, s){ return beat && beat.notes ? beat.notes.find(n=>n.s===s) : null; }
@@ -4806,7 +4849,7 @@ function teEnsureTrailing(doc){
 }
 function teTrimTrailing(doc){
   const d = teClone(doc);
-  while(d.beats.length>1 && teIsEmpty(d.beats[d.beats.length-1]) && !d.beats[d.beats.length-1].bar && !teTemAnot(d.beats[d.beats.length-1])) d.beats.pop();
+  while(d.beats.length>1 && teIsEmpty(d.beats[d.beats.length-1]) && !d.beats[d.beats.length-1].bar && !d.beats[d.beats.length-1].repIni && !d.beats[d.beats.length-1].repFim && !teTemAnot(d.beats[d.beats.length-1])) d.beats.pop();
   return d;
 }
 function teSnapshot(){
@@ -4849,6 +4892,7 @@ function teSetFret(s, f, opts){
   const b = TE.cur.b;
   const beat = TE.doc.beats[b];
   if(f<0 || f>24) return;
+  if(beat.sim){ teAvisar('Este compasso é um símile (repete o anterior). Tire o símile, no botão de símile/ritornelo, para escrever notas aqui.'); return; }
   if(!opts.semSnapshot) teSnapshot();
   let n = teNoteAt(beat, s);
   if(n){ n.f = f; }
@@ -4952,6 +4996,95 @@ function teMakeRest(){
   teSnapshot();
   for(let i=a;i<=z;i++) TE.doc.beats[i].notes = [];
   TE.pop = null; teSyncDraft(); teRefresh();
+}
+// ---- [Rodada 140] compasso de símile e ritornelo ----
+function teMedidaAtual(){
+  const ms = teMeasures(TE.doc), bi = TE.cur.b;
+  const mi = ms.findIndex(m=> bi>=m.a && bi<m.b);
+  return {ms, mi, m: ms[mi]};
+}
+function teToggleSimile(){
+  const doc = TE.doc, c = teMedidaAtual(); if(!c.m) return;
+  const m = c.m, first = doc.beats[m.a];
+  if(first.sim){
+    teSnapshot();
+    const nb = teNewBeat(TE.curDur||8); if(first.compasso) nb.compasso = first.compasso;
+    if(first.repIni) nb.repIni = true;
+    if(first.repFim) nb.repFim = first.repFim;
+    doc.beats.splice(m.a, 1, nb);
+    TE.cur.b = m.a; TE.sel = null;
+    teSyncDraft(); teRefresh(); return;
+  }
+  if(c.mi===0){ teAvisar('O símile repete o compasso anterior. Escreva um compasso antes e depois use o símile.'); return; }
+  const part = doc.modo==='partitura';
+  teSnapshot();
+  const sim = {dur:1, dot:false, tup:0, bar: !part, notes:[], sim:true, simTicks: part ? teSigTicks(m.sig || doc.compasso) : 0};
+  const ult = doc.beats[m.b-1];
+  if(first.compasso) sim.compasso = first.compasso;
+  if(first.repIni) sim.repIni = true;
+  if(ult.repFim) sim.repFim = ult.repFim;
+  if(first.texto) sim.texto = first.texto;
+  doc.beats.splice(m.a, m.b-m.a, sim);
+  TE.cur.b = m.a; TE.cur.s = 1; TE.sel = null; TE.pend = null;
+  teEnsureTrailing(doc);
+  teSyncDraft(); teRefresh();
+  teAvisar('Compasso de símile: repete o compasso anterior. Desfazer: Ctrl+Z.');
+}
+function teToggleRepIni(){
+  const c = teMedidaAtual(); if(!c.m) return;
+  teSnapshot();
+  const b = TE.doc.beats[c.m.a];
+  if(b.repIni) delete b.repIni; else b.repIni = true;
+  teSyncDraft(); teRefresh();
+}
+function teToggleRepFim(){
+  const c = teMedidaAtual(); if(!c.m) return;
+  teSnapshot();
+  const b = TE.doc.beats[c.m.b-1];
+  if(b.repFim) delete b.repFim; else b.repFim = 2;
+  teEnsureTrailing(TE.doc);
+  teSyncDraft(); teRefresh();
+}
+function teSetRepVezes(n){
+  const c = teMedidaAtual(); if(!c.m) return;
+  const b = TE.doc.beats[c.m.b-1]; if(!b.repFim) return;
+  teSnapshot(); b.repFim = n;
+  teSyncDraft(); teRefresh();
+}
+// Desenrola símile e ritornelos numa lista de batidas "reais" pra tocar. Devolve null se não há nada a desenrolar.
+// map[i] = índice da batida ORIGINAL que a batida i (desenrolada) representa; first[o] = primeira posição da original o.
+function teTemRepeticao(doc){ return doc.beats.some(b=> b.sim || b.repIni || b.repFim); }
+function teExpandir(doc){
+  if(!teTemRepeticao(doc)) return null;
+  const beats = doc.beats, ms = teMeasures(doc), livre = doc.modo!=='partitura';
+  const out = [], map = [], first = new Array(beats.length).fill(-1);
+  const limpa = (b)=>{ const c = teClone(b); delete c.sim; delete c.simTicks; delete c.repIni; delete c.repFim; return c; };
+  let ultimo = null, inicioRep = 0, k = 0, guarda = 0; const cont = {};
+  while(k < ms.length && guarda++ < 4000){
+    const m = ms[k];
+    if(beats[m.a].repIni) inicioRep = k;
+    let conteudo;
+    if(beats[m.a].sim){
+      conteudo = (ultimo || [{b: teNewBeat(4), o: m.a}]).map(x=>({b: teClone(x.b), o: m.a}));
+    } else {
+      conteudo = []; for(let i=m.a;i<m.b;i++) conteudo.push({b: limpa(beats[i]), o: i});
+      ultimo = conteudo;
+    }
+    if(livre && conteudo.length){ conteudo[conteudo.length-1].b.bar = true; }
+    conteudo.forEach(x=>{ if(first[x.o]<0) first[x.o] = out.length; out.push(x.b); map.push(x.o); });
+    const fim = beats[m.b-1];
+    if(fim.repFim){
+      const n = Math.max(2, Number(fim.repFim)||2);
+      cont[k] = cont[k]||0;
+      if(cont[k] < n-1){ cont[k]++; k = inicioRep; continue; }
+      cont[k] = 0; inicioRep = k+1;
+    }
+    k++;
+  }
+  // o editor mantém uma batida vazia no fim — sai da lista tocada
+  while(out.length>1 && !out[out.length-1].notes.length && map[map.length-1]===beats.length-1){ out.pop(); map.pop(); }
+  for(let i=0;i<first.length;i++) if(first[i]<0){ let j=i+1; while(j<first.length && first[j]<0) j++; first[i] = j<first.length ? first[j] : Math.max(0,out.length-1); }
+  return {doc: Object.assign({}, doc, {beats: out}), map, first};
 }
 function teToggleBar(){
   // Barra manual (modo livre). No fim da peça não faz sentido — ali já tem barra final.
@@ -5251,9 +5384,11 @@ function teLayout(doc, width, opts){
     w = Math.max(w, maxLab*M.fs*0.62 + 14);
     if(showNot && b.notes.some(n=>teSpell(tuning[n.s-1]+n.f).acc)) w = Math.max(w, 30*M.k + 6);
     if(b.notes.some(n=>n.bend)) w = Math.max(w, 30);
+    if(b.sim) w = Math.max(w, 46*M.k);
     if(b.acorde) w = Math.max(w, String(b.acorde).length*M.fs*0.66 + 10);
     return w;
   });
+  measures.forEach(m=>{ const lb = beats[m.b-1]; if(lb && lb.repFim) bw[m.b-1] += 7; });   // espaço pro sinal de fim de ritornelo
   const avail = width - M.padX*2;
   // [Rodada 89] impressão: sem o "TAB" na frente da pauta
   const clefW = showNot ? 3.8*S + 10 : (opts.print ? 4 : 28);
@@ -5498,6 +5633,12 @@ function teRenderSvg(doc, lay, opts){
     });
   });
 
+  // --- [Rodada 140] ritornelos e compassos de símile
+  lines.forEach(ln=>{
+    ln.mnums.forEach(mn=>{ const m = lay.measures[mn.mi]; if(m && beats[m.a] && beats[m.a].repIni) out.push(teRepSvg(mn.x, 'ini', ln, lay)); });
+    ln.bars.forEach(bar=>{ const m = lay.measures[bar.mi]; const lb = m && beats[m.b-1]; if(lb && lb.repFim) out.push(teRepSvg(bar.x, 'fim', ln, lay, lb.repFim)); });
+  });
+  beats.forEach((b, i)=>{ if(b.sim && pos[i]) out.push(teSimSvg(pos[i], lines[pos[i].line], lay)); });
   // --- notação (pentagrama)
   if(showNot) out.push(teRenderNotation(doc, lay, opts, yStep));
   // --- ritmo embaixo da tablatura (partitura sem pentagrama)
@@ -5509,6 +5650,46 @@ function teRenderSvg(doc, lay, opts){
   return `<svg class="te-svg" xmlns="http://www.w3.org/2000/svg" width="${lay.width}" height="${h}" viewBox="0 0 ${lay.width} ${h}">${out.join('')}</svg>`;
 }
 
+// Sinal de ritornelo (início ou fim) na tablatura e, se aparecer, no pentagrama.
+function teRepSvg(x, tipo, ln, lay, n){
+  const {M, showNot} = lay; const S = M.S, T = M.T, o = [];
+  const ini = tipo==='ini';
+  const faixa = (y0, y1, d1, d2)=>{
+    const h = y1 - y0;
+    if(ini){
+      o.push(`<rect class="te-ink" x="${teF(x)}" y="${teF(y0)}" width="3" height="${teF(h)}"/>`);
+      o.push(`<rect class="te-ink" x="${teF(x+5)}" y="${teF(y0)}" width="1" height="${teF(h)}"/>`);
+      o.push(`<circle class="te-ink" cx="${teF(x+9.8)}" cy="${teF(d1)}" r="1.5"/><circle class="te-ink" cx="${teF(x+9.8)}" cy="${teF(d2)}" r="1.5"/>`);
+    } else {
+      o.push(`<rect class="te-ink" x="${teF(x-3)}" y="${teF(y0)}" width="3" height="${teF(h)}"/>`);
+      o.push(`<rect class="te-ink" x="${teF(x-6.2)}" y="${teF(y0)}" width="1" height="${teF(h)}"/>`);
+      o.push(`<circle class="te-ink" cx="${teF(x-10)}" cy="${teF(d1)}" r="1.5"/><circle class="te-ink" cx="${teF(x-10)}" cy="${teF(d2)}" r="1.5"/>`);
+    }
+  };
+  faixa(ln.tabTop, ln.tabBottom, ln.tabTop + 1.5*T, ln.tabTop + 3.5*T);
+  if(showNot) faixa(ln.notTop, ln.notBottom, ln.notTop + 1.5*S, ln.notTop + 2.5*S);
+  const topo = showNot ? ln.notTop : ln.tabTop;
+  if(!ini && n>2) o.push(`<text class="te-tectxt" x="${teF(x-8)}" y="${teF(topo-4)}">${n}x</text>`);
+  const tit = ini
+    ? 'Início do ritornelo: quando chegar no sinal de fim, volte até aqui e toque o trecho de novo.'
+    : 'Fim do ritornelo: volte ao sinal de início (ou ao começo da música) e toque o trecho de novo' + (n>2 ? ' — no total, '+n+' vezes.' : ' — no total, 2 vezes.');
+  const hx = ini ? x-4 : x-16;
+  return `<g class="te-rep"><title>${tit}</title><rect x="${teF(hx)}" y="${teF(topo-2)}" width="20" height="${teF(ln.tabBottom-topo+4)}" fill="transparent"/>${o.join('')}</g>`;
+}
+// Compasso de símile (%): barra inclinada com um ponto de cada lado, no meio da pauta.
+function teSimSvg(p, ln, lay){
+  const {M, showNot} = lay; const S = M.S, T = M.T, cx = p.x0 + p.w/2;
+  const forma = (cy, k)=>{
+    const a = 6*k, b = 8*k, e = 1.7*k;
+    return `<path class="te-ink" d="M${teF(cx-a)} ${teF(cy+b)} L${teF(cx-a+3.4*k)} ${teF(cy+b)} L${teF(cx+a)} ${teF(cy-b)} L${teF(cx+a-3.4*k)} ${teF(cy-b)} Z"/>`
+      + `<circle class="te-ink" cx="${teF(cx-a-1.4*k)}" cy="${teF(cy-b*0.55)}" r="${teF(e)}"/><circle class="te-ink" cx="${teF(cx+a+1.4*k)}" cy="${teF(cy+b*0.55)}" r="${teF(e)}"/>`;
+  };
+  const tabC = ln.tabTop + 2.5*T;
+  const topo = showNot ? ln.notTop : ln.tabTop;
+  let shapes = forma(tabC, 1);
+  if(showNot) shapes += forma(ln.notTop + 2*S, 0.75);
+  return `<g class="te-sim"><title>Compasso de símile (%): repete exatamente o compasso anterior. Toque de novo o que você acabou de tocar.</title><rect x="${teF(p.x0)}" y="${teF(topo-2)}" width="${teF(p.w)}" height="${teF(ln.tabBottom-topo+4)}" fill="transparent"/>${shapes}</g>`;
+}
 function teRenderTabNotes(doc, lay, opts, ys, trailing){
   const {M, lines, pos} = lay; const T = M.T, fs = M.fs;
   const beats = doc.beats; const out = [];
@@ -5670,6 +5851,7 @@ function teRenderNotation(doc, lay, opts, yStep){
     const ln = lines[p.line];
     if(!part || (tim[bi] && tim[bi].mi!==mAtual)){ accState = {}; mAtual = tim[bi] ? tim[bi].mi : -1; }
     const cls = bi===trailing ? 'te-ink te-ghostbeat' : 'te-ink';
+    if(beat.sim) return;
     if(!beat.notes.length){
       if(!part) return;
       const mid = ln.notTop + 2*S;
@@ -5809,6 +5991,7 @@ function teRenderTabRhythm(doc, lay, opts){
     const p = pos[i]; if(!p) return; const ln = lines[p.line];
     const y0 = ln.tabBottom + 7, y1 = ln.tabBottom + 26;
     const cls = i===trailing ? 'te-ink te-ghostbeat' : 'te-ink';
+    if(b.sim) return;
     if(!b.notes.length){
       const nome = {1:'restWhole',2:'restHalf',4:'restQuarter',8:'rest8th',16:'rest16th',32:'rest32nd'}[b.dur];
       out.push(teG(nome, p.cx - TE_GLYPHS[nome].w*4.5/2, ln.tabBottom + 16, 4.5, cls));
@@ -6003,20 +6186,29 @@ function teAudioStop(){
 }
 // Toca `doc` a partir da batida `from` (até `to`, se houver). Callbacks:
 // onBeat(i) a cada batida que começa, onStop() quando acaba/para.
-function teAudioPlay(doc, opts){
+function teAudioPlay(docOrig, opts){
   teAudioStop();
   const A = TE_AUDIO; const ctx = teCtx();
-  opts = opts||{};
+  opts = Object.assign({}, opts||{});
+  // [Rodada 140] símile e ritornelo: toca a lista desenrolada, mas avisa/anima pela posição ORIGINAL
+  const ex = teExpandir(docOrig);
+  let doc = docOrig, mapa = null;
+  if(ex){
+    doc = ex.doc; mapa = ex.map;
+    const f0 = Math.max(0, Math.min(opts.from||0, docOrig.beats.length-1));
+    opts.from = ex.first[f0] >= 0 ? ex.first[f0] : 0;
+    if(opts.to!=null){ let e = -1; for(let i=0;i<mapa.length;i++) if(mapa[i] <= opts.to) e = i; opts.to = e>=0 ? e : opts.from; }
+  }
   const tl = teTimeline(doc, opts.speed||1);
   let from = Math.max(0, Math.min(opts.from||0, doc.beats.length-1));
   let to = opts.to!=null ? Math.min(opts.to, doc.beats.length-1) : doc.beats.length-1;
   // não toca a batida vazia do fim (a do editor)
   while(to > from && !doc.beats[to].notes.length && to===doc.beats.length-1) to--;
-  A.doc = doc; A.tl = tl; A.from = from; A.to = to; A.loop = !!opts.loop; A.metro = !!opts.metro;
+  A.doc = docOrig; A.tl = tl; A.from = from; A.to = to; A.loop = !!opts.loop; A.metro = !!opts.metro;
   A.onBeat = opts.onBeat||null; A.onStop = opts.onStop||null;
   A.master = ctx.createGain(); A.master.gain.value = 0.9; A.master.connect(ctx.destination);
   A.voices = {};
-  A.on = true; A.lastIdx = -1;
+  A.on = true; A.lastIdx = -1; A.lastExp = -1;
   const segStart = tl.times[from];
   const segEnd = to+1 < tl.times.length ? tl.times[to+1] : tl.total;
   A.segLen = Math.max(0.05, segEnd - segStart);
@@ -6048,7 +6240,7 @@ function teAudioPlay(doc, opts){
     let idx = from;
     for(let i=from;i<=to;i++){ if(tl.times[i] <= t + 0.005) idx = i; else break; }
     if(t < tl.times[from]) idx = from;
-    if(idx!==A.lastIdx){ A.lastIdx = idx; if(A.onBeat) A.onBeat(idx); }
+    if(idx!==A.lastExp){ A.lastExp = idx; A.lastIdx = mapa ? mapa[idx] : idx; if(A.onBeat) A.onBeat(A.lastIdx); }
     A.raf = requestAnimationFrame(anima);
   };
   A.raf = requestAnimationFrame(anima);
@@ -6092,6 +6284,7 @@ const TE_ICON = {
   edit:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.8 2.7a1.6 1.6 0 0 1 2.3 2.3L5.6 12.5 2.5 13.5l1-3.1z"/></svg>',
   download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 18v1.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V18"/></svg>', // igual ao DOWNLOAD_SVG do app
   print:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4.5 6V2.5h7V6"/><rect x="2" y="6" width="12" height="5.5" rx="1.3"/><path d="M4.5 9.5h7v4h-7z"/></svg>',
+  rit:'<svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2.5" width="2" height="11" rx=".5"/><rect x="5.3" y="2.5" width="1" height="11"/><circle cx="9.4" cy="6" r="1.2"/><circle cx="9.4" cy="10" r="1.2"/></svg>',
   anot:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3.5h10M8 3.5v9"/><path d="M5.5 12.5h5"/></svg>',
   tec:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 12c3-8 6-8 6-4s3 4 6-4"/></svg>',
 };
@@ -6250,6 +6443,10 @@ function teToolbarHtml(){
     ${teBtn(TE_ICON.del, 'teDeleteAtCursor(false)', {cls:'te-icon-btn', title:'Apagar a nota do cursor, ou o tempo se estiver vazio (Delete)'})}
     ${!part ? teBtn('<b class="te-barra">|</b><span class="te-lbl">Barra</span>', 'teToggleBar()', {cls:'te-barra-btn', on:b && b.bar, title:'Colocar ou tirar uma barra de compasso depois deste tempo (|)'}) : ''}
     <div class="te-menu-wrap te-anot-wrap">
+      ${teBtn(TE_ICON.rit, 'teToggleComp()', {cls:'te-icon-btn', on:TE.compAberto || !!(b && (b.sim || b.repIni || b.repFim)), title:'Compasso de símile e ritornelo'})}
+      ${TE.compAberto ? teCompHtml() : ''}
+    </div>
+    <div class="te-menu-wrap te-anot-wrap">
       ${teBtn(TE_ICON.anot, 'teToggleAnot()', {cls:'te-icon-btn', on:TE.anotAberto || teTemAnot(b), title:'Acorde ou texto acima da pauta, neste tempo'})}
       ${TE.anotAberto ? teAnotHtml(b) : ''}
     </div>
@@ -6279,14 +6476,32 @@ function teToolbarHtml(){
   return `<div class="te-tb">${dir}${menu}${esq}</div>` + ritmo;
 }
 // ---- menu de opções (☰) do editor ----
-function teToggleOpcoes(){ TE.opcoes = !TE.opcoes; TE.anotAberto = false; teToolbarOnly(); }
+function teToggleOpcoes(){ TE.opcoes = !TE.opcoes; TE.anotAberto = false; TE.compAberto = false; teToolbarOnly(); }
 // [Rodada 105] Acorde e texto (partes da música) acima da pauta, no tempo do cursor
 function teToggleAnot(){
-  TE.anotAberto = !TE.anotAberto; TE.opcoes = false; teToolbarOnly();
+  TE.anotAberto = !TE.anotAberto; TE.opcoes = false; TE.compAberto = false; teToolbarOnly();
   if(TE.anotAberto){
     const foca = ()=>{ const el = document.getElementById('teAnotAcorde'); if(el && document.activeElement !== el) try{ el.focus({preventScroll:true}); }catch(e){ el.focus(); } };
     foca(); setTimeout(foca, 30);
   }
+}
+function teToggleComp(){ TE.compAberto = !TE.compAberto; TE.opcoes = false; TE.anotAberto = false; teToolbarOnly(); }
+function teCompHtml(){
+  const c = teMedidaAtual(); const d = TE.doc;
+  const m = c.m; const ini = m ? d.beats[m.a] : null, fim = m ? d.beats[m.b-1] : null;
+  const vz = fim && fim.repFim ? Math.max(2, Number(fim.repFim)||2) : 0;
+  const nm = m ? 'compasso '+(c.mi+1) : 'compasso';
+  return `<div class="te-opc te-anot" onpointerdown="event.stopPropagation()">
+    <div class="te-opc-lbl">Compasso de símile</div>
+    ${teSwitch(!!(ini && ini.sim), 'teToggleSimile()', 'Repetir o compasso anterior (%)')}
+    <div class="te-opc-nota">O símile é o sinal % no lugar do compasso: significa "toque de novo o compasso que veio antes". Passe o mouse sobre ele para ver a explicação.</div>
+    <div class="te-opc-div"></div>
+    <div class="te-opc-lbl">Ritornelo (${nm})</div>
+    ${teSwitch(!!(ini && ini.repIni), 'teToggleRepIni()', 'Abrir ritornelo aqui')}
+    ${teSwitch(!!vz, 'teToggleRepFim()', 'Fechar ritornelo aqui')}
+    ${vz ? `<div class="te-opc-lbl">Tocar no total</div><div class="te-seg te-seg-full">${[2,3,4].map(n=>`<button type="button" class="${vz===n?'on':''}" onmousedown="event.preventDefault()" onclick="teSetRepVezes(${n})">${n}x</button>`).join('')}</div>` : ''}
+    <div class="te-opc-nota">O ritornelo repete o trecho entre o sinal de início e o de fim (sem sinal de início, volta ao começo da música). Ao tocar, o app já faz as repetições.</div>
+  </div>`;
 }
 function teAnotHtml(b){
   b = b || {};
@@ -7026,7 +7241,8 @@ async function tvidGravar(){
   try{
     const tema = TV_TEMAS[TVID.tema] || TV_TEMAS.escuro;
     const vel = TVID.vel || 1;
-    const doc = Object.assign({}, teTrimTrailing(teNormalize(s.tabV2)), {mostrarPartitura: !!TVID.pent});
+    let doc = Object.assign({}, teTrimTrailing(teNormalize(s.tabV2)), {mostrarPartitura: !!TVID.pent});
+    { const exv = teExpandir(doc); if(exv) doc = Object.assign({}, exv.doc, {mostrarPartitura: !!TVID.pent}); }   // símile e ritornelos viram compassos escritos no vídeo
     if(!doc.beats.length) throw new Error('o solo está vazio');
     tvidMsg('Montando a tablatura…', 2);
     await new Promise(r=>setTimeout(r, 30));
@@ -15267,11 +15483,245 @@ function updateGlobalDialogs(){
   const el = document.getElementById('globalDialogs');
   if(el) el.innerHTML = dialogsHtml() + itemContextMenuHtml() + (state.toolContextMenu?toolContextMenuHtml():'') + (state.novoSolo?novoSoloModalHtml():'');
 }
+// ===== [Rodada 140] Mini tutorial "Como ler uma tablatura" (botão "?" acima do WhatsApp) =====
+const TUT = {aberto:false, passo:0};
+const TUT_CORDAS = [ // da 1ª (mizinha, linha de CIMA) à 6ª (linha de BAIXO)
+  {n:1, nome:'Mi', ext:'Mi agudo', apelido:'mizinha', desc:'a mais fina'},
+  {n:2, nome:'Si', ext:'Si', apelido:'', desc:''},
+  {n:3, nome:'Sol', ext:'Sol', apelido:'', desc:''},
+  {n:4, nome:'Ré', ext:'Ré', apelido:'', desc:''},
+  {n:5, nome:'Lá', ext:'Lá', apelido:'', desc:''},
+  {n:6, nome:'Mi', ext:'Mi grave', apelido:'', desc:'a mais grossa'}
+];
+function tutTocar(s, f){
+  try{
+    const ctx = teCtx(); const g = ctx.createGain(); g.connect(ctx.destination);
+    teVoice(ctx, g, {midi: TE_TUNINGS[0].midi[s-1] + (f||0), dur:1.0, n:{s, f:f||0}}, ctx.currentTime + 0.01);
+  }catch(e){}
+}
+function tutSeq(lista, gap){
+  lista.forEach((it, i)=> setTimeout(()=> (Array.isArray(it[0]) ? it : [it]).forEach(x=> tutTocar(x[0], x[1])), i*gap));
+}
+function tutLinhas(x0, x1, y0, esp, destaque){
+  let o = '';
+  for(let i=0;i<6;i++){
+    const w = 0.9 + i*0.28;
+    o += `<line x1="${x0}" y1="${y0+i*esp}" x2="${x1}" y2="${y0+i*esp}" stroke="currentColor" stroke-width="${w}" opacity="${destaque && destaque.indexOf(i)<0 ? .35 : .85}"/>`;
+  }
+  return o;
+}
+function tutSvg1(){
+  const y0 = 38, esp = 22;
+  let o = `<text x="20" y="16" font-size="11" fill="var(--accent)" font-weight="700">▲ AGUDO · fina</text>`;
+  o += tutLinhas(20, 168, y0, esp);
+  TUT_CORDAS.forEach((c, i)=>{
+    const y = y0 + i*esp;
+    const dest = (i===0 || i===5);
+    const rot = `${c.n}ª corda · ${c.ext}` + (c.apelido ? ' ("'+c.apelido+'")' : '');
+    o += `<g style="cursor:pointer" onclick="tutTocar(${c.n},0)"><rect x="14" y="${y-10}" width="400" height="20" fill="transparent"/>`
+      + `<text x="180" y="${y+4.5}" font-size="13.5" font-weight="${dest?700:500}" fill="${i===0?'var(--accent)':'currentColor'}">${rot}</text></g>`;
+  });
+  o += `<text x="20" y="${y0+5*esp+22}" font-size="11" fill="var(--muted)" font-weight="700">▼ GRAVE · grossa</text>`;
+  return `<svg viewBox="0 0 420 ${y0+5*esp+30}" fill="currentColor" class="tut-svg">${o}</svg>`;
+}
+function tutSvg2(){
+  const esp = 15, y0 = 42;
+  const painel = (x, ordem, tit, topo, base, cor)=>{
+    let o = `<text x="${x+55}" y="16" font-size="11.5" font-weight="700" text-anchor="middle">${tit}</text>`;
+    o += `<text x="${x+55}" y="30" font-size="10" fill="var(--muted)" text-anchor="middle">${topo}</text>`;
+    o += tutLinhas(x+14, x+100, y0, esp);
+    ordem.forEach((n, i)=>{
+      const c = (n===1) ? 'var(--accent)' : 'currentColor';
+      o += `<text x="${x+2}" y="${y0+i*esp+4}" font-size="11" font-weight="${n===1?800:500}" fill="${c}">${n}ª</text>`;
+    });
+    o += `<text x="${x+55}" y="${y0+5*esp+18}" font-size="10" fill="var(--muted)" text-anchor="middle">${base}</text>`;
+    return o;
+  };
+  let o = painel(0, [6,5,4,3,2,1], 'Olhando o violão', 'perto do seu rosto', 'perto do chão');
+  o += painel(200, [1,2,3,4,5,6], 'Na tablatura', 'som agudo (sobe)', 'som grave (desce)');
+  o += `<text x="167" y="${y0+2.5*esp}" font-size="22" fill="var(--accent)" text-anchor="middle" font-weight="700">⇄</text>`;
+  o += `<text x="167" y="${y0+2.5*esp+16}" font-size="9.5" fill="var(--accent)" text-anchor="middle" font-weight="700">inverte!</text>`;
+  return `<svg viewBox="0 0 330 ${y0+5*esp+28}" fill="currentColor" class="tut-svg">${o}</svg>`;
+}
+function tutSvg3(){
+  let o = '<line x1="14" y1="40" x2="336" y2="40" stroke="currentColor" stroke-width="1.2" opacity=".85"/>';
+  const xs = [34, 94, 154, 214, 274];
+  const fs = [0, 1, 3, 5, 7];
+  const leg = ['solta', 'casa 1', 'casa 3', 'casa 5', 'casa 7'];
+  xs.forEach((x, i)=>{
+    o += `<g style="cursor:pointer" onclick="tutTocar(1,${fs[i]})"><circle cx="${x}" cy="40" r="15" fill="var(--bg-panel)" stroke="var(--accent)" stroke-width="1.4"/>`
+      + `<text x="${x}" y="45" font-size="14" font-weight="800" text-anchor="middle" fill="currentColor">${fs[i]}</text>`
+      + `<text x="${x}" y="72" font-size="10.5" text-anchor="middle" fill="var(--muted)">${leg[i]}</text></g>`;
+  });
+  o += '<text x="175" y="16" font-size="10.5" text-anchor="middle" fill="var(--muted)">(exemplo na 1ª corda, a mizinha — toque nos números para ouvir)</text>';
+  return `<svg viewBox="0 0 350 82" fill="currentColor" class="tut-svg">${o}</svg>`;
+}
+// Mini tablatura de 6 linhas com números. notas: [{x, s, f}]
+function tutMiniTab(notas, larg, extra, alt){
+  const y0 = 24, esp = 17;
+  let o = tutLinhas(30, larg-8, y0, esp);
+  o += `<line x1="30" y1="${y0}" x2="30" y2="${y0+5*esp}" stroke="currentColor" stroke-width="1.4" opacity=".8"/>`;
+  o += `<text x="3" y="${y0+2.2*esp}" font-size="11" font-weight="800" fill="currentColor">T</text><text x="3" y="${y0+3.4*esp}" font-size="11" font-weight="800">A</text><text x="3" y="${y0+4.6*esp}" font-size="11" font-weight="800">B</text>`;
+  notas.forEach(n=>{
+    const y = y0 + (n.s-1)*esp;
+    o += `<rect x="${n.x-8}" y="${y-8}" width="16" height="16" fill="var(--bg-panel)"/><text x="${n.x}" y="${y+4.5}" font-size="13" font-weight="700" text-anchor="middle" fill="${n.cor||'currentColor'}">${n.f}</text>`;
+  });
+  return `<svg viewBox="0 0 ${larg} ${alt||(y0+5*esp+22)}" fill="currentColor" class="tut-svg">${o}${extra||''}</svg>`;
+}
+function tutSvg4(){
+  const y0 = 24, esp = 17;
+  const extra = `<circle cx="120" cy="${y0+2*esp}" r="13" fill="none" stroke="var(--accent)" stroke-width="2"/>`
+    + `<rect x="140" y="${y0+2*esp-9}" width="104" height="18" rx="4" fill="var(--bg-panel)"/>`
+    + `<text x="146" y="${y0+2*esp+4}" font-size="12" font-weight="700" fill="var(--accent)">← 3ª corda (Sol)</text>`
+    + `<line x1="120" y1="${y0+2*esp-13}" x2="120" y2="12" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 3"/>`
+    + `<text x="124" y="13" font-size="11" font-weight="700" fill="var(--accent)">2 = casa 2</text>`;
+  return tutMiniTab([{x:120, s:3, f:2, cor:'var(--accent)'}], 330, extra, 138);
+}
+function tutSvg5(){
+  const y0 = 38, esp = 17, larg = 350;
+  const seq = [{x:62,s:5,f:0},{x:92,s:4,f:2},{x:122,s:3,f:2},{x:152,s:2,f:1}];
+  const acorde = [{x:262,s:6,f:0},{x:262,s:5,f:2},{x:262,s:4,f:2},{x:262,s:3,f:0},{x:262,s:2,f:0},{x:262,s:1,f:0}];
+  let extra = '';
+  seq.forEach((n,i)=>{ extra += `<circle cx="${n.x}" cy="16" r="8" fill="var(--accent)"/><text x="${n.x}" y="20" font-size="10.5" font-weight="800" text-anchor="middle" fill="#fff">${i+1}</text>`; });
+  extra += `<path d="M58 ${y0+5*esp+12} L158 ${y0+5*esp+12}" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#tutSeta)"/>`;
+  extra += `<text x="108" y="${y0+5*esp+28}" font-size="10.5" text-anchor="middle" fill="var(--accent)" font-weight="700">uma de cada vez</text>`;
+  extra += `<rect x="250" y="${y0-12}" width="24" height="${5*esp+24}" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.6"/>`;
+  extra += `<text x="262" y="${y0+5*esp+28}" font-size="10.5" text-anchor="middle" fill="var(--accent)" font-weight="700">todas juntas</text>`;
+  const o = tutLinhas(30, larg-8, y0, esp)
+    + `<line x1="30" y1="${y0}" x2="30" y2="${y0+5*esp}" stroke="currentColor" stroke-width="1.4" opacity=".8"/>`
+    + seq.concat(acorde).map(n=>{ const y=y0+(n.s-1)*esp; return `<rect x="${n.x-8}" y="${y-8}" width="16" height="16" fill="var(--bg-panel)"/><text x="${n.x}" y="${y+4.5}" font-size="13" font-weight="700" text-anchor="middle">${n.f}</text>`; }).join('');
+  return `<svg viewBox="0 0 ${larg} ${y0+5*esp+36}" fill="currentColor" class="tut-svg"><defs><marker id="tutSeta" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="var(--accent)"/></marker></defs>${o}${extra}</svg>`;
+}
+function tutSvg6(){
+  const haste = (x, tipo)=>{
+    let o = `<ellipse cx="${x}" cy="46" rx="5.4" ry="4" fill="currentColor" transform="rotate(-18 ${x} 46)"/><line x1="${x+5}" y1="45" x2="${x+5}" y2="14" stroke="currentColor" stroke-width="1.4"/>`;
+    return o;
+  };
+  const viga = (xa, xb, n)=>{ let o=''; for(let i=0;i<n;i++) o += `<line x1="${xa+5}" y1="${14+i*5}" x2="${xb+5}" y2="${14+i*5}" stroke="currentColor" stroke-width="3"/>`; return o; };
+  let o = '';
+  o += haste(36) + `<text x="41" y="78" font-size="10.5" text-anchor="middle" fill="var(--muted)">1 tempo</text>`;
+  o += haste(120)+haste(150)+viga(120,150,1) + `<text x="140" y="78" font-size="10.5" text-anchor="middle" fill="var(--muted)">2 notas em 1 tempo</text>`;
+  o += haste(230)+haste(250)+haste(270)+haste(290)+viga(230,290,2) + `<text x="265" y="78" font-size="10.5" text-anchor="middle" fill="var(--muted)">4 notas em 1 tempo</text>`;
+  return `<svg viewBox="0 0 330 88" fill="currentColor" class="tut-svg">${o}</svg>`;
+}
+function tutSvg8(){
+  const base = (w)=>{ let o=''; for(let i=0;i<6;i++) o += `<line x1="4" y1="${12+i*9}" x2="${w-4}" y2="${12+i*9}" stroke="currentColor" stroke-width="1" opacity=".7"/>`; return o; };
+  const bar = x => `<line x1="${x}" y1="12" x2="${x}" y2="57" stroke="currentColor" stroke-width="1.6"/>`;
+  const num = (x,s,f)=>`<rect x="${x-6}" y="${12+(s-1)*9-6}" width="12" height="12" fill="var(--bg-panel)"/><text x="${x}" y="${12+(s-1)*9+3.6}" font-size="10.5" font-weight="700" text-anchor="middle">${f}</text>`;
+  const c1 = `<svg viewBox="0 0 150 70" fill="currentColor" class="tut-svg tut-mini">${base(150)}${bar(5)}${num(28,3,0)}${num(50,2,1)}${num(72,1,0)}${bar(90)}${num(110,3,2)}${num(132,2,3)}${bar(145)}</svg>`;
+  const forma = (cx, cy)=>`<path d="M${cx-6} ${cy+8} L${cx-2.6} ${cy+8} L${cx+6} ${cy-8} L${cx+2.6} ${cy-8} Z" fill="currentColor"/><circle cx="${cx-7.4}" cy="${cy-4.4}" r="1.7" fill="currentColor"/><circle cx="${cx+7.4}" cy="${cy+4.4}" r="1.7" fill="currentColor"/>`;
+  const c2 = `<svg viewBox="0 0 150 70" fill="currentColor" class="tut-svg tut-mini">${base(150)}${bar(5)}${num(28,3,0)}${num(50,2,1)}${num(72,1,0)}${bar(90)}${forma(118,34.5)}${bar(145)}</svg>`;
+  const rep = (x, ini)=>{
+    const s = ini ? 1 : -1;
+    return `<rect x="${ini?x:x-3}" y="12" width="3" height="45" fill="currentColor"/><rect x="${x+s*5}" y="12" width="1" height="45" fill="currentColor"/><circle cx="${x+s*9.8}" cy="25.5" r="1.5" fill="currentColor"/><circle cx="${x+s*9.8}" cy="43.5" r="1.5" fill="currentColor"/>`;
+  };
+  const c3 = `<svg viewBox="0 0 150 70" fill="currentColor" class="tut-svg tut-mini">${base(150)}${rep(5,true)}${num(40,3,0)}${num(62,2,1)}${num(84,1,0)}${num(106,2,3)}${rep(140,false)}</svg>`;
+  return {c1, c2, c3};
+}
+const TUT_PASSOS = [
+  {t:'O que é uma tablatura?', html:()=>`
+    <p>A tablatura (ou <b>"tab"</b>) é um jeito simples de mostrar <b>onde colocar os dedos</b> no violão ou na guitarra. Você não precisa saber ler partitura.</p>
+    <p>Ela mostra três coisas: <b>em qual corda</b> tocar, <b>em qual casa</b> apertar e <b>em que ordem</b> tocar.</p>
+    <p class="tut-dica">Vamos por partes, em poucos passos. Use os botões abaixo para avançar. Onde aparecer o desenho de cordas ou números, <b>pode tocar neles para ouvir o som</b>.</p>`},
+  {t:'As 6 linhas são as 6 cordas', html:()=>`
+    <p>Cada linha horizontal é uma corda do instrumento. Toque em cada uma para ouvir:</p>
+    ${tutSvg1()}
+    <p class="tut-alerta"><b>Atenção:</b> a linha de <b>CIMA</b> é a corda mais <b>fina</b>, a <b>mizinha</b> (1ª corda). A linha de <b>BAIXO</b> é a corda mais <b>grossa</b> (6ª corda, Mi grave).</p>
+    <p>Para lembrar: na tablatura, <b>som agudo fica em cima</b> e <b>som grave fica embaixo</b>, igual a um desenho de montanha.</p>`},
+  {t:'Por que a mizinha fica em cima?', html:()=>`
+    <p>Esse é o erro mais comum, então vale ver com calma. Quando você olha para o braço enquanto toca, a corda <b>grossa</b> fica mais perto do seu rosto (parece "em cima") e a <b>mizinha</b> fica mais perto do chão (parece "embaixo").</p>
+    ${tutSvg2()}
+    <p>A tablatura <b>não</b> desenha o que você vê: ela desenha a <b>altura do som</b>. Por isso ela vem "de cabeça para baixo" em relação ao que você enxerga.</p>
+    <p class="tut-dica"><b>Regra de ouro:</b> linha de cima = mizinha (fina). Linha de baixo = corda grossa. Sempre.</p>`},
+  {t:'Os números são as casas', html:()=>`
+    <p>O número escrito na linha diz <b>qual casa apertar</b> naquela corda:</p>
+    ${tutSvg3()}
+    <p><b>0</b> = corda <b>solta</b> (não aperta nada, só toca a corda). <b>1</b> = aperta na 1ª casa, <b>2</b> = na 2ª casa, e assim por diante. As casas são contadas a partir da cabeça do instrumento, onde ficam as tarraxas.</p>
+    <p class="tut-dica">Aperte sempre <b>logo antes do traste</b> (a barrinha de metal) da casa indicada.</p>`},
+  {t:'Lendo um número', html:()=>`
+    <p>A linha mostra <b>a corda</b>, e o número mostra <b>a casa</b>. Veja este exemplo:</p>
+    ${tutSvg4()}
+    <p>O <b>2</b> está na <b>3ª linha de cima</b>, então é a <b>3ª corda (Sol)</b>, apertada na <b>casa 2</b>. Resultado: a nota <b>Lá</b>.</p>
+    <p><button type="button" class="tut-play" onclick="tutTocar(3,2)">▶ Ouvir esta nota</button></p>
+    <p class="tut-dica">Dois passos sempre: 1) em que linha está? (corda) 2) qual é o número? (casa)</p>`},
+  {t:'A ordem de leitura', html:()=>`
+    <p>Leia da <b>esquerda para a direita</b>, como um texto. Números em lugares diferentes são tocados <b>um depois do outro</b>.</p>
+    ${tutSvg5()}
+    <p>Quando vários números aparecem <b>um embaixo do outro</b> (na mesma vertical), você toca <b>todos juntos</b>: é um acorde.</p>
+    <p>
+      <button type="button" class="tut-play" onclick="tutSeq([[5,0],[4,2],[3,2],[2,1]],420)">▶ Ouvir uma de cada vez</button>
+      <button type="button" class="tut-play" onclick="tutSeq([[[6,0],[5,2],[4,2],[3,0],[2,0],[1,0]]],0)">▶ Ouvir juntas</button>
+    </p>`},
+  {t:'Duração das notas', html:()=>`
+    <p>Os <b>tracinhos desenhados embaixo</b> da tablatura mostram quanto tempo cada nota dura, como o ritmo de uma partitura:</p>
+    ${tutSvg6()}
+    <p>Quanto mais <b>traços ligando</b> as notas, <b>mais rápidas</b> elas são. Se não houver tracinhos, a distância entre os números dá uma ideia do tempo: números mais afastados soam por mais tempo.</p>
+    <p class="tut-dica">Se tiver dúvida do ritmo, aperte o <b>play</b> do solo e acompanhe: a nota que está soando fica marcada na tela.</p>`},
+  {t:'Símbolos e técnicas', html:()=>`
+    <div class="tut-grid">
+      <div><b class="tut-sym">x</b><span>Nota <b>abafada</b>: toque a corda sem deixar soar a nota, só o "toc".</span></div>
+      <div><b class="tut-sym">( 5 )</b><span>Entre parênteses: nota <b>fantasma</b> (bem suave) ou nota que já está soando.</span></div>
+      <div><b class="tut-sym">&lt;12&gt;</b><span><b>Harmônico</b>: encoste de leve na corda, sobre o traste, e toque.</span></div>
+      <div><b class="tut-sym">⌒</b><span>Arco entre dois números: <b>ligado</b>. Toque só o primeiro e faça o segundo soar com o dedo (sem palhetar).</span></div>
+      <div><b class="tut-sym">/ &nbsp;\\</b><span><b>Slide</b>: deslize o dedo pela corda de uma casa até a outra, sem soltar.</span></div>
+      <div><b class="tut-sym">b</b><span><b>Bend</b>: empurre a corda para subir o tom. Com <b>r</b>, volte soltando.</span></div>
+      <div><b class="tut-sym">~</b><span><b>Vibrato</b>: balance levemente a corda com o dedo.</span></div>
+      <div><b class="tut-sym">P.M.</b><span><b>Palm mute</b>: apoie a lateral da mão direita perto da ponte para abafar. <b>let ring</b>: deixe as notas soando.</span></div>
+    </div>`},
+  {t:'Compassos, símile e ritornelo', html:()=>{ const s = tutSvg8(); return `
+    <div class="tut-cards">
+      <div class="tut-card">${s.c1}<b>Barras verticais</b><span>Dividem a música em <b>compassos</b>, pequenos blocos de tempo. Ajudam a não se perder.</span></div>
+      <div class="tut-card">${s.c2}<b>Símile ( % )</b><span>O símbolo no meio do compasso significa: <b>repita o compasso anterior</b>, igualzinho.</span></div>
+      <div class="tut-card">${s.c3}<b>Ritornelo ( ‖: &nbsp;:‖ )</b><span>As duas barras com pontos mandam <b>voltar ao início do trecho</b> e tocar de novo. Se aparecer "3x", toque três vezes no total.</span></div>
+    </div>
+    <p class="tut-dica">Na tablatura do solo, <b>passe o mouse</b> (ou toque) sobre o símile e o ritornelo para ver a explicação. No play, o ritornelo é repetido sozinho.</p>`; }},
+  {t:'Resumo', html:()=>`
+    <ul class="tut-lista">
+      <li><b>Linha de cima = mizinha</b> (corda fina). Linha de baixo = corda grossa.</li>
+      <li><b>Número = casa</b> a apertar. <b>0</b> = corda solta.</li>
+      <li>Leia da <b>esquerda para a direita</b>.</li>
+      <li>Números <b>um embaixo do outro</b> = tocar <b>juntos</b>.</li>
+      <li>Símbolos (x, ~, b, /) dizem <b>como</b> tocar a nota.</li>
+      <li><b>%</b> repete o compasso anterior e <b>‖:  :‖</b> repete um trecho.</li>
+    </ul>
+    <p class="tut-dica">Dúvida em alguma parte? Fale com o professor pelo botão do WhatsApp.</p>`}
+];
+function tutHtml(){
+  const n = TUT_PASSOS.length, i = TUT.passo, p = TUT_PASSOS[i];
+  const dots = TUT_PASSOS.map((_, k)=>`<button type="button" class="tut-dot${k===i?' on':''}${k<i?' feito':''}" onclick="tutIr(${k})" aria-label="Passo ${k+1}"></button>`).join('');
+  return `<div class="tut-card-main" role="dialog" aria-modal="true" aria-label="Como ler uma tablatura" onclick="event.stopPropagation()">
+    <div class="tut-head"><span class="tut-badge">${i+1}/${n}</span><h3>${p.t}</h3><button type="button" class="tut-x" onclick="tutFechar()" aria-label="Fechar">✕</button></div>
+    <div class="tut-body">${p.html()}</div>
+    <div class="tut-foot">
+      <button type="button" class="btn btn-ghost btn-small" onclick="tutIr(${i-1})" ${i===0?'disabled':''}>‹ Anterior</button>
+      <div class="tut-dots">${dots}</div>
+      ${i<n-1 ? `<button type="button" class="btn btn-small" onclick="tutIr(${i+1})">Próximo ›</button>` : `<button type="button" class="btn btn-small" onclick="tutFechar()">Entendi!</button>`}
+    </div>
+  </div>`;
+}
+function tutRender(){
+  let el = document.getElementById('teTutorial');
+  if(!TUT.aberto){ if(el) el.remove(); return; }
+  if(!el){ el = document.createElement('div'); el.id = 'teTutorial'; el.className = 'tut-overlay no-print'; el.onclick = tutFechar; document.body.appendChild(el); }
+  el.innerHTML = tutHtml();
+  const b = el.querySelector('.tut-body'); if(b) b.scrollTop = 0;
+}
+function tutAbrir(){ TUT.aberto = true; TUT.passo = 0; tutRender(); }
+function tutFechar(){ TUT.aberto = false; tutRender(); }
+function tutIr(k){ if(k<0 || k>=TUT_PASSOS.length) return; TUT.passo = k; tutRender(); }
+document.addEventListener('keydown', ev=>{
+  if(!TUT.aberto) return;
+  if(ev.key==='Escape'){ tutFechar(); ev.preventDefault(); }
+  else if(ev.key==='ArrowRight'){ tutIr(TUT.passo+1); ev.preventDefault(); }
+  else if(ev.key==='ArrowLeft'){ tutIr(TUT.passo-1); ev.preventDefault(); }
+});
 function updateWhatsappFabVisibility(){
   const waBtn = document.getElementById('whatsappBtn');
   if(!waBtn) return;
   const hide = (state.view==='login' || state.view==='professorArea');
   waBtn.style.display = hide ? 'none' : '';
+  const hb = document.getElementById('teHelpBtn');
+  if(hb) hb.style.display = (state.view==='solo-viewer' || state.view==='solo-editor') ? '' : 'none';
 }
 function updateProfessorBanner(){
   const banner = document.getElementById('profBanner');
